@@ -1,0 +1,38 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+<!--
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div> -->
+
+<div class="text-center mt-5">
+    <h1 class="display-5">¡Bienvenido, @User.Identity.Name!</h1>
+    <p class="lead">Ya has iniciado sesión en el sistema Propama.</p>
+
+    <!-- admin -->
+    @if (User.IsInRole("Admin"))
+    {
+        <div class="alert alert-primary mt-4">
+            <h4>Panel de Administración</h4>
+            <p>Aquí puedes gestionar usuarios, productos, y generar reportes.</p>
+            <a class="btn btn-primary" href="/Admin/Panel">Ir al Panel de Admin</a>
+        </div>
+    }
+
+    <!-- empleado -->
+    @if (User.IsInRole("Empleado"))
+    {
+        <div class="alert alert-success mt-4">
+            <h4>Panel de Empleado</h4>
+            <p>Aquí puedes generar facturas, consultar inventario y clientes.</p>
+            <a class="btn btn-success" href="/Empleado/Panel">Ir al Panel de Empleado</a>
+        </div>
+    }
+
+    <!-- Botón de logout 
+    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+        <button type="submit" class="btn btn-danger mt-3">Cerrar sesión</button>
+    </form> -->
+</div>

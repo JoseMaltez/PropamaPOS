@@ -1,0 +1,121 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+  color: var(--bs-secondary-color);
+  text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+  text-align: start;
+}
+
+
+/*tema ocuro*/
+.dark-theme {
+    background-color: #181a1b;
+    color: #e0e0e0;
+}
+
+    .dark-theme .card,
+    .dark-theme .alert,
+    .dark-theme .navbar,
+    .dark-theme .footer {
+        background-color: #23272b !important;
+        color: #e0e0e0 !important;
+        border-color: #343a40 !important;
+    }
+
+    .dark-theme .form-control {
+        background-color: #23272b;
+        color: #e0e0e0;
+        border-color: #343a40;
+    }
+
+    .dark-theme .form-label,
+    .dark-theme label,
+    .dark-theme .card-title,
+    .dark-theme h3,
+    .dark-theme h1,
+    .dark-theme h2 {
+        color: #e0e0e0 !important;
+    }
+
+    .dark-theme .btn-primary,
+    .dark-theme .btn-success,
+    .dark-theme .btn-danger {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: #fff;
+    }
+
+        .dark-theme .btn-primary:hover,
+        .dark-theme .btn-success:hover,
+        .dark-theme .btn-danger:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+    .dark-theme .nav-link,
+    .dark-theme a {
+        color: #66bfff !important;
+    }
+
+        .dark-theme .nav-link:hover,
+        .dark-theme a:hover {
+            color: #3399ff !important;
+        }
+
+    .dark-theme .text-dark {
+        color: #e0e0e0 !important;
+    }
+
+    .dark-theme .alert-info {
+        background-color: #2c3e50;
+        color: #b3e5fc;
+    }
+
+    .dark-theme .alert-danger {
+        background-color: #b71c1c !important;
+        color: #fff !important;
+        border-color: #f44336 !important;
+    }
+
+    .dark-theme .alert-warning {
+        background-color: #f57c00 !important;
+        color: #fff !important;
+        border-color: #ffa726 !important;
+    }
+
+    .dark-theme .alert-info {
+        background-color: #1565c0 !important;
+        color: #e3f2fd !important;
+        border-color: #64b5f6 !important;
+    }
+
+    .dark-theme .text-danger,
+    .dark-theme .validation-summary-errors,
+    .dark-theme .field-validation-error {
+        color: #ff5252 !important;
+        font-weight: bold;
+    }

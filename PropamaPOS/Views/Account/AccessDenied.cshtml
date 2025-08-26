@@ -1,0 +1,19 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Acceso Denegado";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="alert alert-danger shadow-lg p-4 text-center">
+                <h3 class="mb-3">🚫 Acceso Denegado</h3>
+                <p>No tienes permisos para acceder a esta página.</p>
+                <a asp-action="Login" asp-controller="Account" class="btn btn-primary mt-3">Volver al login</a>
+            </div>
+        </div>
+    </div>
+</div>
+
