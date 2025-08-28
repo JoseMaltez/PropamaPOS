@@ -27,7 +27,7 @@ builder.Services.AddTransient<EmailServiceClient>();
 
 builder.Services.AddHttpClient("EmailService", client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7044"); // el puerto de tu microservicio
+    client.BaseAddress = new Uri("http://localhost:5204");
 });
 
 
