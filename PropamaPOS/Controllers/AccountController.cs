@@ -145,9 +145,12 @@ namespace PropamaPOS.Controllers
             <p><strong>Importante:</strong> este enlace expira en 1 hora.</p>
             <p>Si no fuiste tú, puedes ignorar este mensaje.</p>";
 
-            await _emailClient.SendAsync(usuario.Correo, subject, body);
+            var (success, message) = await _emailClient.SendAsync(usuario.Correo, subject, body);
 
-            TempData["Message"] = "Si el correo existe, recibirás un enlace de recuperación.";
+            TempData["Message"] = success
+                ? "Si el correo existe, recibirás un enlace de recuperación."
+                : $"No se pudo enviar el correo: {message}";
+
             return RedirectToAction("ForgotPassword");
 
 
