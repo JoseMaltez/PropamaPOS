@@ -25,6 +25,13 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Email"));
 //Nueva instancia EmailSender cada vez que se necesite enviar un correo
 builder.Services.AddTransient<IEmailSender, EmailSender>();
+builder.Services.AddTransient<EmailServiceClient>();
+
+builder.Services.AddHttpClient("EmailService", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7044"); // el puerto de tu microservicio
+});
+
 
 builder.Services.AddControllersWithViews(options =>
 {
