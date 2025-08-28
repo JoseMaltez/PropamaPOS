@@ -22,9 +22,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // tiempo de sesión
     });
 
-builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Email"));
-//Nueva instancia EmailSender cada vez que se necesite enviar un correo
-builder.Services.AddTransient<IEmailSender, EmailSender>();
+
 builder.Services.AddTransient<EmailServiceClient>();
 
 builder.Services.AddHttpClient("EmailService", client =>

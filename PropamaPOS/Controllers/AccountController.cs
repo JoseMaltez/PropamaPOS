@@ -16,12 +16,12 @@ namespace PropamaPOS.Controllers
     public class AccountController : Controller
     {
         private readonly AppDbContext _context;
-        private readonly IEmailSender _email;
+        private readonly EmailServiceClient _emailClient;
 
-        public AccountController(AppDbContext context, IEmailSender email)
+        public AccountController(AppDbContext context, EmailServiceClient emailClient)
         {
             _context = context;
-            _email = email;
+            _emailClient = emailClient;
         }
 
         [HttpGet] //No es necesario colocar [HttpGet] ya que es el valor por defecto
@@ -145,7 +145,7 @@ namespace PropamaPOS.Controllers
             <p><strong>Importante:</strong> este enlace expira en 1 hora.</p>
             <p>Si no fuiste tú, puedes ignorar este mensaje.</p>";
 
-            await _email.SendAsync(usuario.Correo, subject, body);
+            await _emailClient.SendAsync(usuario.Correo, subject, body);
 
             TempData["Message"] = "Si el correo existe, recibirás un enlace de recuperación.";
             return RedirectToAction("ForgotPassword");
