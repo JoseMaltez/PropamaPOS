@@ -1,0 +1,15 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model PropamaPOS.Services.ProveedorDto
+@{
+}
+<h2>Eliminar Proveedor</h2>
+
+<p>¿Seguro que deseas eliminar a <strong>@Model.Nombre</strong>?</p>
+
+<form asp-action="DeleteConfirmed">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit">Eliminar</button> |
+    <a asp-action="Index">Cancelar</a>
+</form>

@@ -1,0 +1,27 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model PropamaPOS.Services.ProveedorDto
+@{
+}
+<h2>Agregar Proveedor</h2>
+
+<form asp-action="Create">
+    <div>
+        <label>Nombre</label>
+        <input asp-for="Nombre" />
+    </div>
+    <div>
+        <label>Teléfono</label>
+        <input asp-for="Telefono" />
+    </div>
+    <div>
+        <label>Correo</label>
+        <input asp-for="Correo" />
+    </div>
+    <div>
+        <label>Dirección</label>
+        <input asp-for="Direccion" />
+    </div>
+    <button type="submit">Guardar</button>
+</form>
