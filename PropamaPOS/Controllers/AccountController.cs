@@ -143,13 +143,14 @@ namespace PropamaPOS.Controllers
             <p>Solicitaste restablecer tu contraseña. Haz clic en el siguiente enlace o cópialo en tu navegador:</p>
             <p><a href=""{resetLink}"">{resetLink}</a></p>
             <p><strong>Importante:</strong> este enlace expira en 1 hora.</p>
-            <p>Si no fuiste tú, puedes ignorar este mensaje.</p>";
+            <p>Si no fuiste tú, puedes ignorar este mensaje.</p>
+            <p>Este es un correo automático, por favor no responder.</p>";
 
             var (success, message) = await _emailClient.SendAsync(usuario.Correo, subject, body);
 
             TempData["Message"] = success
                 ? "Si el correo existe, recibirás un enlace de recuperación."
-                : $"No se pudo enviar el correo: {message}";
+                : $"{message}";
 
             return RedirectToAction("ForgotPassword");
 
