@@ -30,6 +30,12 @@ builder.Services.AddHttpClient("EmailService", client =>
     client.BaseAddress = new Uri("http://localhost:5204");
 });
 
+builder.Services.AddHttpClient<ProveedorServiceClient>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5050/"); // puerto donde corre el microservicio
+});
+
+
 
 builder.Services.AddControllersWithViews(options =>
 {
