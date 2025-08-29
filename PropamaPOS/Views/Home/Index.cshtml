@@ -11,25 +11,12 @@
     <h1 class="display-5">¡Bienvenido, @User.Identity.Name!</h1>
     <p class="lead">Ya has iniciado sesión en el sistema Propama.</p>
 
-    <!-- admin -->
-    @if (User.IsInRole("Admin"))
-    {
+    
         <div class="alert alert-primary mt-4">
-            <h4>Panel de Administración</h4>
-            <p>Aquí puedes gestionar usuarios, productos, y generar reportes.</p>
-            <a class="btn btn-primary" href="/Admin/Panel">Ir al Panel de Admin</a>
+            <h4>Panel de Proveedores</h4>
+            <p>Aquí puedes gestionar y consultar los datos de los proveedores.</p>
+            <a class="btn btn-primary" href="/Proveedores/Index">Ir al Panel de Proveedores</a>
         </div>
-    }
-
-    <!-- empleado -->
-    @if (User.IsInRole("Empleado"))
-    {
-        <div class="alert alert-success mt-4">
-            <h4>Panel de Empleado</h4>
-            <p>Aquí puedes generar facturas, consultar inventario y clientes.</p>
-            <a class="btn btn-success" href="/Empleado/Panel">Ir al Panel de Empleado</a>
-        </div>
-    }
 
     <!-- Botón de logout 
     <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
