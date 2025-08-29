@@ -58,8 +58,8 @@ namespace PropamaPOS.Controllers
             return View(proveedor);
         }
 
-        [HttpPost, ActionName("Delete")]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id, ProveedorDto proveedor)
         {
             await _service.DeleteProveedorAsync(id);
             return RedirectToAction(nameof(Index));
