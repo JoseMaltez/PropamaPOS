@@ -11,7 +11,7 @@
             <div class="card-body">
                 <h3 class="text-center mb-4">Iniciar Sesión</h3>
 
-                <form asp-action="Login" method="post">
+                <form asp-action="Login" method="post" id="loginForm">
                     <div class="form-group mb-3">
                         <label for="correo">Correo</label>
                         <input type="email" name="correo" class="form-control" 
@@ -24,7 +24,12 @@
                         placeholder="Ingrese su contraseña" required />
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+                    <button type="submit" class="btn btn-primary w-100" id="btnLogin">
+                        <span id="loginText">Ingresar</span>
+                        <span id="loginSpinner" class="spinner-border spinner-border-sm d-none" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </span>
+                    </button>
 
                     @if (ViewBag.Error != null)
                     {
