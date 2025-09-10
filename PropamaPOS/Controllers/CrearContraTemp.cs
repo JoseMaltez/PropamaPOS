@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -6,7 +7,7 @@ namespace PropamaPOS.Controllers
 {
     public class CrearContraTemp : Controller
     {
-        // URL: /Utilidades/GenerarHash?password=123456
+        [AllowAnonymous]
         public IActionResult GenerarHash(string password)
         {
             if (string.IsNullOrEmpty(password))

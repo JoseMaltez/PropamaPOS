@@ -1,0 +1,50 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model PropamaPOS.Models.Usuario
+
+@{
+    ViewData["Title"] = "Eliminar Usuario";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4 text-danger">¿Eliminar Usuario?</h3>
+
+                    <div class="alert alert-warning">
+                        <strong>¡Advertencia!</strong> Esta acción no se puede deshacer. El usuario será eliminado permanentemente.
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Información del Usuario</h5>
+                        <dl class="row">
+                            <dt class="col-sm-4">ID:</dt>
+                            <dd class="col-sm-8">@Model.Id_Usuario</dd>
+
+                            <dt class="col-sm-4">Correo:</dt>
+                            <dd class="col-sm-8">@Model.Correo</dd>
+
+                            <dt class="col-sm-4">Rol:</dt>
+                            <dd class="col-sm-8">@Model.Rol?.Nombre</dd>
+                        </dl>
+                    </div>
+
+                    <form asp-action="EliminarUsuarioConfirmado" method="post">
+                        <input type="hidden" asp-for="Id_Usuario" />
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Usuarios" class="btn btn-secondary me-md-2">Cancelar</a>
+                            <button type="submit" class="btn btn-danger"
+                                    onclick="return confirm('¿Estás seguro de que quieres eliminar este usuario? Esta acción no se puede deshacer.')">
+                                <i class="bi bi-trash"></i> Eliminar Definitivamente
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

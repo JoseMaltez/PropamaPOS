@@ -1,0 +1,96 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model PropamaPOS.Models.ViewModels.EditarUsuarioViewModel
+
+@{
+    ViewData["Title"] = "Editar Usuario";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">Editar Usuario</h3>
+
+                    <form asp-action="EditarUsuario" method="post">
+                        <input type="hidden" asp-for="Id_Usuario" />
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Correo" class="form-label">Correo Electrónico</label>
+                            <input asp-for="Correo" class="form-control" placeholder="ejemplo@correo.com" />
+                            <span asp-validation-for="Correo" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Id_Rol" class="form-label">Rol</label>
+                            <select asp-for="Id_Rol" class="form-select" asp-items="@(new SelectList(ViewBag.Roles, "Id_Rol", "Nombre"))">
+                                <option value="">Seleccionar Rol</option>
+                            </select>
+                            <span asp-validation-for="Id_Rol" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="cambiarPassword" />
+                                <label class="form-check-label" for="cambiarPassword">Cambiar contraseña</label>
+                            </div>
+                        </div>
+
+                        <div id="passwordFields" style="display: none;">
+                            <div class="mb-3">
+                                <label asp-for="Password" class="form-label">Nueva Contraseña</label>
+                                <input asp-for="Password" type="password" class="form-control" />
+                                <span asp-validation-for="Password" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="ConfirmPassword" class="form-label">Confirmar Contraseña</label>
+                                <input asp-for="ConfirmPassword" type="password" class="form-control" />
+                                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Usuarios" class="btn btn-secondary me-md-2">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const cambiarPasswordCheckbox = document.getElementById('cambiarPassword');
+            const passwordFields = document.getElementById('passwordFields');
+
+            cambiarPasswordCheckbox.addEventListener('change', function () {
+                if (this.checked) {
+                    passwordFields.style.display = 'block';
+                    // Hacer requeridos los campos de contraseña
+                    document.querySelector('input[name="Password"]').setAttribute('required', 'required');
+                    document.querySelector('input[name="ConfirmPassword"]').setAttribute('required', 'required');
+                } else {
+                    passwordFields.style.display = 'none';
+                    // Quitar el requerido
+                    document.querySelector('input[name="Password"]').removeAttribute('required');
+                    document.querySelector('input[name="ConfirmPassword"]').removeAttribute('required');
+                    // Limpiar los campos
+                    document.querySelector('input[name="Password"]').value = '';
+                    document.querySelector('input[name="ConfirmPassword"]').value = '';
+                }
+            });
+        });
+    </script>
+}
