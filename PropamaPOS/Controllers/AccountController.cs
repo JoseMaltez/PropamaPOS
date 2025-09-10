@@ -35,7 +35,7 @@ namespace PropamaPOS.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login(string correo, string password)
         {
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.Correo == correo);
+            var usuario = _context.Usuarios.Include(u => u.Rol).FirstOrDefault(u => u.Correo == correo);
 
             if (usuario == null)
             {
@@ -61,7 +61,7 @@ namespace PropamaPOS.Controllers
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, usuario.Correo),
-                new Claim(ClaimTypes.Role, usuario.Rol ?? "Empleado")
+                new Claim(ClaimTypes.Role, usuario.Rol.Nombre ?? "Empleado")
             };
 
             var claimsIdentity = new ClaimsIdentity(
