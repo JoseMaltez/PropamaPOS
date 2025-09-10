@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PropamaPOS.Models
 {
@@ -13,6 +14,9 @@ namespace PropamaPOS.Models
         [Required]
         public string ContraSalt { get; set; }
         [Required]
-        public string Rol { get; set; }
+        public int Id_Rol { get; set; }
+
+        [ForeignKey("Id_Rol")]
+        public Rol Rol { get; set; }
     }
 }
