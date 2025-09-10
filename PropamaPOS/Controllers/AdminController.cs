@@ -101,6 +101,12 @@ namespace PropamaPOS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditarUsuario(int id, EditarUsuarioViewModel model)
         {
+            if (string.IsNullOrEmpty(model.Password))
+            {
+                ModelState.Remove("Password");
+                ModelState.Remove("ConfirmPassword");
+            }
+
             if (id != model.Id_Usuario)
             {
                 return NotFound();
@@ -176,7 +182,8 @@ namespace PropamaPOS.Controllers
         }
 
         // POST: Admin/EliminarUsuario/5
-        [HttpPost, ActionName("EliminarUsuario")]
+        [HttpPost]
+        [ActionName("EliminarUsuario")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EliminarUsuarioConfirmado(int id)
         {
