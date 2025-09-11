@@ -19,6 +19,12 @@ namespace PropamaPOS.Controllers
             _context = context;
         }
 
+        // GET: Admin/Dashboard
+        public IActionResult Dashboard()
+        {
+            return View();
+        }
+
         // GET: Admin/Usuarios
         public async Task<IActionResult> Usuarios()
         {
