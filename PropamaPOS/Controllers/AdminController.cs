@@ -50,7 +50,7 @@ namespace PropamaPOS.Controllers
             if (ModelState.IsValid)
             {
                 // Verificar si el correo ya existe
-                if (await _context.Usuarios.AnyAsync(u => u.Correo == model.Correo))
+                if (await _context.Usuarios.AnyAsync(u => u.NombreUsuario == model.NombreUsuario))
                 {
                     ModelState.AddModelError("Correo", "Este correo ya está registrado.");
                     ViewBag.Roles = await _context.Roles.ToListAsync();
@@ -62,7 +62,7 @@ namespace PropamaPOS.Controllers
                 {
                     var usuario = new Usuario
                     {
-                        Correo = model.Correo,
+                        NombreUsuario = model.NombreUsuario,
                         ContraSalt = Convert.ToBase64String(hmac.Key),
                         ContraHash = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(model.Password))),
                         Id_Rol = model.Id_Rol
@@ -95,7 +95,7 @@ namespace PropamaPOS.Controllers
             var model = new EditarUsuarioViewModel
             {
                 Id_Usuario = usuario.Id_Usuario,
-                Correo = usuario.Correo,
+                NombreUsuario = usuario.NombreUsuario,
                 Id_Rol = usuario.Id_Rol
             };
 
@@ -129,14 +129,14 @@ namespace PropamaPOS.Controllers
                     }
 
                     // Verificar si el correo ya existe (excluyendo el usuario actual)
-                    if (await _context.Usuarios.AnyAsync(u => u.Correo == model.Correo && u.Id_Usuario != id))
+                    if (await _context.Usuarios.AnyAsync(u => u.NombreUsuario == model.NombreUsuario && u.Id_Usuario != id))
                     {
                         ModelState.AddModelError("Correo", "Este correo ya está registrado.");
                         ViewBag.Roles = await _context.Roles.ToListAsync();
                         return View(model);
                     }
 
-                    usuario.Correo = model.Correo;
+                    usuario.NombreUsuario = model.NombreUsuario;
                     usuario.Id_Rol = model.Id_Rol;
 
                     // Si se proporcionó una nueva contraseña, actualizarla

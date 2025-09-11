@@ -4,9 +4,9 @@ namespace PropamaPOS.Models.ViewModels
 {
     public class CrearUsuarioViewModel
     {
-        [Required(ErrorMessage = "El correo es obligatorio")]
-        [EmailAddress(ErrorMessage = "El correo no es válido")]
-        public string Correo { get; set; }
+        [Required(ErrorMessage = "El nombre de usuario es obligatorio")]
+        [MaxLength(50, ErrorMessage = "El nombre de usuario no puede exceder 50 caracteres")]
+        public string NombreUsuario { get; set; }
 
         [Required(ErrorMessage = "La contraseña es obligatoria")]
         [DataType(DataType.Password)]

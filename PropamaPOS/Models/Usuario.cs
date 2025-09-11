@@ -8,7 +8,8 @@ namespace PropamaPOS.Models
         [Key]
         public int Id_Usuario { get; set; }
         [Required]
-        public string Correo { get; set; }
+        [MaxLength(50)]
+        public string NombreUsuario { get; set; }
         [Required]
         public string ContraHash { get; set; }
         [Required]
@@ -18,5 +19,7 @@ namespace PropamaPOS.Models
 
         [ForeignKey("Id_Rol")]
         public Rol Rol { get; set; }
+
+        public Empleado Empleado { get; set; }
     }
 }

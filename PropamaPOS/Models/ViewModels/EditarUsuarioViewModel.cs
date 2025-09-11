@@ -6,9 +6,9 @@ namespace PropamaPOS.Models.ViewModels
     {
         public int Id_Usuario { get; set; }
 
-        [Required(ErrorMessage = "El correo es obligatorio")]
-        [EmailAddress(ErrorMessage = "El correo no es válido")]
-        public string Correo { get; set; }
+        [Required(ErrorMessage = "El nombre de usuario es obligatorio")]
+        [MaxLength(50, ErrorMessage = "El nombre de usuario no puede exceder 50 caracteres")]
+        public string NombreUsuario { get; set; }
 
         [DataType(DataType.Password)]
         [MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres")]

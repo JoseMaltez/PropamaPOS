@@ -33,9 +33,11 @@ namespace PropamaPOS.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> Login(string correo, string password)
+        public async Task<IActionResult> Login(string nombreUsuario, string password)
         {
-            var usuario = _context.Usuarios.Include(u => u.Rol).FirstOrDefault(u => u.Correo == correo);
+            var usuario = _context.Usuarios.Include(u => u.Rol)
+                .Include(u => u.Empleado)
+                .FirstOrDefault(u => u.NombreUsuario == nombreUsuario);
 
             if (usuario == null)
             {
@@ -60,7 +62,7 @@ namespace PropamaPOS.Controllers
             //Crear Claims para la cookie
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, usuario.Correo),
+                new Claim(ClaimTypes.Name, usuario.Empleado.Nombre + " " + usuario.Empleado.Apellido),
                 new Claim(ClaimTypes.Role, usuario.Rol.Nombre ?? "Empleado")
             };
 
@@ -112,13 +114,17 @@ namespace PropamaPOS.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == model.Email);
+            var empleado = await _context.Empleados
+                .Include(e => e.Usuario)
+                .FirstOrDefaultAsync(e => e.Correo == model.Email);
 
-            if (usuario == null)
+            if (empleado == null || empleado.Usuario == null)
             {
                 TempData["Message"] = "Si el correo existe, recibirás un enlace de recuperación.";
                 return RedirectToAction("ForgotPassword");
             }
+
+            var usuario = empleado.Usuario;
 
             // Generar token aleatorio
             var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
@@ -146,7 +152,7 @@ namespace PropamaPOS.Controllers
             <p>Si no fuiste tú, puedes ignorar este mensaje.</p>
             <p>Este es un correo automático, por favor no responder.</p>";
 
-            var (success, message) = await _emailClient.SendAsync(usuario.Correo, subject, body);
+            var (success, message) = await _emailClient.SendAsync(empleado.Correo, subject, body);
 
             TempData["Message"] = success
                 ? "Si el correo existe, recibirás un enlace de recuperación."
