@@ -16,6 +16,17 @@ namespace PropamaPOS.Controllers
 
         public IActionResult Index()
         {
+            // Redirigir según el rol
+            if (User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Dashboard", "Admin");
+            }
+            else if (User.IsInRole("Empleado"))
+            {
+                return RedirectToAction("Dashboard", "Empleado");
+            }
+
+            // Si no está autenticado, mostrar la vista predeterminada
             return View();
         }
 
