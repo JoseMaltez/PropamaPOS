@@ -5,17 +5,17 @@ namespace PropamaPOS.Models.ViewModels
     public class CrearEmpleadoViewModel
     {
         [Required(ErrorMessage = "El nombre de usuario es obligatorio")]
-        [MaxLength(50)]
+        [MaxLength(50, ErrorMessage = "El nombre de usuario no puede exceder los 50 caracteres")]
         public string NombreUsuario { get; set; }
 
         [Required(ErrorMessage = "La contraseña es obligatoria")]
         [DataType(DataType.Password)]
-        [MinLength(6)]
+        [MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres")]
         public string Password { get; set; }
 
         [Required(ErrorMessage = "Confirmar contraseña es obligatorio")]
         [DataType(DataType.Password)]
-        [Compare("Password")]
+        [Compare("Password", ErrorMessage = "Las contraseñas no coinciden")]
         public string ConfirmPassword { get; set; }
 
         [Required]

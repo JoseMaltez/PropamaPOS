@@ -1,0 +1,73 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model PropamaPOS.Models.Empleado
+@{
+    ViewData["Title"] = "Eliminar Empleado";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4 text-danger">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Eliminar Empleado
+                    </h3>
+
+                    <div class="alert alert-danger" role="alert">
+                        <h5 class="alert-heading">¿Estás seguro de que quieres eliminar este empleado?</h5>
+                        <p class="mb-0">Esta acción no se puede deshacer. Se eliminarán todos los datos asociados al empleado.</p>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">Información del Empleado</h6>
+                            <dl class="row">
+                                <dt class="col-sm-4">ID:</dt>
+                                <dd class="col-sm-8">@Model.Id_Empleado</dd>
+
+                                <dt class="col-sm-4">Nombre:</dt>
+                                <dd class="col-sm-8">@Model.Nombre @Model.Apellido</dd>
+
+                                <dt class="col-sm-4">Correo:</dt>
+                                <dd class="col-sm-8">@Model.Correo</dd>
+
+                                <dt class="col-sm-4">Teléfono:</dt>
+                                <dd class="col-sm-8">@Model.Telefono</dd>
+
+                                <dt class="col-sm-4">Rol:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge bg-@(Model.Usuario.Rol?.Nombre == "Admin" ? "danger" : "secondary")">
+                                        @Model.Usuario.Rol?.Nombre
+                                    </span>
+                                </dd>
+
+                                <dt class="col-sm-4">Estado:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge bg-@(Model.Activo ? "success" : "danger")">
+                                        @(Model.Activo ? "Activo" : "Inactivo")
+                                    </span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <form asp-action="EliminarEmpleado" method="post">
+                        <input type="hidden" asp-for="Id_Empleado" />
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Empleados" class="btn btn-secondary me-md-2">
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger"
+                                    onclick="return confirm('¿Estás seguro de que quieres eliminar este empleado? Esta acción no se puede deshacer.')">
+                                <i class="bi bi-trash"></i> Eliminar Definitivamente
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
