@@ -35,11 +35,11 @@ namespace PropamaPOS.Models.ViewModels
 
         [DataType(DataType.Password)]
         [MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres")]
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Las contraseñas no coinciden")]
-        public string ConfirmPassword { get; set; }
+        public string? ConfirmPassword { get; set; }
 
         [Required(ErrorMessage = "El rol es obligatorio")]
         public int Id_Rol { get; set; }

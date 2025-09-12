@@ -10,24 +10,13 @@
     <h2 class="mb-4">Panel de Administración</h2>
 
     <div class="row">
-        <!-- Tarjeta de Usuarios -->
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">👥 Usuarios</h5>
-                    <p class="card-text">Gestiona usuarios del sistema</p>
-                    <a asp-action="Usuarios" class="btn btn-primary">Administrar</a>
-                </div>
-            </div>
-        </div>
-
         <!-- Tarjeta de Empleados -->
         <div class="col-md-4 mb-4">
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">🙋‍♂️ Empleados</h5>
                     <p class="card-text">Gestiona empleados del sistema</p>
-                    <a asp-action="Empleados" class="btn btn-secondary">Administrar</a>
+                    <a asp-action="Empleados" class="btn btn-primary">Administrar</a>
                 </div>
             </div>
         </div>
@@ -39,6 +28,17 @@
                     <h5 class="card-title">📊 Reportes</h5>
                     <p class="card-text">Ver reportes del sistema</p>
                     <a href="#" class="btn btn-info">Ver Reportes</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Configuración -->
+        <div class="col-md-4 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">⚙️ Configuración</h5>
+                    <p class="card-text">Cambgiar los ajustes del sistema</p>
+                    <a href="#" class="btn btn-danger">Cambiar configuración</a>
                 </div>
             </div>
         </div>

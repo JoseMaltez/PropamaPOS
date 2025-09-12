@@ -25,192 +25,6 @@ namespace PropamaPOS.Controllers
             return View();
         }
 
-        // GET: Admin/Usuarios
-        public async Task<IActionResult> Usuarios()
-        {
-            var usuarios = await _context.Usuarios
-                .Include(u => u.Rol)
-                .ToListAsync();
-            return View(usuarios);
-        }
-
-        // GET: Admin/CrearUsuario
-        public async Task<IActionResult> CrearUsuario()
-        {
-            var roles = await _context.Roles.ToListAsync();
-            ViewBag.Roles = roles;
-            return View();
-        }
-
-        // POST: Admin/CrearUsuario
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CrearUsuario(CrearUsuarioViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                // Verificar si el correo ya existe
-                if (await _context.Usuarios.AnyAsync(u => u.NombreUsuario == model.NombreUsuario))
-                {
-                    ModelState.AddModelError("Correo", "Este correo ya está registrado.");
-                    ViewBag.Roles = await _context.Roles.ToListAsync();
-                    return View(model);
-                }
-
-                // Generar hash y salt para la contraseña
-                using (var hmac = new HMACSHA256())
-                {
-                    var usuario = new Usuario
-                    {
-                        NombreUsuario = model.NombreUsuario,
-                        ContraSalt = Convert.ToBase64String(hmac.Key),
-                        ContraHash = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(model.Password))),
-                        Id_Rol = model.Id_Rol
-                    };
-
-                    _context.Usuarios.Add(usuario);
-                    await _context.SaveChangesAsync();
-
-                    TempData["SuccessMessage"] = "Usuario creado exitosamente.";
-                    return RedirectToAction(nameof(Usuarios));
-                }
-            }
-
-            ViewBag.Roles = await _context.Roles.ToListAsync();
-            return View(model);
-        }
-
-        // GET: Admin/EditarUsuario/5
-        public async Task<IActionResult> EditarUsuario(int id)
-        {
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario == null)
-            {
-                return NotFound();
-            }
-
-            var roles = await _context.Roles.ToListAsync();
-            ViewBag.Roles = roles;
-
-            var model = new EditarUsuarioViewModel
-            {
-                Id_Usuario = usuario.Id_Usuario,
-                NombreUsuario = usuario.NombreUsuario,
-                Id_Rol = usuario.Id_Rol
-            };
-
-            return View(model);
-        }
-
-        // POST: Admin/EditarUsuario/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditarUsuario(int id, EditarUsuarioViewModel model)
-        {
-            if (string.IsNullOrEmpty(model.Password))
-            {
-                ModelState.Remove("Password");
-                ModelState.Remove("ConfirmPassword");
-            }
-
-            if (id != model.Id_Usuario)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    var usuario = await _context.Usuarios.FindAsync(id);
-                    if (usuario == null)
-                    {
-                        return NotFound();
-                    }
-
-                    // Verificar si el correo ya existe (excluyendo el usuario actual)
-                    if (await _context.Usuarios.AnyAsync(u => u.NombreUsuario == model.NombreUsuario && u.Id_Usuario != id))
-                    {
-                        ModelState.AddModelError("Correo", "Este correo ya está registrado.");
-                        ViewBag.Roles = await _context.Roles.ToListAsync();
-                        return View(model);
-                    }
-
-                    usuario.NombreUsuario = model.NombreUsuario;
-                    usuario.Id_Rol = model.Id_Rol;
-
-                    // Si se proporcionó una nueva contraseña, actualizarla
-                    if (!string.IsNullOrEmpty(model.Password))
-                    {
-                        using (var hmac = new HMACSHA256())
-                        {
-                            usuario.ContraSalt = Convert.ToBase64String(hmac.Key);
-                            usuario.ContraHash = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(model.Password)));
-                        }
-                    }
-
-                    _context.Update(usuario);
-                    await _context.SaveChangesAsync();
-
-                    TempData["SuccessMessage"] = "Usuario actualizado exitosamente.";
-                    return RedirectToAction(nameof(Usuarios));
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!UsuarioExists(id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-            }
-
-            ViewBag.Roles = await _context.Roles.ToListAsync();
-            return View(model);
-        }
-
-        // GET: Admin/EliminarUsuario/5
-        public async Task<IActionResult> EliminarUsuario(int id)
-        {
-            var usuario = await _context.Usuarios
-                .Include(u => u.Rol)
-                .FirstOrDefaultAsync(u => u.Id_Usuario == id);
-
-            if (usuario == null)
-            {
-                return NotFound();
-            }
-
-            return View(usuario);
-        }
-
-        // POST: Admin/EliminarUsuario/5
-        [HttpPost]
-        [ActionName("EliminarUsuario")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EliminarUsuarioConfirmado(int id)
-        {
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario != null)
-            {
-                _context.Usuarios.Remove(usuario);
-                await _context.SaveChangesAsync();
-
-                TempData["SuccessMessage"] = "Usuario eliminado exitosamente.";
-            }
-            return RedirectToAction(nameof(Usuarios));
-        }
-
-        private bool UsuarioExists(int id)
-        {
-            return _context.Usuarios.Any(e => e.Id_Usuario == id);
-        }
-
-        // En AdminController.cs - Agrega estas acciones
-
         // GET: Admin/Empleados
         public async Task<IActionResult> Empleados()
         {
@@ -236,7 +50,6 @@ namespace PropamaPOS.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Verificar si el correo ya existe
                 if (await _context.Empleados.AnyAsync(e => e.Correo == model.Correo))
                 {
                     ModelState.AddModelError("Correo", "Este correo ya está registrado.");
@@ -244,7 +57,6 @@ namespace PropamaPOS.Controllers
                     return View(model);
                 }
 
-                // Verificar si el nombre de usuario ya existe
                 if (await _context.Usuarios.AnyAsync(u => u.NombreUsuario == model.NombreUsuario))
                 {
                     ModelState.AddModelError("NombreUsuario", "Este nombre de usuario ya está registrado.");
@@ -252,7 +64,6 @@ namespace PropamaPOS.Controllers
                     return View(model);
                 }
 
-                // Crear usuario primero
                 using (var hmac = new HMACSHA256())
                 {
                     var usuario = new Usuario
@@ -266,7 +77,6 @@ namespace PropamaPOS.Controllers
                     _context.Usuarios.Add(usuario);
                     await _context.SaveChangesAsync();
 
-                    // Crear empleado
                     var empleado = new Empleado
                     {
                         Nombre = model.Nombre,
@@ -351,7 +161,6 @@ namespace PropamaPOS.Controllers
                         return NotFound();
                     }
 
-                    // Verificar si el correo ya existe (excluyendo el empleado actual)
                     if (await _context.Empleados.AnyAsync(e => e.Correo == model.Correo && e.Id_Empleado != id))
                     {
                         ModelState.AddModelError("Correo", "Este correo ya está registrado.");
@@ -359,7 +168,6 @@ namespace PropamaPOS.Controllers
                         return View(model);
                     }
 
-                    // Verificar si el nombre de usuario ya existe (excluyendo el usuario actual)
                     if (await _context.Usuarios.AnyAsync(u => u.NombreUsuario == model.NombreUsuario && u.Id_Usuario != empleado.Id_Usuario))
                     {
                         ModelState.AddModelError("NombreUsuario", "Este nombre de usuario ya está registrado.");
@@ -379,7 +187,6 @@ namespace PropamaPOS.Controllers
                     empleado.Usuario.NombreUsuario = model.NombreUsuario;
                     empleado.Usuario.Id_Rol = model.Id_Rol;
 
-                    // Si se proporcionó una nueva contraseña, actualizarla
                     if (!string.IsNullOrEmpty(model.Password))
                     {
                         using (var hmac = new HMACSHA256())
@@ -440,9 +247,11 @@ namespace PropamaPOS.Controllers
 
             if (empleado != null)
             {
-                // Eliminar empleado y usuario (por la relación cascade se eliminará automáticamente)
+                // Eliminar empleado y usuario (si lo deseas puedes eliminar solo el usuario y dejar cascade eliminar)
                 _context.Empleados.Remove(empleado);
-                _context.Usuarios.Remove(empleado.Usuario);
+                if (empleado.Usuario != null)
+                    _context.Usuarios.Remove(empleado.Usuario);
+
                 await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = "Empleado eliminado exitosamente.";

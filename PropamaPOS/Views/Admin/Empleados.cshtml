@@ -48,6 +48,7 @@
                                 <th>Nombre</th>
                                 <th>Correo</th>
                                 <th>Teléfono</th>
+                                <th>Usuario</th>
                                 <th>Rol</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
@@ -61,6 +62,7 @@
                                     <td>@empleado.Nombre @empleado.Apellido</td>
                                     <td>@empleado.Correo</td>
                                     <td>@empleado.Telefono</td>
+                                    <td>@empleado.Usuario.NombreUsuario</td>
                                     <td>
                                         <span class="badge bg-@(empleado.Usuario.Rol?.Nombre == "Admin" ? "danger" : "secondary")">
                                             @empleado.Usuario.Rol?.Nombre
