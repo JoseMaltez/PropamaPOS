@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
 document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".toggle-password").forEach(btn => {
         btn.addEventListener("click", function () {
-            const input = this.previousElementSibling; // el input está antes del botón
+            const input = this.previousElementSibling;
             const icon = this.querySelector("i");
             if (input.type === "password") {
                 input.type = "text";
