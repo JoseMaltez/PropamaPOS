@@ -247,7 +247,6 @@ namespace PropamaPOS.Controllers
 
             if (empleado != null)
             {
-                // Eliminar empleado y usuario (si lo deseas puedes eliminar solo el usuario y dejar cascade eliminar)
                 _context.Empleados.Remove(empleado);
                 if (empleado.Usuario != null)
                     _context.Usuarios.Remove(empleado.Usuario);
