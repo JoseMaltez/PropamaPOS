@@ -9,7 +9,7 @@ namespace PropamaPOS.Data
         public DbSet<Rol> Roles { get; set; }
         public DbSet<Empleado> Empleados { get; set; }
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
-
+        public DbSet<Proveedor> Proveedores { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -35,6 +35,10 @@ namespace PropamaPOS.Data
 
             modelBuilder.Entity<Empleado>()
                 .HasIndex(e => e.Correo)
+                .IsUnique();
+
+            modelBuilder.Entity<Proveedor>()
+                .HasIndex(p => p.Correo)
                 .IsUnique();
         }
     }
