@@ -10,6 +10,7 @@ namespace PropamaPOS.Data
         public DbSet<Empleado> Empleados { get; set; }
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
         public DbSet<Proveedor> Proveedores { get; set; }
+        public DbSet<Cliente> Clientes { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -27,8 +28,6 @@ namespace PropamaPOS.Data
                 .HasForeignKey<Empleado>(e => e.Id_Usuario)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            //propiedad unica para el nombre de usuario y correo
-
             modelBuilder.Entity<Usuario>()
                 .HasIndex(u => u.NombreUsuario)
                 .IsUnique();
@@ -39,6 +38,10 @@ namespace PropamaPOS.Data
 
             modelBuilder.Entity<Proveedor>()
                 .HasIndex(p => p.Correo)
+                .IsUnique();
+
+            modelBuilder.Entity<Cliente>()
+                .HasIndex(c => new { c.Nombre, c.Apellido, c.Telefono })
                 .IsUnique();
         }
     }
