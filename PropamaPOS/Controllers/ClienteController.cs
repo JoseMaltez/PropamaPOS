@@ -1,83 +1,168 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using PropamaPOS.Data;
+using PropamaPOS.Models;
+using PropamaPOS.Models.ViewModels;
 
 namespace PropamaPOS.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class ClienteController : Controller
     {
-        // GET: ClienteController
-        public ActionResult Index()
+        private readonly AppDbContext _context;
+
+        public ClienteController(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        // GET: Cliente
+        public async Task<IActionResult> Index()
+        {
+            var clientes = await _context.Clientes.ToListAsync();
+            return View(clientes);
+        }
+
+        // GET: Cliente/Crear
+        public IActionResult Crear()
         {
             return View();
         }
 
-        // GET: ClienteController/Details/5
-        public ActionResult Details(int id)
-        {
-            return View();
-        }
-
-        // GET: ClienteController/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: ClienteController/Create
+        // POST: Cliente/Crear
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<IActionResult> Crear(ClienteViewModel model)
         {
-            try
+            if (ModelState.IsValid)
             {
+                var cliente = new Cliente
+                {
+                    Nombre = model.Nombre,
+                    Apellido = model.Apellido,
+                    Telefono = model.Telefono,
+                    Direccion = model.Direccion,
+                    Activo = model.Activo
+                };
+
+                _context.Clientes.Add(cliente);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Cliente creado exitosamente.";
                 return RedirectToAction(nameof(Index));
             }
-            catch
-            {
-                return View();
-            }
+
+            return View(model);
         }
 
-        // GET: ClienteController/Edit/5
-        public ActionResult Edit(int id)
+        // GET: Cliente/Editar/5
+        public async Task<IActionResult> Editar(int id)
         {
-            return View();
+            var cliente = await _context.Clientes.FindAsync(id);
+
+            if (cliente == null)
+            {
+                return NotFound();
+            }
+
+            var model = new ClienteViewModel
+            {
+                Id_Cliente = cliente.Id_Cliente,
+                Nombre = cliente.Nombre,
+                Apellido = cliente.Apellido,
+                Telefono = cliente.Telefono,
+                Direccion = cliente.Direccion,
+                Activo = cliente.Activo
+            };
+
+            return View(model);
         }
 
-        // POST: ClienteController/Edit/5
+        // POST: Cliente/Editar/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<IActionResult> Editar(int id, ClienteViewModel model)
         {
-            try
+            if (id != model.Id_Cliente)
             {
-                return RedirectToAction(nameof(Index));
+                return NotFound();
             }
-            catch
+
+            if (ModelState.IsValid)
             {
-                return View();
+                try
+                {
+                    var cliente = await _context.Clientes.FindAsync(id);
+
+                    if (cliente == null)
+                    {
+                        return NotFound();
+                    }
+
+                    cliente.Nombre = model.Nombre;
+                    cliente.Apellido = model.Apellido;
+                    cliente.Telefono = model.Telefono;
+                    cliente.Direccion = model.Direccion;
+                    cliente.Activo = model.Activo;
+
+                    _context.Update(cliente);
+                    await _context.SaveChangesAsync();
+
+                    TempData["SuccessMessage"] = "Cliente actualizado exitosamente.";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!ClienteExists(id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
             }
+
+            return View(model);
         }
 
-        // GET: ClienteController/Delete/5
-        public ActionResult Delete(int id)
+        // GET: Cliente/Eliminar/5
+        public async Task<IActionResult> Eliminar(int id)
         {
-            return View();
+            var cliente = await _context.Clientes.FindAsync(id);
+
+            if (cliente == null)
+            {
+                return NotFound();
+            }
+
+            return View(cliente);
         }
 
-        // POST: ClienteController/Delete/5
-        [HttpPost]
+        // POST: Cliente/Eliminar/5
+        [HttpPost] 
+        [ActionName("Eliminar")]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public async Task<IActionResult> EliminarConfirmado(int id)
         {
-            try
+            var cliente = await _context.Clientes.FindAsync(id);
+
+            if (cliente != null)
             {
-                return RedirectToAction(nameof(Index));
+                _context.Clientes.Remove(cliente);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Cliente eliminado exitosamente.";
             }
-            catch
-            {
-                return View();
-            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        private bool ClienteExists(int id)
+        {
+            return _context.Clientes.Any(e => e.Id_Cliente == id);
         }
     }
 }
