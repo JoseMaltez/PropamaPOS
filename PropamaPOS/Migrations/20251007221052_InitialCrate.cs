@@ -12,6 +12,40 @@ namespace PropamaPOS.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "Clientes",
+                columns: table => new
+                {
+                    Id_Cliente = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Apellido = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Telefono = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false),
+                    Direccion = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Activo = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Clientes", x => x.Id_Cliente);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Proveedores",
+                columns: table => new
+                {
+                    Id_Proveedor = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Telefono = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false),
+                    Correo = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Direccion = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Activo = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Proveedores", x => x.Id_Proveedor);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Roles",
                 columns: table => new
                 {
@@ -94,6 +128,12 @@ namespace PropamaPOS.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Clientes_Nombre_Apellido_Telefono",
+                table: "Clientes",
+                columns: new[] { "Nombre", "Apellido", "Telefono" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Empleados_Correo",
                 table: "Empleados",
                 column: "Correo",
@@ -111,6 +151,12 @@ namespace PropamaPOS.Migrations
                 column: "Id_Usuario");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Proveedores_Correo",
+                table: "Proveedores",
+                column: "Correo",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Usuarios_Id_Rol",
                 table: "Usuarios",
                 column: "Id_Rol");
@@ -126,10 +172,16 @@ namespace PropamaPOS.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "Clientes");
+
+            migrationBuilder.DropTable(
                 name: "Empleados");
 
             migrationBuilder.DropTable(
                 name: "PasswordResetTokens");
+
+            migrationBuilder.DropTable(
+                name: "Proveedores");
 
             migrationBuilder.DropTable(
                 name: "Usuarios");

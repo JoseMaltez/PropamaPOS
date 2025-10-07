@@ -12,7 +12,7 @@ using PropamaPOS.Data;
 namespace PropamaPOS.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250911201902_InitialCrate")]
+    [Migration("20251007221052_InitialCrate")]
     partial class InitialCrate
     {
         /// <inheritdoc />
@@ -24,6 +24,45 @@ namespace PropamaPOS.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("PropamaPOS.Models.Cliente", b =>
+                {
+                    b.Property<int>("Id_Cliente")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id_Cliente"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Apellido")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Direccion")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Telefono")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.HasKey("Id_Cliente");
+
+                    b.HasIndex("Nombre", "Apellido", "Telefono")
+                        .IsUnique();
+
+                    b.ToTable("Clientes");
+                });
 
             modelBuilder.Entity("PropamaPOS.Models.Empleado", b =>
                 {
@@ -95,6 +134,44 @@ namespace PropamaPOS.Migrations
                     b.HasIndex("Id_Usuario");
 
                     b.ToTable("PasswordResetTokens");
+                });
+
+            modelBuilder.Entity("PropamaPOS.Models.Proveedor", b =>
+                {
+                    b.Property<int>("Id_Proveedor")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id_Proveedor"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Correo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Direccion")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Telefono")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.HasKey("Id_Proveedor");
+
+                    b.HasIndex("Correo")
+                        .IsUnique();
+
+                    b.ToTable("Proveedores");
                 });
 
             modelBuilder.Entity("PropamaPOS.Models.Rol", b =>
