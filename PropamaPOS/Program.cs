@@ -13,6 +13,21 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+var defaultCulture = new CultureInfo("es-GT");
+// Si prefieres usar punto como separador, usa "en-US" o personaliza abajo
+
+CultureInfo customCulture = (CultureInfo)defaultCulture.Clone();
+// Fuerza el punto como separador decimal (si lo deseas)
+customCulture.NumberFormat.NumberDecimalSeparator = ".";
+customCulture.NumberFormat.CurrencyDecimalSeparator = ".";
+
+var localizationOptions = new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture(customCulture),
+    SupportedCultures = new List<CultureInfo> { customCulture },
+    SupportedUICultures = new List<CultureInfo> { customCulture }
+};
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -55,6 +70,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseRequestLocalization(localizationOptions);
 app.MapControllers();
 
 app.UseHttpsRedirection();
