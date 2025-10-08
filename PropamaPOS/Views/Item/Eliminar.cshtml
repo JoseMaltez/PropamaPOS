@@ -1,0 +1,42 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model PropamaPOS.Models.Item
+@{
+    ViewData["Title"] = "Eliminar Producto";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger shadow">
+                <div class="card-body">
+                    <h3 class="text-center text-danger mb-3">¿Eliminar producto?</h3>
+
+                    <p class="text-center">Estás a punto de eliminar el producto <strong>@Model.Nombre</strong>.</p>
+                    <p class="text-center text-muted">Esta acción también eliminará todas sus presentaciones y no se puede deshacer.</p>
+
+                    <dl class="row mt-4">
+                        <dt class="col-sm-4">Código</dt>
+                        <dd class="col-sm-8">@Model.Codigo</dd>
+
+                        <dt class="col-sm-4">Descripción</dt>
+                        <dd class="col-sm-8">@Model.Descripcion</dd>
+
+                        <dt class="col-sm-4">Proveedor</dt>
+                        <dd class="col-sm-8">@Model.Proveedor?.Nombre</dd>
+                    </dl>
+
+                    <form asp-action="Eliminar" method="post">
+                        <input type="hidden" asp-for="Id_Item" />
+                        <div class="d-flex justify-content-between mt-4">
+                            <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Cancelar</a>
+                            <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Confirmar eliminación</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using PropamaPOS.Data;
 using PropamaPOS.Models;
 using PropamaPOS.Services;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,0 +1,206 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model PropamaPOS.Models.ViewModels.ItemViewModel
+@{
+    ViewData["Title"] = "Editar Producto";
+    var unidades = ViewBag.Unidades as List<PropamaPOS.Models.UnidadMedida> ?? new();
+    var proveedores = ViewBag.Proveedores as List<PropamaPOS.Models.Proveedor> ?? new();
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">Editar Producto</h3>
+
+                    <form asp-action="Editar" method="post" id="itemForm">
+                        @Html.HiddenFor(m => m.Id_Item)
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Nombre" class="form-label"></label>
+                                <input asp-for="Nombre" class="form-control" placeholder="Nombre del producto" />
+                                <span asp-validation-for="Nombre" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Codigo" class="form-label">Código (opcional)</label>
+                                <input asp-for="Codigo" class="form-control" placeholder="SKU / Código" />
+                                <span asp-validation-for="Codigo" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Descripcion" class="form-label"></label>
+                            <textarea asp-for="Descripcion" class="form-control" rows="2" placeholder="Descripción (opcional)"></textarea>
+                            <span asp-validation-for="Descripcion" class="text-danger"></span>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Id_Proveedor" class="form-label">Proveedor</label>
+                                <select asp-for="Id_Proveedor" class="form-select">
+                                    <option value="">-- Sin proveedor --</option>
+                                    @foreach (var prov in proveedores)
+                                    {
+                                        var selected = prov.Id_Proveedor == Model.Id_Proveedor ? "selected=\"selected\"" : "";
+                                        @:<option value="@prov.Id_Proveedor" @Html.Raw(selected)>@prov.Nombre</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <div class="form-check">
+                                    <input asp-for="Activo" class="form-check-input" />
+                                    <label asp-for="Activo" class="form-check-label">Activo</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr />
+                        <h5>Presentaciones y precios</h5>
+                        <p class="text-muted small">Modifica las presentaciones del producto (por unidad, por caja, etc.).</p>
+
+                        <table class="table" id="presentacionesTable">
+                            <thead>
+                                <tr>
+                                    <th>Unidad</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio venta (Q)</th>
+                                    <th>Precio costo (opcional)</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.Presentaciones.Count; i++)
+                                {
+                                    <tr>
+                                        <input type="hidden" name="Presentaciones[@i].Id_ItemPresentacion" value="@Model.Presentaciones[i].Id_ItemPresentacion" />
+                                        <td>
+                                            <select name="Presentaciones[@i].Id_UnidadMedida" class="form-select">
+                                                <option value="">-- Seleccione --</option>
+                                                @foreach (var u in unidades)
+                                                {
+                                                    var selected = u.Id_UnidadMedida == Model.Presentaciones[i].Id_UnidadMedida ? "selected=\"selected\"" : "";
+                                                    @:<option value="@u.Id_UnidadMedida" @Html.Raw(selected)>@u.Nombre</option>
+                                                }
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input name="Presentaciones[@i].Cantidad" value="@Model.Presentaciones[i].Cantidad" class="form-control" />
+                                        </td>
+                                        <td>
+                                            <input name="Presentaciones[@i].PrecioVenta" value="@Model.Presentaciones[i].PrecioVenta" class="form-control" />
+                                        </td>
+                                        <td>
+                                            <input name="Presentaciones[@i].PrecioCosto" value="@Model.Presentaciones[i].PrecioCosto" class="form-control" />
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-danger btn-sm remove-row">Eliminar</button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                        <div class="mb-3">
+                            <button type="button" id="addPresentacion" class="btn btn-outline-secondary"><i class="bi bi-plus"></i> Agregar presentación</button>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+                            <button type="submit" class="btn btn-success">Guardar cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    @using System.Text.Json
+    <script>
+        (function(){
+            const unidades = @Html.Raw(JsonSerializer.Serialize(unidades));
+            const tableBody = document.querySelector('#presentacionesTable tbody');
+
+            function createRow(index){
+                const tr = document.createElement('tr');
+
+                const tdHidden = document.createElement('input');
+                tdHidden.type = 'hidden';
+                tdHidden.name = `Presentaciones[${index}].Id_ItemPresentacion`;
+                tr.appendChild(tdHidden);
+
+                const tdUnidad = document.createElement('td');
+                const select = document.createElement('select');
+                select.name = `Presentaciones[${index}].Id_UnidadMedida`;
+                select.classList.add('form-select');
+                const optDefault = document.createElement('option');
+                optDefault.value = '';
+                optDefault.text = '-- Seleccione --';
+                select.appendChild(optDefault);
+                unidades.forEach(u => {
+                    const o = document.createElement('option');
+                    o.value = u.Id_UnidadMedida;
+                    o.text = u.Nombre;
+                    select.appendChild(o);
+                });
+                tdUnidad.appendChild(select);
+                tr.appendChild(tdUnidad);
+
+                const tdCant = document.createElement('td');
+                const inCant = document.createElement('input');
+                inCant.name = `Presentaciones[${index}].Cantidad`;
+                inCant.value = 1;
+                inCant.classList.add('form-control');
+                tdCant.appendChild(inCant);
+                tr.appendChild(tdCant);
+
+                const tdPV = document.createElement('td');
+                const inPV = document.createElement('input');
+                inPV.name = `Presentaciones[${index}].PrecioVenta`;
+                inPV.classList.add('form-control');
+                inPV.placeholder = '0.00';
+                tdPV.appendChild(inPV);
+                tr.appendChild(tdPV);
+
+                const tdPC = document.createElement('td');
+                const inPC = document.createElement('input');
+                inPC.name = `Presentaciones[${index}].PrecioCosto`;
+                inPC.classList.add('form-control');
+                inPC.placeholder = '0.00';
+                tdPC.appendChild(inPC);
+                tr.appendChild(tdPC);
+
+                const tdBtn = document.createElement('td');
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn btn-danger btn-sm remove-row';
+                btn.innerText = 'Eliminar';
+                tdBtn.appendChild(btn);
+                tr.appendChild(tdBtn);
+
+                return tr;
+            }
+
+            let nextIndex = @Model.Presentaciones.Count;
+
+            document.getElementById('addPresentacion').addEventListener('click', function(){
+                const row = createRow(nextIndex++);
+                tableBody.appendChild(row);
+            });
+
+            tableBody.addEventListener('click', function(e){
+                if(e.target && e.target.matches('.remove-row')){
+                    const tr = e.target.closest('tr');
+                    tr.remove();
+                }
+            });
+        })();
+    </script>
+}
+
