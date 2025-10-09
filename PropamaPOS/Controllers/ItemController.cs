@@ -49,8 +49,7 @@ namespace PropamaPOS.Controllers
                 Nombre = model.Nombre,
                 Descripcion = model.Descripcion,
                 Codigo = model.Codigo,
-                Id_Proveedor = model.Id_Proveedor,
-                Activo = model.Activo
+                Id_Proveedor = model.Id_Proveedor
             };
 
             _context.Items.Add(item);
@@ -68,8 +67,7 @@ namespace PropamaPOS.Controllers
                         Id_Item = item.Id_Item,
                         Id_UnidadMedida = p.Id_UnidadMedida,
                         Cantidad = p.Cantidad > 0 ? p.Cantidad : 1,
-                        PrecioVenta = p.PrecioVenta,
-                        PrecioCosto = p.PrecioCosto
+                        PrecioVenta = p.PrecioVenta
                     };
                     _context.ItemPresentaciones.Add(present);
                 }
@@ -96,14 +94,12 @@ namespace PropamaPOS.Controllers
                 Descripcion = item.Descripcion,
                 Codigo = item.Codigo,
                 Id_Proveedor = item.Id_Proveedor,
-                Activo = item.Activo,
                 Presentaciones = item.Presentaciones.Select(p => new ItemPresentacionViewModel
                 {
                     Id_ItemPresentacion = p.Id_ItemPresentacion,
                     Id_UnidadMedida = p.Id_UnidadMedida,
                     Cantidad = p.Cantidad,
-                    PrecioVenta = p.PrecioVenta,
-                    PrecioCosto = p.PrecioCosto
+                    PrecioVenta = p.PrecioVenta
                 }).ToList()
             };
 
@@ -135,7 +131,6 @@ namespace PropamaPOS.Controllers
             item.Descripcion = model.Descripcion;
             item.Codigo = model.Codigo;
             item.Id_Proveedor = model.Id_Proveedor;
-            item.Activo = model.Activo;
 
             // Actualizar DB
             //  - eliminar presentaciones removidas
@@ -154,7 +149,6 @@ namespace PropamaPOS.Controllers
                         existing.Id_UnidadMedida = p.Id_UnidadMedida;
                         existing.Cantidad = p.Cantidad;
                         existing.PrecioVenta = p.PrecioVenta;
-                        existing.PrecioCosto = p.PrecioCosto;
                     }
                 }
                 else
@@ -165,8 +159,7 @@ namespace PropamaPOS.Controllers
                         Id_Item = item.Id_Item,
                         Id_UnidadMedida = p.Id_UnidadMedida,
                         Cantidad = p.Cantidad,
-                        PrecioVenta = p.PrecioVenta,
-                        PrecioCosto = p.PrecioCosto
+                        PrecioVenta = p.PrecioVenta
                     };
                     _context.ItemPresentaciones.Add(np);
                 }

@@ -21,10 +21,19 @@ namespace PropamaPOS.Models
 
         public bool Activo { get; set; } = true;
 
+        // Stock total en unidades individuales
+        public int Stock { get; set; } = 0;
+
+        // Costo promedio por unidad (cálculo automático)
+        [Column(TypeName = "decimal(18,4)")]
+        public decimal CostoPromedioUnidad { get; set; } = 0m;
+
+        // Proveedor principal (opcional)
         public int? Id_Proveedor { get; set; }
         [ForeignKey("Id_Proveedor")]
         public Proveedor? Proveedor { get; set; }
 
+        // Relaciones
         public ICollection<ItemPresentacion> Presentaciones { get; set; } = new List<ItemPresentacion>();
     }
 }
