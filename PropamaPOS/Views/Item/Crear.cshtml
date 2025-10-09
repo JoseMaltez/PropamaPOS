@@ -150,15 +150,6 @@
                 tdPV.appendChild(inPV);
                 tr.appendChild(tdPV);
 
-                // Precio costo
-                const tdPC = document.createElement('td');
-                const inPC = document.createElement('input');
-                inPC.name = `Presentaciones[${index}].PrecioCosto`;
-                inPC.classList.add('form-control');
-                inPC.placeholder = '0.00';
-                tdPC.appendChild(inPC);
-                tr.appendChild(tdPC);
-
                 // eliminar
                 const tdBtn = document.createElement('td');
                 const btn = document.createElement('button');
@@ -182,7 +173,6 @@
                 if(e.target && e.target.matches('.remove-row')){
                     const tr = e.target.closest('tr');
                     tr.remove();
-                    // NOTE: we do not reindex inputs; model binding tolerates missing indices but you can reindex if required.
                 }
             });
         })();
