@@ -37,6 +37,7 @@
                                 <th>Código</th>
                                 <th>Proveedor</th>
                                 <th>Presentaciones / Precio (Q)</th>
+                                <th>Stock</th>
                                 <th>Estado</th>
                                 <th></th>
                             </tr>
@@ -57,6 +58,7 @@
                                             </div>
                                         }
                                     </td>
+                                    <td>@item.Stock</td>
                                     <td>
                                         <span class="badge bg-@(item.Activo ? "success" : "danger")">
                                             @(item.Activo ? "Activo" : "Inactivo")
