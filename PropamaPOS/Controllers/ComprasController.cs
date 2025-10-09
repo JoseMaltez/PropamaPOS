@@ -181,15 +181,33 @@ namespace PropamaPOS.Controllers
         private async Task CargarViewBags()
         {
             ViewBag.Proveedores = await _context.Proveedores
-                .Where(p => p.Activo)
-                .OrderBy(p => p.Nombre)
-                .ToListAsync();
+            .Where(p => p.Activo)
+            .OrderBy(p => p.Nombre)
+            .ToListAsync();
 
-            ViewBag.Items = await _context.Items
+            var items = await _context.Items
+                .Where(i => i.Activo)
                 .Include(i => i.Presentaciones)
                     .ThenInclude(p => p.UnidadMedida)
-                .Where(i => i.Activo)
+                .Select(i => new
+                {
+                    id_Item = i.Id_Item,
+                    nombre = i.Nombre,
+                    presentaciones = i.Presentaciones.Select(p => new
+                    {
+                        id_ItemPresentacion = p.Id_ItemPresentacion,
+                        cantidad = p.Cantidad,
+                        precioVenta = p.PrecioVenta,
+                        unidadMedida = new
+                        {
+                            id_UnidadMedida = p.UnidadMedida.Id_UnidadMedida,
+                            nombre = p.UnidadMedida.Nombre
+                        }
+                    })
+                })
                 .ToListAsync();
+
+            ViewBag.Items = items;
         }
     }
 }

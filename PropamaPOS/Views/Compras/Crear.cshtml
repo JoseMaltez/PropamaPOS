@@ -2,7 +2,7 @@
 @{
     ViewData["Title"] = "Registrar Compra";
     var proveedores = ViewBag.Proveedores as List<PropamaPOS.Models.Proveedor> ?? new();
-    var items = ViewBag.Items as List<PropamaPOS.Models.Item> ?? new();
+    // NO castear ViewBag.Items a List<Item> aquí (el controller proyecta un anon object)
 }
 
 <div class="container mt-4">
@@ -83,7 +83,8 @@
     <partial name="_ValidationScriptsPartial" />
 
     <script>
-        const items = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(items));
+        // Serializamos directamente el ViewBag desde el servidor a JS.
+        const items = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Items ?? new object[] { }));
         let index = 0;
 
         function calcularTotal() {
@@ -126,6 +127,7 @@
 
         document.getElementById("btnAgregar").addEventListener("click", agregarFila);
 
+        // Cuando seleccionan producto, llenamos presentaciones correspondientes
         document.querySelector("#tablaLineas tbody").addEventListener("change", function (e) {
             if (e.target.classList.contains("item-select")) {
                 const itemId = parseInt(e.target.value);
@@ -135,11 +137,13 @@
 
                 if (!itemId) return;
                 const item = items.find(i => i.id_Item === itemId);
-                if (item && item.presentaciones.length > 0) {
+                if (item && item.presentaciones && item.presentaciones.length > 0) {
                     presSelect.innerHTML = item.presentaciones.map(p =>
                         `<option value="${p.id_ItemPresentacion}">
-                            ${p.cantidad} ${p.unidadMedida.nombre} — Q${p.precioVenta.toFixed(2)}
+                            ${p.cantidad} ${p.unidadMedida.nombre} — Q${Number(p.precioVenta).toFixed(2)}
                          </option>`).join("");
+                } else {
+                    presSelect.innerHTML = `<option value="">-- Sin presentaciones --</option>`;
                 }
             }
         });
