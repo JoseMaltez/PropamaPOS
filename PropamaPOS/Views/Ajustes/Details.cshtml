@@ -1,0 +1,53 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model PropamaPOS.Models.AjusteInventario
+@{
+    ViewData["Title"] = "Detalle del ajuste";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Detalle ajuste #@Model.Id_Ajuste</h4>
+        <a asp-action="Index" class="btn btn-light btn-sm">Volver</a>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <p><strong>Fecha:</strong> @Model.Fecha.ToLocalTime().ToString("g")</p>
+            <p><strong>Tipo:</strong> @Model.Tipo</p>
+            <p><strong>Motivo:</strong> @Model.Motivo</p>
+            <p><strong>Empleado:</strong> @(Model.Empleado != null ? Model.Empleado.Nombre + " " + Model.Empleado.Apellido : Model.CreadoPor)</p>
+            <p><strong>Observaciones:</strong> @Model.Observaciones</p>
+        </div>
+    </div>
+
+    <table class="table table-sm">
+        <thead class="table-light">
+            <tr>
+                <th>Producto</th>
+                <th>Presentación</th>
+                <th>Cant. present.</th>
+                <th>Cant. unidades</th>
+                <th>Stock antes</th>
+                <th>Stock después</th>
+                <th>Nota</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var d in Model.Detalles)
+            {
+                <tr>
+                    <td>@d.Item?.Nombre</td>
+                    <td>@(d.Presentacion != null ? $"{d.Presentacion.Cantidad} {d.Presentacion.UnidadMedida?.Nombre}" : "-")</td>
+                    <td>@d.CantidadPresentaciones</td>
+                    <td>@d.CantidadUnidades</td>
+                    <td>@d.StockAntes</td>
+                    <td>@d.StockDespues</td>
+                    <td>@d.Nota</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+

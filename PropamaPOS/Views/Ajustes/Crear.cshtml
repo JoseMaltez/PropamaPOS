@@ -1,0 +1,169 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model PropamaPOS.Models.ViewModels.AjusteCrearViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Registrar ajuste";
+    var itemsJson = JsonSerializer.Serialize(ViewBag.Items ?? new object[] { });
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Registrar ajuste de inventario</h5>
+            <a asp-action="Index" class="btn btn-light btn-sm">Volver</a>
+        </div>
+        <div class="card-body">
+            <form asp-action="Crear" method="post" id="formAjuste">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Tipo</label>
+                        <select asp-for="Tipo" class="form-select" id="tipoSelect">
+                            <option value="Entrada">Entrada</option>
+                            <option value="Salida">Salida</option>
+                            <option value="Correccion">Corrección</option>
+                            <option value="Donacion">Donación</option>
+                            <option value="Robo">Robo</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Fecha</label>
+                        <input asp-for="Fecha" class="form-control" type="datetime-local" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Motivo</label>
+                        <input asp-for="Motivo" class="form-control" required />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Observaciones (opcional)</label>
+                    <textarea asp-for="Observaciones" class="form-control"></textarea>
+                </div>
+
+                <hr />
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6>Líneas</h6>
+                    <button type="button" id="btnAgregar" class="btn btn-outline-primary btn-sm"><i class="bi bi-plus"></i> Agregar</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-sm" id="tablaLineas">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Producto</th>
+                                <th>Presentación</th>
+                                <th>Cantidad (presentaciones)</th>
+                                <th>Cantidad (unidades)</th>
+                                <th>Nota</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-success">Guardar ajuste</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const items = @Html.Raw(itemsJson);
+        let idx = 0;
+
+        function agregarFila() {
+            const tbody = document.querySelector("#tablaLineas tbody");
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>
+                    <select name="Lineas[${idx}].Id_Item" class="form-select form-select-sm item-select" data-idx="${idx}">
+                        <option value="">-- Producto --</option>
+                        ${items.map(i => `<option value="${i.id_Item}">${i.nombre}</option>`).join("")}
+                    </select>
+                </td>
+                <td>
+                    <select name="Lineas[${idx}].Id_ItemPresentacion" class="form-select form-select-sm pres-select" required>
+                        <option value="">-- Presentación --</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="number" name="Lineas[${idx}].CantidadPresentaciones" value="1" min="1" class="form-control form-control-sm cantidad" required />
+                </td>
+                <td class="unidades-cell">0</td>
+                <td>
+                    <input type="text" name="Lineas[${idx}].Nota" class="form-control form-control-sm" />
+                </td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm eliminar"><i class="bi bi-trash"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+            idx++;
+        }
+
+        document.getElementById("btnAgregar").addEventListener("click", agregarFila);
+
+        // llenar presentaciones al seleccionar producto
+        document.querySelector("#tablaLineas tbody").addEventListener("change", function (e) {
+            if (e.target.classList.contains("item-select")) {
+                const itemId = parseInt(e.target.value);
+                const row = e.target.closest("tr");
+                const presSelect = row.querySelector(".pres-select");
+                presSelect.innerHTML = `<option value="">-- Presentación --</option>`;
+                if (!itemId) return;
+                const item = items.find(i => i.id_Item === itemId);
+                if (item && item.presentaciones && item.presentaciones.length) {
+                    presSelect.innerHTML += item.presentaciones.map(p => `<option value="${p.id_ItemPresentacion}" data-cantidad="${p.cantidad}">${p.cantidad} ${p.unidadMedida.nombre}</option>`).join("");
+                }
+                calcularFila(row);
+            }
+
+            if (e.target.classList.contains("pres-select")) {
+                calcularFila(e.target.closest("tr"));
+            }
+        });
+
+        document.querySelector("#tablaLineas tbody").addEventListener("input", function (e) {
+            if (e.target.classList.contains("cantidad")) {
+                calcularFila(e.target.closest("tr"));
+            }
+        });
+
+        function calcularFila(row) {
+            const presSelect = row.querySelector(".pres-select");
+            const cantidadInput = row.querySelector(".cantidad");
+            const unidadesCell = row.querySelector(".unidades-cell");
+
+            const selectedOption = presSelect.selectedOptions[0];
+            if (!selectedOption || !selectedOption.dataset.cantidad) {
+                unidadesCell.textContent = "0";
+                return;
+            }
+            const factor = parseInt(selectedOption.dataset.cantidad);
+            const cantidadPres = parseInt(cantidadInput.value || "0");
+            const unidades = factor * cantidadPres;
+            unidadesCell.textContent = unidades.toString();
+        }
+
+        document.querySelector("#tablaLineas tbody").addEventListener("click", function (e) {
+            if (e.target.closest(".eliminar")) {
+                e.target.closest("tr").remove();
+            }
+        });
+
+        document.getElementById("formAjuste").addEventListener("submit", function (e) {
+            const rows = document.querySelectorAll("#tablaLineas tbody tr");
+            if (rows.length === 0) {
+                e.preventDefault();
+                alert("Agregue al menos una línea al ajuste.");
+            }
+        });
+    </script>
+}
+

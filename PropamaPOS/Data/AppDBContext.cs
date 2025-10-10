@@ -18,6 +18,9 @@ namespace PropamaPOS.Data
         public DbSet<ItemProveedor> ItemProveedores { get; set; }
         public DbSet<Compra> Compras { get; set; }
         public DbSet<CompraDetalle> CompraDetalles { get; set; }
+        public DbSet<AjusteInventario> AjustesInventario { get; set; }
+        public DbSet<AjusteInventarioDetalle> AjusteInventarioDetalles { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -111,6 +114,26 @@ namespace PropamaPOS.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<CompraDetalle>()
+                .HasOne(d => d.Presentacion)
+                .WithMany()
+                .HasForeignKey(d => d.Id_ItemPresentacion)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Ajustes - Empleado (opcional)
+            modelBuilder.Entity<AjusteInventario>()
+                .HasOne(a => a.Empleado)
+                .WithMany()
+                .HasForeignKey(a => a.Id_Empleado)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // AjusteDetalle -> Item / Presentacion
+            modelBuilder.Entity<AjusteInventarioDetalle>()
+                .HasOne(d => d.Item)
+                .WithMany()
+                .HasForeignKey(d => d.Id_Item)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AjusteInventarioDetalle>()
                 .HasOne(d => d.Presentacion)
                 .WithMany()
                 .HasForeignKey(d => d.Id_ItemPresentacion)
