@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿// PropamaPOS/Controllers/ItemController.cs
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PropamaPOS.Data;
@@ -17,8 +18,8 @@ namespace PropamaPOS.Controllers
         public async Task<IActionResult> Index()
         {
             var items = await _context.Items
-                .Include(i => i.Proveedor)
-                .Include(i => i.Presentaciones)
+                .Where(i => i.Activo)
+                .Include(i => i.Presentaciones.Where(p => p.Activo))
                     .ThenInclude(p => p.UnidadMedida)
                 .ToListAsync();
             return View(items);
@@ -28,7 +29,6 @@ namespace PropamaPOS.Controllers
         public async Task<IActionResult> Crear()
         {
             ViewBag.Unidades = await _context.UnidadesMedida.ToListAsync();
-            ViewBag.Proveedores = await _context.Proveedores.ToListAsync();
             return View(new ItemViewModel());
         }
 
@@ -40,7 +40,20 @@ namespace PropamaPOS.Controllers
             if (!ModelState.IsValid)
             {
                 ViewBag.Unidades = await _context.UnidadesMedida.ToListAsync();
-                ViewBag.Proveedores = await _context.Proveedores.ToListAsync();
+                return View(model);
+            }
+
+            // Validar duplicados en el POST
+            var duplicateUnit = model.Presentaciones
+                .GroupBy(p => p.Id_UnidadMedida)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .FirstOrDefault();
+
+            if (duplicateUnit > 0)
+            {
+                ModelState.AddModelError("", "Hay presentaciones repetidas (misma unidad). Elimine duplicados antes de guardar.");
+                ViewBag.Unidades = await _context.UnidadesMedida.ToListAsync();
                 return View(model);
             }
 
@@ -49,25 +62,26 @@ namespace PropamaPOS.Controllers
                 Nombre = model.Nombre,
                 Descripcion = model.Descripcion,
                 Codigo = model.Codigo,
-                Id_Proveedor = model.Id_Proveedor
+                Activo = model.Activo
             };
 
             _context.Items.Add(item);
             await _context.SaveChangesAsync();
 
-            // Guardar presentaciones
+            // Guardar presentaciones (no se piden precios aquí)
             if (model.Presentaciones != null && model.Presentaciones.Any())
             {
                 foreach (var p in model.Presentaciones)
                 {
-                    // Evitamos presentaciones vacías
                     if (p.Id_UnidadMedida <= 0) continue;
                     var present = new ItemPresentacion
                     {
                         Id_Item = item.Id_Item,
                         Id_UnidadMedida = p.Id_UnidadMedida,
                         Cantidad = p.Cantidad > 0 ? p.Cantidad : 1,
-                        PrecioVenta = p.PrecioVenta
+                        PrecioVenta = 0m,    // se calculará desde compras
+                        PrecioCosto = null,  // nulo hasta primera compra
+                        Activo = true
                     };
                     _context.ItemPresentaciones.Add(present);
                 }
@@ -93,18 +107,18 @@ namespace PropamaPOS.Controllers
                 Nombre = item.Nombre,
                 Descripcion = item.Descripcion,
                 Codigo = item.Codigo,
-                Id_Proveedor = item.Id_Proveedor,
-                Presentaciones = item.Presentaciones.Select(p => new ItemPresentacionViewModel
-                {
-                    Id_ItemPresentacion = p.Id_ItemPresentacion,
-                    Id_UnidadMedida = p.Id_UnidadMedida,
-                    Cantidad = p.Cantidad,
-                    PrecioVenta = p.PrecioVenta
-                }).ToList()
+                Presentaciones = item.Presentaciones
+                    .Where(p => p.Activo)
+                    .Select(p => new ItemPresentacionViewModel
+                    {
+                        Id_ItemPresentacion = p.Id_ItemPresentacion,
+                        Id_UnidadMedida = p.Id_UnidadMedida,
+                        Cantidad = p.Cantidad
+                    }).ToList(),
+                Activo = item.Activo
             };
 
             ViewBag.Unidades = await _context.UnidadesMedida.ToListAsync();
-            ViewBag.Proveedores = await _context.Proveedores.ToListAsync();
             return View(model);
         }
 
@@ -114,10 +128,24 @@ namespace PropamaPOS.Controllers
         public async Task<IActionResult> Editar(int id, ItemViewModel model)
         {
             if (id != model.Id_Item) return NotFound();
+
             if (!ModelState.IsValid)
             {
                 ViewBag.Unidades = await _context.UnidadesMedida.ToListAsync();
-                ViewBag.Proveedores = await _context.Proveedores.ToListAsync();
+                return View(model);
+            }
+
+            // Validar duplicados en el POST
+            var duplicateUnit = model.Presentaciones
+                .GroupBy(p => p.Id_UnidadMedida)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .FirstOrDefault();
+
+            if (duplicateUnit > 0)
+            {
+                ModelState.AddModelError("", "Hay presentaciones repetidas (misma unidad). Elimine duplicados antes de guardar.");
+                ViewBag.Unidades = await _context.UnidadesMedida.ToListAsync();
                 return View(model);
             }
 
@@ -130,15 +158,22 @@ namespace PropamaPOS.Controllers
             item.Nombre = model.Nombre;
             item.Descripcion = model.Descripcion;
             item.Codigo = model.Codigo;
-            item.Id_Proveedor = model.Id_Proveedor;
+            item.Activo = model.Activo;
 
-            // Actualizar DB
-            //  - eliminar presentaciones removidas
-            var postedIds = model.Presentaciones.Where(p => p.Id_ItemPresentacion.HasValue).Select(p => p.Id_ItemPresentacion!.Value).ToList();
-            var toRemove = item.Presentaciones.Where(p => !postedIds.Contains(p.Id_ItemPresentacion)).ToList();
-            _context.ItemPresentaciones.RemoveRange(toRemove);
+            // Presentaciones: detectadas por Id_ItemPresentacion si existen
+            var postedIds = model.Presentaciones.Where(p => p.Id_ItemPresentacion.HasValue)
+                                .Select(p => p.Id_ItemPresentacion!.Value).ToList();
 
-            //  - actualizar existentes y agregar nuevas
+            // Marcar como inactivas las presentaciones que NO están en postedIds
+            var toDeactivate = item.Presentaciones.Where(p => !postedIds.Contains(p.Id_ItemPresentacion)).ToList();
+            foreach (var p in toDeactivate)
+            {
+                // soft-delete: inactivar
+                p.Activo = false;
+                _context.ItemPresentaciones.Update(p);
+            }
+
+            // Actualizar existentes y agregar nuevas
             foreach (var p in model.Presentaciones)
             {
                 if (p.Id_ItemPresentacion.HasValue)
@@ -146,9 +181,12 @@ namespace PropamaPOS.Controllers
                     var existing = item.Presentaciones.FirstOrDefault(x => x.Id_ItemPresentacion == p.Id_ItemPresentacion.Value);
                     if (existing != null)
                     {
+                        // Si esta presentacion fue previamente inactivada, reactívala
+                        existing.Activo = true;
                         existing.Id_UnidadMedida = p.Id_UnidadMedida;
                         existing.Cantidad = p.Cantidad;
-                        existing.PrecioVenta = p.PrecioVenta;
+                        // No tocamos PrecioVenta/PrecioCosto aquí — se actualizan desde compras
+                        _context.ItemPresentaciones.Update(existing);
                     }
                 }
                 else
@@ -159,7 +197,9 @@ namespace PropamaPOS.Controllers
                         Id_Item = item.Id_Item,
                         Id_UnidadMedida = p.Id_UnidadMedida,
                         Cantidad = p.Cantidad,
-                        PrecioVenta = p.PrecioVenta
+                        PrecioVenta = 0m,
+                        PrecioCosto = null,
+                        Activo = true
                     };
                     _context.ItemPresentaciones.Add(np);
                 }
@@ -178,7 +218,7 @@ namespace PropamaPOS.Controllers
             return View(item);
         }
 
-        // POST: Item/Eliminar/5
+        // POST: Item/Eliminar/5  -> Convertir a soft delete
         [HttpPost]
         [ActionName("Eliminar")]
         [ValidateAntiForgeryToken]
@@ -189,10 +229,16 @@ namespace PropamaPOS.Controllers
                 .FirstOrDefaultAsync(i => i.Id_Item == id);
             if (item != null)
             {
-                _context.ItemPresentaciones.RemoveRange(item.Presentaciones);
-                _context.Items.Remove(item);
+                // Soft-delete
+                item.Activo = false;
+                foreach (var p in item.Presentaciones)
+                {
+                    p.Activo = false;
+                }
+                _context.Items.Update(item);
                 await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Producto eliminado.";
+
+                TempData["SuccessMessage"] = "Producto desactivado (soft-delete).";
             }
             return RedirectToAction(nameof(Index));
         }

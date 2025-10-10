@@ -63,7 +63,8 @@ namespace PropamaPOS.Controllers
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, usuario.Empleado.Nombre + " " + usuario.Empleado.Apellido),
-                new Claim(ClaimTypes.Role, usuario.Rol.Nombre ?? "Empleado")
+                new Claim(ClaimTypes.Role, usuario.Rol.Nombre ?? "Empleado"),
+                new Claim(ClaimTypes.NameIdentifier, usuario.Id_Usuario.ToString())
             };
 
             var claimsIdentity = new ClaimsIdentity(

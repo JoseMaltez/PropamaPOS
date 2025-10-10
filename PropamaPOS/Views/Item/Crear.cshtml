@@ -34,29 +34,15 @@
                             <span asp-validation-for="Descripcion" class="text-danger"></span>
                         </div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label asp-for="Id_Proveedor" class="form-label">Proveedor</label>
-                                <select asp-for="Id_Proveedor" class="form-select">
-                                    <option value="">-- Sin proveedor --</option>
-                                    @foreach(var prov in proveedores)
-                                    {
-                                        <option value="@prov.Id_Proveedor">@prov.Nombre</option>
-                                    }
-                                </select>
-                            </div>
-                        </div>
-
                         <hr />
                         <h5>Presentaciones y precios</h5>
                         <p class="text-muted small">Agrega las distintas presentaciones del producto (por unidad, por caja, etc.).</p>
 
-                        <table class="table" id="presentacionesTable">
+                         <table class="table" id="presentacionesTable">
                             <thead>
                                 <tr>
                                     <th>Unidad</th>
                                     <th>Cantidad</th>
-                                    <th>Precio venta (Q)</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -64,10 +50,11 @@
                                 @for (int i = 0; i < Model.Presentaciones.Count; i++)
                                 {
                                     <tr>
+                                        <input type="hidden" name="Presentaciones[@i].Id_ItemPresentacion" value="@Model.Presentaciones[i].Id_ItemPresentacion" />
                                         <td>
-                                            <select name="Presentaciones[@i].Id_UnidadMedida" class="form-select">
+                                            <select name="Presentaciones[@i].Id_UnidadMedida" class="form-select" required>
                                                 <option value="">-- Seleccione --</option>
-                                               @foreach (var u in unidades)
+                                                @foreach (var u in unidades)
                                                 {
                                                     var selected = u.Id_UnidadMedida == Model.Presentaciones[i].Id_UnidadMedida ? "selected=\"selected\"" : "";
                                                     @:<option value="@u.Id_UnidadMedida" @Html.Raw(selected)>@u.Nombre</option>
@@ -75,10 +62,7 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <input name="Presentaciones[@i].Cantidad" value="@Model.Presentaciones[i].Cantidad" class="form-control" />
-                                        </td>
-                                        <td>
-                                            <input name="Presentaciones[@i].PrecioVenta" value="@Model.Presentaciones[i].PrecioVenta" class="form-control" />
+                                            <input name="Presentaciones[@i].Cantidad" value="@Model.Presentaciones[i].Cantidad" class="form-control" type="number" min="1" required />
                                         </td>
                                         <td>
                                             <button type="button" class="btn btn-danger btn-sm remove-row">Eliminar</button>
@@ -91,6 +75,7 @@
                         <div class="mb-3">
                             <button type="button" id="addPresentacion" class="btn btn-outline-secondary"><i class="bi bi-plus"></i> Agregar presentación</button>
                         </div>
+
 
                         <div class="d-flex justify-content-between">
                             <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
@@ -140,15 +125,6 @@
                 inCant.classList.add('form-control');
                 tdCant.appendChild(inCant);
                 tr.appendChild(tdCant);
-
-                // Precio venta
-                const tdPV = document.createElement('td');
-                const inPV = document.createElement('input');
-                inPV.name = `Presentaciones[${index}].PrecioVenta`;
-                inPV.classList.add('form-control');
-                inPV.placeholder = '0.00';
-                tdPV.appendChild(inPV);
-                tr.appendChild(tdPV);
 
                 // eliminar
                 const tdBtn = document.createElement('td');

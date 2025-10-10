@@ -38,20 +38,6 @@
                             <span asp-validation-for="Descripcion" class="text-danger"></span>
                         </div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label asp-for="Id_Proveedor" class="form-label">Proveedor</label>
-                                <select asp-for="Id_Proveedor" class="form-select">
-                                    <option value="">-- Sin proveedor --</option>
-                                    @foreach (var prov in proveedores)
-                                    {
-                                        var selected = prov.Id_Proveedor == Model.Id_Proveedor ? "selected=\"selected\"" : "";
-                                        @:<option value="@prov.Id_Proveedor" @Html.Raw(selected)>@prov.Nombre</option>
-                                    }
-                                </select>
-                            </div>
-                        </div>
-
                         <hr />
                         <h5>Presentaciones y precios</h5>
                         <p class="text-muted small">Modifica las presentaciones del producto (por unidad, por caja, etc.).</p>
@@ -61,7 +47,6 @@
                                 <tr>
                                     <th>Unidad</th>
                                     <th>Cantidad</th>
-                                    <th>Precio venta (Q)</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -71,7 +56,7 @@
                                     <tr>
                                         <input type="hidden" name="Presentaciones[@i].Id_ItemPresentacion" value="@Model.Presentaciones[i].Id_ItemPresentacion" />
                                         <td>
-                                            <select name="Presentaciones[@i].Id_UnidadMedida" class="form-select">
+                                            <select name="Presentaciones[@i].Id_UnidadMedida" class="form-select" required>
                                                 <option value="">-- Seleccione --</option>
                                                 @foreach (var u in unidades)
                                                 {
@@ -81,10 +66,7 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <input name="Presentaciones[@i].Cantidad" value="@Model.Presentaciones[i].Cantidad" class="form-control" />
-                                        </td>
-                                        <td>
-                                            <input name="Presentaciones[@i].PrecioVenta" value="@Model.Presentaciones[i].PrecioVenta" class="form-control" />
+                                            <input name="Presentaciones[@i].Cantidad" value="@Model.Presentaciones[i].Cantidad" class="form-control" type="number" min="1" required />
                                         </td>
                                         <td>
                                             <button type="button" class="btn btn-danger btn-sm remove-row">Eliminar</button>
@@ -149,14 +131,6 @@
                 inCant.classList.add('form-control');
                 tdCant.appendChild(inCant);
                 tr.appendChild(tdCant);
-
-                const tdPV = document.createElement('td');
-                const inPV = document.createElement('input');
-                inPV.name = `Presentaciones[${index}].PrecioVenta`;
-                inPV.classList.add('form-control');
-                inPV.placeholder = '0.00';
-                tdPV.appendChild(inPV);
-                tr.appendChild(tdPV);
 
                 const tdBtn = document.createElement('td');
                 const btn = document.createElement('button');

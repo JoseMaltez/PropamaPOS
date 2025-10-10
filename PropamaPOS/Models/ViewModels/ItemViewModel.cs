@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿// PropamaPOS/Models/ViewModels/ItemViewModel.cs
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace PropamaPOS.Models.ViewModels
@@ -12,10 +13,6 @@ namespace PropamaPOS.Models.ViewModels
 
         [Range(1, int.MaxValue)]
         public int Cantidad { get; set; } = 1;
-
-        [Required]
-        [Range(0.01, double.MaxValue)]
-        public decimal PrecioVenta { get; set; }
     }
 
     public class ItemViewModel
@@ -32,8 +29,8 @@ namespace PropamaPOS.Models.ViewModels
         [MaxLength(50)]
         public string? Codigo { get; set; }
 
-        public int? Id_Proveedor { get; set; }
-
+        // Quitado Id_Proveedor: relación con proveedores se maneja por ItemProveedor
         public List<ItemPresentacionViewModel> Presentaciones { get; set; } = new();
+        public bool Activo { get; set; } = true;
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿// PropamaPOS/Models/Compra.cs
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -15,6 +16,10 @@ namespace PropamaPOS.Models
         public int Id_Proveedor { get; set; }
         [ForeignKey("Id_Proveedor")]
         public Proveedor Proveedor { get; set; }
+
+        public int? Id_Empleado { get; set; }
+        [ForeignKey("Id_Empleado")]
+        public Empleado? Empleado { get; set; }
 
         [MaxLength(150)]
         public string CreadoPor { get; set; }

@@ -6,22 +6,16 @@ namespace PropamaPOS.Data
     public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-
-        // Tablas base
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Rol> Roles { get; set; }
         public DbSet<Empleado> Empleados { get; set; }
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
         public DbSet<Proveedor> Proveedores { get; set; }
         public DbSet<Cliente> Clientes { get; set; }
-
-        // Inventario y productos
         public DbSet<Item> Items { get; set; }
         public DbSet<UnidadMedida> UnidadesMedida { get; set; }
         public DbSet<ItemPresentacion> ItemPresentaciones { get; set; }
         public DbSet<ItemProveedor> ItemProveedores { get; set; }
-
-        // Compras
         public DbSet<Compra> Compras { get; set; }
         public DbSet<CompraDetalle> CompraDetalles { get; set; }
 
@@ -96,6 +90,12 @@ namespace PropamaPOS.Data
                 .WithMany()
                 .HasForeignKey(c => c.Id_Proveedor)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Compra>()
+                .HasOne(c => c.Empleado)
+                .WithMany()
+                .HasForeignKey(c => c.Id_Empleado)
+                .OnDelete(DeleteBehavior.SetNull);
 
             // Relaciones Compra - Detalle
             modelBuilder.Entity<CompraDetalle>()
