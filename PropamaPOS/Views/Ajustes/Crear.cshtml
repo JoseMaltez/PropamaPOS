@@ -20,11 +20,8 @@
                     <div class="col-md-4">
                         <label class="form-label">Tipo</label>
                         <select asp-for="Tipo" class="form-select" id="tipoSelect">
-                            <option value="Entrada">Entrada</option>
+                            <option value="Entrada" selected>Entrada</option>
                             <option value="Salida">Salida</option>
-                            <option value="Correccion">Corrección</option>
-                            <option value="Donacion">Donación</option>
-                            <option value="Robo">Robo</option>
                         </select>
                     </div>
                     <div class="col-md-4">
@@ -33,7 +30,8 @@
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Motivo</label>
-                        <input asp-for="Motivo" class="form-control" required />
+                        <input asp-for="Motivo" class="form-control" required
+                               placeholder="Ej: Donación, robo, corrección por conteo, etc." />
                     </div>
                 </div>
 

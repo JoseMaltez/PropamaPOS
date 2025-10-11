@@ -86,11 +86,10 @@ namespace PropamaPOS.Controllers
                 return View(model);
             }
 
-            // Determinar sign por tipo (entrada = +, salidas/donacion/robo = -)
+            // Determinar sign por tipo
             int signFromTipo(TipoMovimientoAjuste t)
             {
-                return t == TipoMovimientoAjuste.Entrada ? 1 :
-                       (t == TipoMovimientoAjuste.Salida || t == TipoMovimientoAjuste.Donacion || t == TipoMovimientoAjuste.Robo) ? -1 : 1;
+                return t == TipoMovimientoAjuste.Entrada ? 1 : -1;
             }
             int globalSign = signFromTipo(model.Tipo);
 

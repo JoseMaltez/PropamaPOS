@@ -21,7 +21,7 @@ namespace PropamaPOS.Models.ViewModels
     {
         public DateTime? Fecha { get; set; }
 
-        public TipoMovimientoAjuste Tipo { get; set; } = TipoMovimientoAjuste.Correccion;
+        public TipoMovimientoAjuste Tipo { get; set; } = TipoMovimientoAjuste.Entrada;
 
         [Required]
         [MaxLength(200)]
