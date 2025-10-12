@@ -1,8 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model PropamaPOS.Models.ViewModels.ClienteViewModel
-
+﻿@model PropamaPOS.Models.ViewModels.ClienteViewModel
 @{
     ViewData["Title"] = "Editar Cliente";
 }
@@ -12,42 +8,41 @@
         <div class="col-md-8">
             <div class="card shadow">
                 <div class="card-body">
-                    <h3 class="card-title text-center mb-4">Editar Cliente</h3>
+                    <h3 class="card-title text-center mb-4">Actualizar Cliente</h3>
 
                     <form asp-action="Editar" method="post">
                         <input type="hidden" asp-for="Id_Cliente" />
-
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="NIT" class="form-label"></label>
+                            <input asp-for="NIT" class="form-control" placeholder="Ingrese NIT" />
+                            <span asp-validation-for="NIT" class="text-danger"></span>
+                        </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Nombre" class="form-label"></label>
-                                <input asp-for="Nombre" class="form-control" />
+                                <input asp-for="Nombre" class="form-control" placeholder="Ingrese el nombre del cliente" />
                                 <span asp-validation-for="Nombre" class="text-danger"></span>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Apellido" class="form-label"></label>
-                                <input asp-for="Apellido" class="form-control" />
+                                <input asp-for="Apellido" class="form-control" placeholder="Apellido (opcional)" />
                                 <span asp-validation-for="Apellido" class="text-danger"></span>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="Telefono" class="form-label"></label>
-                            <input asp-for="Telefono" class="form-control" />
-                            <span asp-validation-for="Telefono" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
                             <label asp-for="Direccion" class="form-label"></label>
-                            <textarea asp-for="Direccion" class="form-control" rows="3"></textarea>
+                            <textarea asp-for="Direccion" class="form-control" rows="3" placeholder="Ingrese la dirección completa"></textarea>
                             <span asp-validation-for="Direccion" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
                             <div class="form-check form-switch">
-                                <input asp-for="Activo" class="form-check-input" type="checkbox" />
+                                <input asp-for="Activo" class="form-check-input" type="checkbox" checked />
                                 <label asp-for="Activo" class="form-check-label">Activo</label>
                             </div>
                         </div>

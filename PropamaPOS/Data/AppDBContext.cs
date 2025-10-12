@@ -53,8 +53,8 @@ namespace PropamaPOS.Data
                 .IsUnique();
 
             modelBuilder.Entity<Cliente>()
-                .HasIndex(c => new { c.Nombre, c.Apellido, c.Telefono })
-                .IsUnique();
+                 .HasIndex(c => c.NIT)
+                 .IsUnique();
 
             // Relaciones Item - Presentaciones (1:N)
             modelBuilder.Entity<ItemPresentacion>()

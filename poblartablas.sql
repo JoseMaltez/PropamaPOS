@@ -9,8 +9,16 @@ INSERT INTO Usuarios(NombreUsuario, ContraHash, ContraSalt, Id_Rol) VALUES
 insert into Empleados (Nombre, Apellido, Correo, Telefono, FechaContratacion, Activo, Id_Usuario) values
 ('Jose','Maltez','josemaltezv@gmail.com','59512640',GETDATE(),1,1)
 
+insert into UnidadesMedida (Nombre, Abreviatura) values
+('Unidad', 'ud'),
+('Caja', 'cj'),
+('Ciento','c'),
+('Medio Ciento','mc'),
+('Resma','res')
+
 select * from Roles
 select * from Usuarios
 select * from Empleados
+select * from UnidadesMedida
 
 

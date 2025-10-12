@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿// PropamaPOS/Controllers/ClienteController.cs
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PropamaPOS.Data;
@@ -11,6 +12,7 @@ namespace PropamaPOS.Controllers
     public class ClienteController : Controller
     {
         private readonly AppDbContext _context;
+        private const int PageSize = 30;
 
         public ClienteController(AppDbContext context)
         {
@@ -18,9 +20,36 @@ namespace PropamaPOS.Controllers
         }
 
         // GET: Cliente
-        public async Task<IActionResult> Index()
+        //q = query string para búsqueda
+        public async Task<IActionResult> Index(string q, int page = 1)
         {
-            var clientes = await _context.Clientes.ToListAsync();
+            var query = _context.Clientes.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                q = q.Trim();
+                query = query.Where(c =>
+                    c.NIT.Contains(q) ||
+                    c.Nombre.Contains(q) ||
+                    (c.Apellido != null && c.Apellido.Contains(q))
+                );
+            }
+
+            var total = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(total / (double)PageSize);
+
+            var clientes = await query
+                .OrderBy(c => c.Id_Cliente)
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
+                .ToListAsync();
+
+            ViewBag.CurrentQuery = q;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.PageSize = PageSize;
+            ViewBag.TotalItems = total;
+
             return View(clientes);
         }
 
@@ -37,11 +66,18 @@ namespace PropamaPOS.Controllers
         {
             if (ModelState.IsValid)
             {
+                // Validar NIT único
+                if (await _context.Clientes.AnyAsync(c => c.NIT == model.NIT))
+                {
+                    ModelState.AddModelError("NIT", "Este NIT ya está registrado.");
+                    return View(model);
+                }
+
                 var cliente = new Cliente
                 {
                     Nombre = model.Nombre,
                     Apellido = model.Apellido,
-                    Telefono = model.Telefono,
+                    NIT = model.NIT,
                     Direccion = model.Direccion,
                     Activo = model.Activo
                 };
@@ -71,7 +107,7 @@ namespace PropamaPOS.Controllers
                 Id_Cliente = cliente.Id_Cliente,
                 Nombre = cliente.Nombre,
                 Apellido = cliente.Apellido,
-                Telefono = cliente.Telefono,
+                NIT = cliente.NIT,
                 Direccion = cliente.Direccion,
                 Activo = cliente.Activo
             };
@@ -84,25 +120,25 @@ namespace PropamaPOS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Editar(int id, ClienteViewModel model)
         {
-            if (id != model.Id_Cliente)
-            {
-                return NotFound();
-            }
+            if (id != model.Id_Cliente) return NotFound();
 
             if (ModelState.IsValid)
             {
                 try
                 {
                     var cliente = await _context.Clientes.FindAsync(id);
+                    if (cliente == null) return NotFound();
 
-                    if (cliente == null)
+                    // Validar NIT único (excluir el registro actual)
+                    if (await _context.Clientes.AnyAsync(c => c.NIT == model.NIT && c.Id_Cliente != id))
                     {
-                        return NotFound();
+                        ModelState.AddModelError("NIT", "Este NIT ya está registrado por otro cliente.");
+                        return View(model);
                     }
 
                     cliente.Nombre = model.Nombre;
                     cliente.Apellido = model.Apellido;
-                    cliente.Telefono = model.Telefono;
+                    cliente.NIT = model.NIT;
                     cliente.Direccion = model.Direccion;
                     cliente.Activo = model.Activo;
 
@@ -114,50 +150,14 @@ namespace PropamaPOS.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ClienteExists(id))
-                    {
+                    if (!_context.Clientes.Any(e => e.Id_Cliente == id))
                         return NotFound();
-                    }
                     else
-                    {
                         throw;
-                    }
                 }
             }
 
             return View(model);
-        }
-
-        // GET: Cliente/Eliminar/5
-        public async Task<IActionResult> Eliminar(int id)
-        {
-            var cliente = await _context.Clientes.FindAsync(id);
-
-            if (cliente == null)
-            {
-                return NotFound();
-            }
-
-            return View(cliente);
-        }
-
-        // POST: Cliente/Eliminar/5
-        [HttpPost] 
-        [ActionName("Eliminar")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EliminarConfirmado(int id)
-        {
-            var cliente = await _context.Clientes.FindAsync(id);
-
-            if (cliente != null)
-            {
-                _context.Clientes.Remove(cliente);
-                await _context.SaveChangesAsync();
-
-                TempData["SuccessMessage"] = "Cliente eliminado exitosamente.";
-            }
-
-            return RedirectToAction(nameof(Index));
         }
 
         private bool ClienteExists(int id)

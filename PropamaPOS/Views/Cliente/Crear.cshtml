@@ -1,8 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model PropamaPOS.Models.ViewModels.ClienteViewModel
-
+﻿@model PropamaPOS.Models.ViewModels.ClienteViewModel
 @{
     ViewData["Title"] = "Crear Cliente";
 }
@@ -17,6 +13,12 @@
                     <form asp-action="Crear" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
+                        <div class="mb-3">
+                            <label asp-for="NIT" class="form-label"></label>
+                            <input asp-for="NIT" class="form-control" placeholder="Ingrese NIT" />
+                            <span asp-validation-for="NIT" class="text-danger"></span>
+                        </div>
+
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Nombre" class="form-label"></label>
@@ -26,15 +28,9 @@
 
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Apellido" class="form-label"></label>
-                                <input asp-for="Apellido" class="form-control" placeholder="Ingrese el apellido del cliente" />
+                                <input asp-for="Apellido" class="form-control" placeholder="Apellido (opcional)" />
                                 <span asp-validation-for="Apellido" class="text-danger"></span>
                             </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="Telefono" class="form-label"></label>
-                            <input asp-for="Telefono" class="form-control" placeholder="Ingrese el teléfono" />
-                            <span asp-validation-for="Telefono" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">

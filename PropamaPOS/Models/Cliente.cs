@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿// PropamaPOS/Models/Cliente.cs
+using System.ComponentModel.DataAnnotations;
 
 namespace PropamaPOS.Models
 {
@@ -11,13 +12,12 @@ namespace PropamaPOS.Models
         [MaxLength(100)]
         public string Nombre { get; set; }
 
-        [Required(ErrorMessage = "El apellido es obligatorio")]
         [MaxLength(100)]
-        public string Apellido { get; set; }
+        public string? Apellido { get; set; }
 
-        [Phone(ErrorMessage = "Formato de teléfono inválido")]
-        [MaxLength(15)]
-        public string Telefono { get; set; }
+        [Required(ErrorMessage = "El NIT es obligatorio")]
+        [MaxLength(20)]
+        public string NIT { get; set; }
 
         [Required(ErrorMessage = "La dirección es obligatoria")]
         [MaxLength(200)]
