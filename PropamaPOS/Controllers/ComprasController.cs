@@ -20,7 +20,7 @@ namespace PropamaPOS.Controllers
             _config = config;
         }
 
-        // Listado de compras (historial)
+        // GET: Compras
         public async Task<IActionResult> Index()
         {
             var compras = await _context.Compras
@@ -31,7 +31,7 @@ namespace PropamaPOS.Controllers
             return View(compras);
         }
 
-        // Ver detalle de una compra
+        // GET: Compras/Details/5
         public async Task<IActionResult> Details(int id)
         {
             var compra = await _context.Compras
@@ -49,7 +49,7 @@ namespace PropamaPOS.Controllers
             return View(compra);
         }
 
-        // 🧾 Mostrar formulario para crear nueva compra
+        // GET: Compras/Crear
         public async Task<IActionResult> Crear()
         {
             ViewBag.Proveedores = await _context.Proveedores
@@ -58,7 +58,7 @@ namespace PropamaPOS.Controllers
                 .ToListAsync();
 
             var items = await _context.Items
-                .Where(i => i.Activo)
+                .Where(i => i.Activo && !i.IsServicio)
                 .Include(i => i.Presentaciones)
                     .ThenInclude(p => p.UnidadMedida)
                 .Select(i => new
@@ -85,7 +85,7 @@ namespace PropamaPOS.Controllers
         }
 
 
-        // Procesar la compra (POST)
+        // POST: Compras/Crear
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Crear(CompraCrearViewModel model)
@@ -202,8 +202,6 @@ namespace PropamaPOS.Controllers
             }
         }
 
-
-        // Método auxiliar para recargar listas en caso de error de validación
         private async Task CargarViewBags()
         {
             ViewBag.Proveedores = await _context.Proveedores
@@ -212,7 +210,7 @@ namespace PropamaPOS.Controllers
             .ToListAsync();
 
             var items = await _context.Items
-                .Where(i => i.Activo)
+                .Where(i => i.Activo && !i.IsServicio)
                 .Include(i => i.Presentaciones)
                     .ThenInclude(p => p.UnidadMedida)
                 .Select(i => new

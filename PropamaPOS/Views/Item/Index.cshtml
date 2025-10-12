@@ -58,11 +58,27 @@
                                             </div>
                                         }
                                     </td>
-                                    <td>@item.Stock</td>
                                     <td>
-                                        <span class="badge bg-@(item.Activo ? "success" : "danger")">
-                                            @(item.Activo ? "Activo" : "Inactivo")
-                                        </span>
+                                        @if (item.IsServicio)
+                                        {
+                                            <em>N/A</em>
+                                        }
+                                        else
+                                        {
+                                            @item.Stock
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (item.IsServicio)
+                                        {
+                                            <span class="badge bg-info">Servicio</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-@(item.Activo ? "success" : "danger")">
+                                                @(item.Activo ? "Activo" : "Inactivo")
+                                            </span>
+                                        }
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">

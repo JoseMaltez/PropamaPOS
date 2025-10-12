@@ -27,7 +27,6 @@ namespace PropamaPOS.Controllers
             return View(items);
         }
 
-
         // GET: Item/Crear
         public async Task<IActionResult> Crear()
         {
@@ -48,8 +47,9 @@ namespace PropamaPOS.Controllers
                 return View(model);
             }
 
-            // Validar duplicados en el POST
+            // Validar duplicados entre presentaciones (misma unidad)
             var duplicateUnit = model.Presentaciones
+                .Where(p => p.Id_UnidadMedida > 0)
                 .GroupBy(p => p.Id_UnidadMedida)
                 .Where(g => g.Count() > 1)
                 .Select(g => g.Key)
@@ -68,13 +68,17 @@ namespace PropamaPOS.Controllers
                 Descripcion = model.Descripcion,
                 Codigo = model.Codigo,
                 Activo = model.Activo,
-                Id_Categoria = model.Id_Categoria
+                Id_Categoria = model.Id_Categoria,
+                IsServicio = model.IsServicio,
+                // stock y costo quedan en 0 por defecto; para servicios no se usan
+                Stock = model.IsServicio ? 0 : 0,
+                CostoPromedioUnidad = 0m
             };
 
             _context.Items.Add(item);
             await _context.SaveChangesAsync();
 
-            // Guardar presentaciones (no se piden precios aquí)
+            // Guardar presentaciones. Para servicios, se permite especificar PrecioVenta manual.
             if (model.Presentaciones != null && model.Presentaciones.Any())
             {
                 foreach (var p in model.Presentaciones)
@@ -85,17 +89,16 @@ namespace PropamaPOS.Controllers
                         Id_Item = item.Id_Item,
                         Id_UnidadMedida = p.Id_UnidadMedida,
                         Cantidad = p.Cantidad > 0 ? p.Cantidad : 1,
-                        PrecioVenta = 0m,    // se calculará desde compras
-                        PrecioCosto = null,  // nulo hasta primera compra
+                        PrecioVenta = p.PrecioVenta ?? 0m,    // para servicios o precio manual
+                        PrecioCosto = model.IsServicio ? (decimal?)null : null,  // nulo hasta primera compra
                         Activo = true
-
-                    }; 
+                    };
                     _context.ItemPresentaciones.Add(present);
                 }
                 await _context.SaveChangesAsync();
             }
 
-            TempData["SuccessMessage"] = "Producto creado correctamente.";
+            TempData["SuccessMessage"] = model.IsServicio ? "Servicio creado correctamente." : "Producto creado correctamente.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -115,13 +118,15 @@ namespace PropamaPOS.Controllers
                 Descripcion = item.Descripcion,
                 Codigo = item.Codigo,
                 Id_Categoria = item.Id_Categoria,
+                IsServicio = item.IsServicio,
                 Presentaciones = item.Presentaciones
                     .Where(p => p.Activo)
                     .Select(p => new ItemPresentacionViewModel
                     {
                         Id_ItemPresentacion = p.Id_ItemPresentacion,
                         Id_UnidadMedida = p.Id_UnidadMedida,
-                        Cantidad = p.Cantidad
+                        Cantidad = p.Cantidad,
+                        PrecioVenta = p.PrecioVenta
                     }).ToList(),
                 Activo = item.Activo
             };
@@ -145,46 +150,52 @@ namespace PropamaPOS.Controllers
                 return View(model);
             }
 
-            // Validar duplicados en el POST
-            var duplicateUnit = model.Presentaciones
-                .GroupBy(p => p.Id_UnidadMedida)
-                .Where(g => g.Count() > 1)
-                .Select(g => g.Key)
-                .FirstOrDefault();
-
-            if (duplicateUnit > 0)
-            {
-                ModelState.AddModelError("", "Hay presentaciones repetidas (misma unidad). Elimine duplicados antes de guardar.");
-                ViewBag.Unidades = await _context.UnidadesMedida.ToListAsync();
-                return View(model);
-            }
-
             var item = await _context.Items
                 .Include(i => i.Presentaciones)
                 .FirstOrDefaultAsync(i => i.Id_Item == id);
 
             if (item == null) return NotFound();
 
+            // Validar duplicados presentaciones
+            var duplicateUnit2 = model.Presentaciones
+                .Where(p => p.Id_UnidadMedida > 0)
+                .GroupBy(p => p.Id_UnidadMedida)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .FirstOrDefault();
+
+            if (duplicateUnit2 > 0)
+            {
+                ModelState.AddModelError("", "Hay presentaciones repetidas (misma unidad). Elimine duplicados antes de guardar.");
+                ViewBag.Unidades = await _context.UnidadesMedida.ToListAsync();
+                return View(model);
+            }
+
             item.Nombre = model.Nombre;
             item.Descripcion = model.Descripcion;
             item.Codigo = model.Codigo;
             item.Activo = model.Activo;
             item.Id_Categoria = model.Id_Categoria;
+            item.IsServicio = model.IsServicio;
 
-            // Presentaciones: detectadas por Id_ItemPresentacion si existen
+            // Si ahora es servicio, asegurarnos stock = 0 y costo = 0
+            if (item.IsServicio)
+            {
+                item.Stock = 0;
+                item.CostoPromedioUnidad = 0m;
+            }
+
+            // Presentaciones: mismo esquema que ya tienes (inactivar las que se quitan, actualizar existentes, crear nuevas)
             var postedIds = model.Presentaciones.Where(p => p.Id_ItemPresentacion.HasValue)
                                 .Select(p => p.Id_ItemPresentacion!.Value).ToList();
 
-            // Marcar como inactivas las presentaciones que NO están en postedIds
             var toDeactivate = item.Presentaciones.Where(p => !postedIds.Contains(p.Id_ItemPresentacion)).ToList();
             foreach (var p in toDeactivate)
             {
-                // soft-delete: inactivar
                 p.Activo = false;
                 _context.ItemPresentaciones.Update(p);
             }
 
-            // Actualizar existentes y agregar nuevas
             foreach (var p in model.Presentaciones)
             {
                 if (p.Id_ItemPresentacion.HasValue)
@@ -192,23 +203,24 @@ namespace PropamaPOS.Controllers
                     var existing = item.Presentaciones.FirstOrDefault(x => x.Id_ItemPresentacion == p.Id_ItemPresentacion.Value);
                     if (existing != null)
                     {
-                        // Si esta presentacion fue previamente inactivada, reactívala
                         existing.Activo = true;
                         existing.Id_UnidadMedida = p.Id_UnidadMedida;
                         existing.Cantidad = p.Cantidad;
+                        existing.PrecioVenta = p.PrecioVenta ?? existing.PrecioVenta;
+                        if (item.IsServicio)
+                            existing.PrecioCosto = null;
                         _context.ItemPresentaciones.Update(existing);
                     }
                 }
                 else
                 {
-                    // nuevo
                     var np = new ItemPresentacion
                     {
                         Id_Item = item.Id_Item,
                         Id_UnidadMedida = p.Id_UnidadMedida,
                         Cantidad = p.Cantidad,
-                        PrecioVenta = 0m,
-                        PrecioCosto = null,
+                        PrecioVenta = p.PrecioVenta ?? 0m,
+                        PrecioCosto = item.IsServicio ? (decimal?)null : null,
                         Activo = true
                     };
                     _context.ItemPresentaciones.Add(np);
@@ -216,7 +228,7 @@ namespace PropamaPOS.Controllers
             }
 
             await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Producto actualizado correctamente.";
+            TempData["SuccessMessage"] = item.IsServicio ? "Servicio actualizado correctamente." : "Producto actualizado correctamente.";
             return RedirectToAction(nameof(Index));
         }
 

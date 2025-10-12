@@ -22,10 +22,12 @@ namespace PropamaPOS.Models
 
         public bool Activo { get; set; } = true;
 
-        // Stock total en unidades individuales
+        public bool IsServicio { get; set; } = false;
+
+        // Stock total en unidades individuales (para productos). En servicios se mantiene en 0.
         public int Stock { get; set; } = 0;
 
-        // Costo promedio por unidad (cálculo automático)
+        // Costo promedio por unidad (cálculo automático para productos)
         [Column(TypeName = "decimal(18,4)")]
         public decimal CostoPromedioUnidad { get; set; } = 0m;
 
@@ -34,6 +36,5 @@ namespace PropamaPOS.Models
 
         public int? Id_Categoria { get; set; }
         public Categoria? Categoria { get; set; }
-
     }
 }

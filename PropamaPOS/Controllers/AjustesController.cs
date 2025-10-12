@@ -51,7 +51,7 @@ namespace PropamaPOS.Controllers
         {
             // Cargar items proyectados (misma forma que en Compras para JS)
             var items = await _context.Items
-                .Where(i => i.Activo)
+                .Where(i => i.Activo && !i.IsServicio)
                 .Include(i => i.Presentaciones)
                     .ThenInclude(p => p.UnidadMedida)
                 .Select(i => new
@@ -182,7 +182,7 @@ namespace PropamaPOS.Controllers
         private async Task CargarViewBags()
         {
             var items = await _context.Items
-                .Where(i => i.Activo)
+                .Where(i => i.Activo && !i.IsServicio)
                 .Include(i => i.Presentaciones)
                     .ThenInclude(p => p.UnidadMedida)
                 .Select(i => new
