@@ -140,6 +140,14 @@ namespace PropamaPOS.Data
                 .HasForeignKey(d => d.Id_ItemPresentacion)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Relación Item - Categoria
+            modelBuilder.Entity<Item>()
+                .HasOne(i => i.Categoria)
+                .WithMany(c => c.Items)
+                .HasForeignKey(i => i.Id_Categoria)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
             // Configuración decimal general
             modelBuilder.Entity<Item>()
                 .Property(i => i.CostoPromedioUnidad)

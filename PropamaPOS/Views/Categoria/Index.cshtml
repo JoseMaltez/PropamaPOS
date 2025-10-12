@@ -14,11 +14,15 @@
         </a>
     </div>
 
-    @if (TempData["SuccessMessage"] != null)
+    @if (!string.IsNullOrWhiteSpace(TempData["SuccessMessage"] as string))
     {
         <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(TempData["ErrorMessage"] as string))
+    {
         <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
     }
+
 
     <table class="table table-striped table-bordered">
         <thead class="table-dark">
@@ -38,7 +42,6 @@
                     <td>@cat.Descripcion</td>
                     <td>
                         <a asp-action="Editar" asp-route-id="@cat.Id_Categoria" class="btn btn-sm btn-outline-primary">Editar</a>
-                        <a asp-action="Detalles" asp-route-id="@cat.Id_Categoria" class="btn btn-sm btn-outline-secondary">Detalles</a>
                         <a asp-action="Eliminar" asp-route-id="@cat.Id_Categoria" class="btn btn-sm btn-outline-danger">Eliminar</a>
                     </td>
                 </tr>

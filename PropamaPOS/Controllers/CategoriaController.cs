@@ -23,14 +23,6 @@ namespace PropamaPOS.Controllers
             return View(categorias);
         }
 
-        // GET: Categoria/Detalles/5
-        public async Task<IActionResult> Detalles(int id)
-        {
-            var categoria = await _context.Categorias.FindAsync(id);
-            if (categoria == null) return NotFound();
-            return View(categoria);
-        }
-
         // GET: Categoria/Crear
         public IActionResult Crear()
         {
