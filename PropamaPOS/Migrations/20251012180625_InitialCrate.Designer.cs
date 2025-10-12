@@ -12,8 +12,8 @@ using PropamaPOS.Data;
 namespace PropamaPOS.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251009231233_ComprasCorreccion")]
-    partial class ComprasCorreccion
+    [Migration("20251012180625_InitialCrate")]
+    partial class InitialCrate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,86 @@ namespace PropamaPOS.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("PropamaPOS.Models.AjusteInventario", b =>
+                {
+                    b.Property<int>("Id_Ajuste")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id_Ajuste"));
+
+                    b.Property<string>("CreadoPor")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("Id_Empleado")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Motivo")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Observaciones")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id_Ajuste");
+
+                    b.HasIndex("Id_Empleado");
+
+                    b.ToTable("AjustesInventario");
+                });
+
+            modelBuilder.Entity("PropamaPOS.Models.AjusteInventarioDetalle", b =>
+                {
+                    b.Property<int>("Id_AjusteDetalle")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id_AjusteDetalle"));
+
+                    b.Property<int>("CantidadPresentaciones")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CantidadUnidades")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Id_Ajuste")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Id_Item")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Id_ItemPresentacion")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nota")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("StockAntes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StockDespues")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id_AjusteDetalle");
+
+                    b.HasIndex("Id_Ajuste");
+
+                    b.HasIndex("Id_Item");
+
+                    b.HasIndex("Id_ItemPresentacion");
+
+                    b.ToTable("AjusteInventarioDetalles");
+                });
 
             modelBuilder.Entity("PropamaPOS.Models.Cliente", b =>
                 {
@@ -431,6 +511,42 @@ namespace PropamaPOS.Migrations
                     b.ToTable("Usuarios");
                 });
 
+            modelBuilder.Entity("PropamaPOS.Models.AjusteInventario", b =>
+                {
+                    b.HasOne("PropamaPOS.Models.Empleado", "Empleado")
+                        .WithMany()
+                        .HasForeignKey("Id_Empleado")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Empleado");
+                });
+
+            modelBuilder.Entity("PropamaPOS.Models.AjusteInventarioDetalle", b =>
+                {
+                    b.HasOne("PropamaPOS.Models.AjusteInventario", "Ajuste")
+                        .WithMany("Detalles")
+                        .HasForeignKey("Id_Ajuste")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PropamaPOS.Models.Item", "Item")
+                        .WithMany()
+                        .HasForeignKey("Id_Item")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PropamaPOS.Models.ItemPresentacion", "Presentacion")
+                        .WithMany()
+                        .HasForeignKey("Id_ItemPresentacion")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Ajuste");
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Presentacion");
+                });
+
             modelBuilder.Entity("PropamaPOS.Models.Compra", b =>
                 {
                     b.HasOne("PropamaPOS.Models.Empleado", "Empleado")
@@ -545,6 +661,11 @@ namespace PropamaPOS.Migrations
                         .IsRequired();
 
                     b.Navigation("Rol");
+                });
+
+            modelBuilder.Entity("PropamaPOS.Models.AjusteInventario", b =>
+                {
+                    b.Navigation("Detalles");
                 });
 
             modelBuilder.Entity("PropamaPOS.Models.Compra", b =>
