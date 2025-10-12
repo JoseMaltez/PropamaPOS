@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Editar Producto o Servicio";
     var unidades = ViewBag.Unidades as List<PropamaPOS.Models.UnidadMedida> ?? new();
+    bool esServicio = Model.IsServicio;
 }
 
 <div class="container mt-4">
@@ -36,15 +37,16 @@
 
                         <div class="mb-3">
                             <label for="Id_Categoria" class="form-label">Categoría</label>
-                            <select asp-for="Id_Categoria" class="form-select" asp-items="ViewBag.Categorias">
+                            <select asp-for="Id_Categoria" class="form-select" asp-items="ViewBag.Categorias" id="categoriaSelect">
                                 <option value="">-- Seleccionar Categoría --</option>
                             </select>
                         </div>
 
-                        <!-- NUEVO -->
+                        <!-- ✅ Checkbox bloqueado, sin C# en atributos -->
                         <div class="form-check mb-4">
-                            <input asp-for="IsServicio" class="form-check-input" id="IsServicio" />
-                            <label class="form-check-label" for="IsServicio">Es un servicio</label>
+                            <input type="checkbox" class="form-check-input" id="IsServicio" name="IsServicio" value="true" @(esServicio ? "checked='checked'" : "") disabled="disabled" />
+                            <label class="form-check-label" for="IsServicio">Es un servicio (no se controla stock ni compras)</label>
+                            <input type="hidden" name="IsServicio" value="@(esServicio.ToString().ToLower())" />
                         </div>
 
                         <hr />
@@ -56,30 +58,39 @@
                                 <tr>
                                     <th>Unidad</th>
                                     <th>Cantidad</th>
-                                    <th>Precio Venta (Q)</th> <!-- NUEVO -->
+                                    <th class="col-precio">Precio Venta (Q)</th>
                                     <th></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @for (int i = 0; i < Model.Presentaciones.Count; i++)
                                 {
+                                    var presentacion = Model.Presentaciones[i];
                                     <tr>
-                                        <input type="hidden" name="Presentaciones[@i].Id_ItemPresentacion" value="@Model.Presentaciones[i].Id_ItemPresentacion" />
+                                        <input type="hidden" name="Presentaciones[@i].Id_ItemPresentacion" value="@presentacion.Id_ItemPresentacion" />
                                         <td>
                                             <select name="Presentaciones[@i].Id_UnidadMedida" class="form-select" required>
                                                 <option value="">-- Seleccione --</option>
                                                 @foreach (var u in unidades)
                                                 {
-                                                    var selected = u.Id_UnidadMedida == Model.Presentaciones[i].Id_UnidadMedida ? "selected=\"selected\"" : "";
-                                                    @:<option value="@u.Id_UnidadMedida" @Html.Raw(selected)>@u.Nombre</option>
+                                                    if (u.Id_UnidadMedida == presentacion.Id_UnidadMedida)
+                                                    {
+                                                        @:
+                                                        <option value="@u.Id_UnidadMedida" selected="selected">@u.Nombre</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        @:
+                                                        <option value="@u.Id_UnidadMedida">@u.Nombre</option>
+                                                    }
                                                 }
                                             </select>
                                         </td>
                                         <td>
-                                            <input name="Presentaciones[@i].Cantidad" value="@Model.Presentaciones[i].Cantidad" class="form-control" type="number" min="1" required />
+                                            <input name="Presentaciones[@i].Cantidad" value="@presentacion.Cantidad" class="form-control" type="number" min="1" required />
                                         </td>
-                                        <td>
-                                            <input name="Presentaciones[@i].PrecioVenta" value="@Model.Presentaciones[i].PrecioVenta" class="form-control" type="number" step="0.01" min="0" />
+                                        <td class="col-precio">
+                                            <input name="Presentaciones[@i].PrecioVenta" value="@presentacion.PrecioVenta" class="form-control precio-input" type="number" step="0.01" min="0" />
                                         </td>
                                         <td>
                                             <button type="button" class="btn btn-danger btn-sm remove-row">Eliminar</button>
@@ -111,77 +122,32 @@
         (function(){
             const unidades = @Html.Raw(JsonSerializer.Serialize(unidades));
             const tableBody = document.querySelector('#presentacionesTable tbody');
-            let nextIndex = @Model.Presentaciones.Count;
+            const isServicio = document.getElementById('IsServicio');
+            const categoriaSelect = document.getElementById('categoriaSelect');
+            const servicioNombre = "Servicio";
 
-            function createRow(index){
-                const tr = document.createElement('tr');
-
-                const hidden = document.createElement('input');
-                hidden.type = 'hidden';
-                hidden.name = `Presentaciones[${index}].Id_ItemPresentacion`;
-                tr.appendChild(hidden);
-
-                // Unidad
-                const tdUnidad = document.createElement('td');
-                const select = document.createElement('select');
-                select.name = `Presentaciones[${index}].Id_UnidadMedida`;
-                select.classList.add('form-select');
-                const opt = document.createElement('option');
-                opt.value = '';
-                opt.text = '-- Seleccione --';
-                select.appendChild(opt);
-                unidades.forEach(u => {
-                    const o = document.createElement('option');
-                    o.value = u.Id_UnidadMedida;
-                    o.text = u.Nombre;
-                    select.appendChild(o);
-                });
-                tdUnidad.appendChild(select);
-                tr.appendChild(tdUnidad);
-
-                // Cantidad
-                const tdCant = document.createElement('td');
-                const inCant = document.createElement('input');
-                inCant.name = `Presentaciones[${index}].Cantidad`;
-                inCant.value = 1;
-                inCant.classList.add('form-control');
-                inCant.type = 'number';
-                inCant.min = 1;
-                tdCant.appendChild(inCant);
-                tr.appendChild(tdCant);
-
-                // Precio
-                const tdPrecio = document.createElement('td');
-                const inPrecio = document.createElement('input');
-                inPrecio.name = `Presentaciones[${index}].PrecioVenta`;
-                inPrecio.type = 'number';
-                inPrecio.classList.add('form-control');
-                inPrecio.step = '0.01';
-                inPrecio.min = '0';
-                tdPrecio.appendChild(inPrecio);
-                tr.appendChild(tdPrecio);
-
-                // Botón eliminar
-                const tdBtn = document.createElement('td');
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'btn btn-danger btn-sm remove-row';
-                btn.innerText = 'Eliminar';
-                tdBtn.appendChild(btn);
-                tr.appendChild(tdBtn);
-
-                return tr;
+            function togglePrecioColumn() {
+                const show = isServicio.checked;
+                document.querySelectorAll('.col-precio').forEach(td => td.style.display = show ? '' : 'none');
+                if (!show) document.querySelectorAll('.precio-input').forEach(i => i.value = 0);
             }
 
-            document.getElementById('addPresentacion').addEventListener('click', function(){
-                tableBody.appendChild(createRow(nextIndex++));
-            });
-
-            tableBody.addEventListener('click', function(e){
-                if(e.target && e.target.matches('.remove-row')){
-                    e.target.closest('tr').remove();
+            function toggleCategoria() {
+                const opciones = Array.from(categoriaSelect.options);
+                const catServicio = opciones.find(o => o.text.trim().toLowerCase() === servicioNombre.toLowerCase());
+                if (isServicio.checked) {
+                    if (catServicio) {
+                        categoriaSelect.value = catServicio.value;
+                        categoriaSelect.setAttribute('disabled', 'disabled');
+                    }
+                } else {
+                    categoriaSelect.removeAttribute('disabled');
+                    if (catServicio) catServicio.style.display = 'none';
                 }
-            });
+            }
+
+            togglePrecioColumn();
+            toggleCategoria();
         })();
     </script>
 }
