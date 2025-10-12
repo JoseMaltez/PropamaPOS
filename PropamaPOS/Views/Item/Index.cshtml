@@ -35,6 +35,7 @@
                                 <th>ID</th>
                                 <th>Nombre</th>
                                 <th>Código</th>
+                                <th>Categoría</th>
                                 <th>Presentaciones / Precio (Q)</th>
                                 <th>Stock</th>
                                 <th>Estado</th>
@@ -48,6 +49,7 @@
                                     <td>@item.Id_Item</td>
                                     <td>@item.Nombre</td>
                                     <td>@item.Codigo</td>
+                                    <td>@item.Categoria?.Nombre</td>
                                     <td>
                                         @foreach (var p in item.Presentaciones)
                                         {

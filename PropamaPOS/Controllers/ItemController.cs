@@ -1,6 +1,7 @@
 ﻿// PropamaPOS/Controllers/ItemController.cs
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PropamaPOS.Data;
 using PropamaPOS.Models;
@@ -19,16 +20,19 @@ namespace PropamaPOS.Controllers
         {
             var items = await _context.Items
                 .Where(i => i.Activo)
+                .Include(i => i.Categoria)
                 .Include(i => i.Presentaciones.Where(p => p.Activo))
                     .ThenInclude(p => p.UnidadMedida)
                 .ToListAsync();
             return View(items);
         }
 
+
         // GET: Item/Crear
         public async Task<IActionResult> Crear()
         {
             ViewBag.Unidades = await _context.UnidadesMedida.ToListAsync();
+            ViewBag.Categorias = new SelectList(_context.Categorias, "Id_Categoria", "Nombre");
             return View(new ItemViewModel());
         }
 
@@ -40,6 +44,7 @@ namespace PropamaPOS.Controllers
             if (!ModelState.IsValid)
             {
                 ViewBag.Unidades = await _context.UnidadesMedida.ToListAsync();
+                ViewBag.Categorias = new SelectList(_context.Categorias, "Id_Categoria", "Nombre", model.Id_Categoria);
                 return View(model);
             }
 
@@ -62,7 +67,8 @@ namespace PropamaPOS.Controllers
                 Nombre = model.Nombre,
                 Descripcion = model.Descripcion,
                 Codigo = model.Codigo,
-                Activo = model.Activo
+                Activo = model.Activo,
+                Id_Categoria = model.Id_Categoria
             };
 
             _context.Items.Add(item);
@@ -82,7 +88,8 @@ namespace PropamaPOS.Controllers
                         PrecioVenta = 0m,    // se calculará desde compras
                         PrecioCosto = null,  // nulo hasta primera compra
                         Activo = true
-                    };
+
+                    }; 
                     _context.ItemPresentaciones.Add(present);
                 }
                 await _context.SaveChangesAsync();
@@ -107,6 +114,7 @@ namespace PropamaPOS.Controllers
                 Nombre = item.Nombre,
                 Descripcion = item.Descripcion,
                 Codigo = item.Codigo,
+                Id_Categoria = item.Id_Categoria,
                 Presentaciones = item.Presentaciones
                     .Where(p => p.Activo)
                     .Select(p => new ItemPresentacionViewModel
@@ -119,6 +127,7 @@ namespace PropamaPOS.Controllers
             };
 
             ViewBag.Unidades = await _context.UnidadesMedida.ToListAsync();
+            ViewBag.Categorias = new SelectList(_context.Categorias, "Id_Categoria", "Nombre");
             return View(model);
         }
 
@@ -132,6 +141,7 @@ namespace PropamaPOS.Controllers
             if (!ModelState.IsValid)
             {
                 ViewBag.Unidades = await _context.UnidadesMedida.ToListAsync();
+                ViewBag.Categorias = new SelectList(_context.Categorias, "Id_Categoria", "Nombre", model.Id_Categoria);
                 return View(model);
             }
 
@@ -159,6 +169,7 @@ namespace PropamaPOS.Controllers
             item.Descripcion = model.Descripcion;
             item.Codigo = model.Codigo;
             item.Activo = model.Activo;
+            item.Id_Categoria = model.Id_Categoria;
 
             // Presentaciones: detectadas por Id_ItemPresentacion si existen
             var postedIds = model.Presentaciones.Where(p => p.Id_ItemPresentacion.HasValue)
@@ -185,7 +196,6 @@ namespace PropamaPOS.Controllers
                         existing.Activo = true;
                         existing.Id_UnidadMedida = p.Id_UnidadMedida;
                         existing.Cantidad = p.Cantidad;
-                        // No tocamos PrecioVenta/PrecioCosto aquí — se actualizan desde compras
                         _context.ItemPresentaciones.Update(existing);
                     }
                 }

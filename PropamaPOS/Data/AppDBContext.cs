@@ -13,6 +13,7 @@ namespace PropamaPOS.Data
         public DbSet<Proveedor> Proveedores { get; set; }
         public DbSet<Cliente> Clientes { get; set; }
         public DbSet<Item> Items { get; set; }
+        public DbSet<Categoria> Categorias { get; set; }
         public DbSet<UnidadMedida> UnidadesMedida { get; set; }
         public DbSet<ItemPresentacion> ItemPresentaciones { get; set; }
         public DbSet<ItemProveedor> ItemProveedores { get; set; }

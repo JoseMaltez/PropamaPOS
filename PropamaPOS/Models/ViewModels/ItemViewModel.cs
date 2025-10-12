@@ -29,7 +29,10 @@ namespace PropamaPOS.Models.ViewModels
         [MaxLength(50)]
         public string? Codigo { get; set; }
 
-        // Quitado Id_Proveedor: relación con proveedores se maneja por ItemProveedor
+        [Required(ErrorMessage = "Debe seleccionar una categoría")]
+        [Display(Name = "Categoría")]
+        public int? Id_Categoria { get; set; }
+
         public List<ItemPresentacionViewModel> Presentaciones { get; set; } = new();
         public bool Activo { get; set; } = true;
     }

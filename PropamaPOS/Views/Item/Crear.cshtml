@@ -34,6 +34,13 @@
                             <span asp-validation-for="Descripcion" class="text-danger"></span>
                         </div>
 
+                        <div class="mb-3">
+                            <label asp-for="Id_Categoria" class="form-label">Categoría <span class="text-danger">*</span></label>
+                            <select asp-for="Id_Categoria" class="form-select" asp-items="ViewBag.Categorias">
+                                <option value="">-- Seleccionar Categoría --</option>
+                            </select>
+                        </div>
+
                         <hr />
                         <h5>Presentaciones y precios</h5>
                         <p class="text-muted small">Agrega las distintas presentaciones del producto (por unidad, por caja, etc.).</p>
