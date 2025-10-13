@@ -80,18 +80,21 @@
                                         <td>
                                             <input name="Presentaciones[@i].Cantidad" value="@p.Cantidad" class="form-control" type="number" min="1" required @(esServicio ? "readonly" : "") />
                                         </td>
+
                                         @if (esServicio)
                                         {
                                             <td class="col-precio">
-                                                <input name="Presentaciones[@i].PrecioVenta" value="@p.PrecioVenta" class="form-control precio-input" type="number" step="0.01" min="0" />
+                                                <input name="Presentaciones[@i].PrecioVenta"
+                                                       value="@p.PrecioVenta"
+                                                       class="form-control precio-input"
+                                                       type="number"
+                                                       step="0.01"
+                                                       min="0"
+                                                       required />
                                             </td>
                                         }
-                                        <td>
-                                            @if (!esServicio)
-                                            {
-                                                <button type="button" class="btn btn-danger btn-sm remove-row">Eliminar</button>
-                                            }
-                                        </td>
+
+                                        <td></td>
                                     </tr>
                                 }
                             </tbody>
@@ -124,7 +127,7 @@
     <script>
         (function () {
             const unidades = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(unidades));
-            const esServicio = @esServicio.ToString().ToLower() === "true";
+            const esServicio = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(esServicio));
             const tableBody = document.querySelector('#presentacionesTable tbody');
             const addBtn = document.getElementById('addPresentacion');
             const categoriaSelect = document.getElementById('categoriaSelect');
