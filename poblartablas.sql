@@ -26,5 +26,6 @@ select * from Roles
 select * from Usuarios
 select * from Empleados
 select * from UnidadesMedida
+select * from Categorias
 
 
