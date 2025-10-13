@@ -5,6 +5,20 @@
 @{
     ViewData["Title"] = "Historial de Compras";
 }
+@using System
+@{
+    TimeZoneInfo tzGuatemala = null;
+    try
+    {
+        tzGuatemala = TimeZoneInfo.FindSystemTimeZoneById("Central America Standard Time");
+    }
+    catch
+    {
+        tzGuatemala = TimeZoneInfo.Local;
+    }
+}
+
+
 
 <div class="container mt-4">
     <div class="card shadow-sm">
@@ -32,7 +46,13 @@
                     {
                         <tr>
                             <td>@compra.NumeroCompra</td>
-                            <td>@compra.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                            @{
+                                var fechaUtc = compra.Fecha;
+                                var fechaLocal = fechaUtc.Kind == DateTimeKind.Utc
+                                ? TimeZoneInfo.ConvertTimeFromUtc(fechaUtc, tzGuatemala)
+                                : TimeZoneInfo.ConvertTime(fechaUtc, tzGuatemala);
+                            }
+                            <td>@fechaLocal.ToString("dd/MM/yyyy HH:mm")</td>
                             <td>@compra.Proveedor.Nombre</td>
                             <td>@compra.Total.ToString("F2")</td>
                             <td>@compra.CreadoPor</td>

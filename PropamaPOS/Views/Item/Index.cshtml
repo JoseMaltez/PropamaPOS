@@ -8,8 +8,8 @@
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2><i class="bi bi-box-seam"></i> Gestión de Productos</h2>
-        <a asp-action="Crear" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Crear Producto</a>
+        <h2><i class="bi bi-box-seam"></i> Gestión de Productos y Servicios</h2>
+        <a asp-action="Crear" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Crear Producto o Servicio</a>
     </div>
 
     @if (TempData["SuccessMessage"] != null)
@@ -22,8 +22,8 @@
             @if (!Model.Any())
             {
                 <div class="text-center py-4">
-                    <h5 class="text-muted">No hay productos registrados</h5>
-                    <a asp-action="Crear" class="btn btn-primary mt-2">Crear Producto</a>
+                    <h5 class="text-muted">No hay productos o servicios registrados</h5>
+                    <a asp-action="Crear" class="btn btn-primary mt-2">Crear Producto o Servicio</a>
                 </div>
             }
             else

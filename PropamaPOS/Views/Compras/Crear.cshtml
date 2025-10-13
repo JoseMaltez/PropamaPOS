@@ -29,10 +29,6 @@
                         <span asp-validation-for="Id_Proveedor" class="text-danger"></span>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label fw-semibold">Fecha</label>
-                        <input asp-for="Fecha" class="form-control" type="datetime-local" />
-                    </div>
-                    <div class="col-md-3">
                         <label class="form-label fw-semibold">Nota (opcional)</label>
                         <input asp-for="Nota" class="form-control" />
                     </div>
@@ -172,5 +168,6 @@
                 alert("Debe agregar al menos un producto a la compra.");
             }
         });
+
     </script>
 }

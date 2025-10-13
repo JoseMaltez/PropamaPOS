@@ -133,7 +133,7 @@ namespace PropamaPOS.Controllers
                 var compra = new Compra
                 {
                     NumeroCompra = await GenerarNumeroCompraAsync(),
-                    Fecha = model.Fecha ?? DateTime.UtcNow,
+                    Fecha = DateTime.UtcNow,
                     Id_Proveedor = model.Id_Proveedor,
                     CreadoPor = User.Identity?.Name ?? "Administrador",
                     Nota = model.Nota,
