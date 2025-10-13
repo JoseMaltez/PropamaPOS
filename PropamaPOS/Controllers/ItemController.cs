@@ -15,6 +15,22 @@ namespace PropamaPOS.Controllers
         private readonly AppDbContext _context;
         public ItemController(AppDbContext context) => _context = context;
 
+        // Generar código único
+        private async Task<string> GenerarCodigoUnicoAsync()
+        {
+            var random = new Random();
+            string codigo;
+            bool existe;
+            do
+            {
+                int longitud = random.Next(15, 21);
+                codigo = string.Concat(Enumerable.Range(0, longitud).Select(_ => random.Next(0, 10).ToString()));
+                existe = await _context.Items.AnyAsync(i => i.Codigo == codigo);
+            } while (existe);
+            return codigo;
+        }
+
+
         // GET: Item
         public async Task<IActionResult> Index()
         {
@@ -102,18 +118,20 @@ namespace PropamaPOS.Controllers
                 return View(model);
             }
 
+            string codigoGenerado = await GenerarCodigoUnicoAsync();
+
             var item = new Item
             {
                 Nombre = model.Nombre,
                 Descripcion = model.Descripcion,
-                Codigo = model.Codigo,
+                Codigo = codigoGenerado,
                 Activo = model.Activo,
                 Id_Categoria = model.Id_Categoria,
                 IsServicio = model.IsServicio,
-                // stock y costo quedan en 0 por defecto; para servicios no se usan
                 Stock = model.IsServicio ? 0 : 0,
                 CostoPromedioUnidad = 0m
             };
+
 
             _context.Items.Add(item);
             await _context.SaveChangesAsync();

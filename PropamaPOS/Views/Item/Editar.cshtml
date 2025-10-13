@@ -23,9 +23,10 @@
                                 <span asp-validation-for="Nombre" class="text-danger"></span>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label asp-for="Codigo" class="form-label">Código (opcional)</label>
-                                <input asp-for="Codigo" class="form-control" placeholder="SKU / Código" />
-                                <span asp-validation-for="Codigo" class="text-danger"></span>
+                                <label asp-for="Codigo" class="form-label">Código del producto/servicio</label>
+                                <input asp-for="Codigo" class="form-control" readonly />
+                                <input type="hidden" asp-for="Codigo" />
+                                <span class="form-text text-muted">Este código es generado automáticamente y no puede modificarse.</span>
                             </div>
                         </div>
 

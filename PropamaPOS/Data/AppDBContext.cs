@@ -147,6 +147,9 @@ namespace PropamaPOS.Data
                 .HasForeignKey(i => i.Id_Categoria)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Item>()
+                .HasIndex(i => i.Codigo)
+                .IsUnique();
 
             // Configuración decimal general
             modelBuilder.Entity<Item>()

@@ -21,9 +21,9 @@
                                 <span asp-validation-for="Nombre" class="text-danger"></span>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label asp-for="Codigo" class="form-label">Código (opcional)</label>
-                                <input asp-for="Codigo" class="form-control" placeholder="SKU / Código" />
-                                <span asp-validation-for="Codigo" class="text-danger"></span>
+                                <label asp-for="Codigo" class="form-label">Código</label>
+                                <input asp-for="Codigo" class="form-control" readonly value="(Se generará automáticamente)" />
+                                <span class="form-text text-muted">El código se asignará automáticamente al guardar.</span>
                             </div>
                         </div>
 
