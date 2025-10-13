@@ -16,6 +16,12 @@ insert into UnidadesMedida (Nombre, Abreviatura) values
 ('Medio Ciento','mc'),
 ('Resma','res')
 
+insert into Categorias (Nombre, Descripcion) values
+('Material Escolar y de Oficina','Productos ampliamente usados en ámbitos escolares y en trabajos de oficina'),
+('Servicio','Servicios ofrecidos por el negocio'),
+('Tecnología y Accesorios','Productos referentes a tecnología y electronicos'),
+('Materiales de manualidades','Productos utilizados en la creación de manualidades, dibujo y pintura')
+
 select * from Roles
 select * from Usuarios
 select * from Empleados

@@ -12,38 +12,34 @@ namespace PropamaPOS.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "Categorias",
+                columns: table => new
+                {
+                    Id_Categoria = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Descripcion = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Categorias", x => x.Id_Categoria);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Clientes",
                 columns: table => new
                 {
                     Id_Cliente = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Apellido = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Telefono = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false),
+                    Apellido = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    NIT = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Direccion = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Activo = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Clientes", x => x.Id_Cliente);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Items",
-                columns: table => new
-                {
-                    Id_Item = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Nombre = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    Descripcion = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),
-                    Codigo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Activo = table.Column<bool>(type: "bit", nullable: false),
-                    Stock = table.Column<int>(type: "int", nullable: false),
-                    CostoPromedioUnidad = table.Column<decimal>(type: "decimal(18,4)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Items", x => x.Id_Item);
                 });
 
             migrationBuilder.CreateTable(
@@ -92,30 +88,28 @@ namespace PropamaPOS.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ItemProveedores",
+                name: "Items",
                 columns: table => new
                 {
-                    Id_ItemProveedor = table.Column<int>(type: "int", nullable: false)
+                    Id_Item = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Id_Item = table.Column<int>(type: "int", nullable: false),
-                    Id_Proveedor = table.Column<int>(type: "int", nullable: false),
-                    CodigoProveedor = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Activo = table.Column<bool>(type: "bit", nullable: false)
+                    Codigo = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Nombre = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    Descripcion = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),
+                    IsServicio = table.Column<bool>(type: "bit", nullable: false),
+                    Stock = table.Column<int>(type: "int", nullable: false),
+                    CostoPromedioUnidad = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    Activo = table.Column<bool>(type: "bit", nullable: false),
+                    Id_Categoria = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ItemProveedores", x => x.Id_ItemProveedor);
+                    table.PrimaryKey("PK_Items", x => x.Id_Item);
                     table.ForeignKey(
-                        name: "FK_ItemProveedores_Items_Id_Item",
-                        column: x => x.Id_Item,
-                        principalTable: "Items",
-                        principalColumn: "Id_Item",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ItemProveedores_Proveedores_Id_Proveedor",
-                        column: x => x.Id_Proveedor,
-                        principalTable: "Proveedores",
-                        principalColumn: "Id_Proveedor",
+                        name: "FK_Items_Categorias_Id_Categoria",
+                        column: x => x.Id_Categoria,
+                        principalTable: "Categorias",
+                        principalColumn: "Id_Categoria",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -169,6 +163,34 @@ namespace PropamaPOS.Migrations
                         principalTable: "UnidadesMedida",
                         principalColumn: "Id_UnidadMedida",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ItemProveedores",
+                columns: table => new
+                {
+                    Id_ItemProveedor = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Id_Item = table.Column<int>(type: "int", nullable: false),
+                    Id_Proveedor = table.Column<int>(type: "int", nullable: false),
+                    CodigoProveedor = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Activo = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ItemProveedores", x => x.Id_ItemProveedor);
+                    table.ForeignKey(
+                        name: "FK_ItemProveedores_Items_Id_Item",
+                        column: x => x.Id_Item,
+                        principalTable: "Items",
+                        principalColumn: "Id_Item",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ItemProveedores_Proveedores_Id_Proveedor",
+                        column: x => x.Id_Proveedor,
+                        principalTable: "Proveedores",
+                        principalColumn: "Id_Proveedor",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -247,6 +269,7 @@ namespace PropamaPOS.Migrations
                 {
                     Id_Compra = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    NumeroCompra = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false),
                     Fecha = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Id_Proveedor = table.Column<int>(type: "int", nullable: false),
                     Id_Empleado = table.Column<int>(type: "int", nullable: true),
@@ -367,9 +390,9 @@ namespace PropamaPOS.Migrations
                 column: "Id_Empleado");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Clientes_Nombre_Apellido_Telefono",
+                name: "IX_Clientes_NIT",
                 table: "Clientes",
-                columns: new[] { "Nombre", "Apellido", "Telefono" },
+                column: "NIT",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -396,6 +419,12 @@ namespace PropamaPOS.Migrations
                 name: "IX_Compras_Id_Proveedor",
                 table: "Compras",
                 column: "Id_Proveedor");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Compras_NumeroCompra",
+                table: "Compras",
+                column: "NumeroCompra",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Empleados_Correo",
@@ -429,6 +458,17 @@ namespace PropamaPOS.Migrations
                 name: "IX_ItemProveedores_Id_Proveedor",
                 table: "ItemProveedores",
                 column: "Id_Proveedor");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Items_Codigo",
+                table: "Items",
+                column: "Codigo",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Items_Id_Categoria",
+                table: "Items",
+                column: "Id_Categoria");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PasswordResetTokens_Id_Usuario",
@@ -494,6 +534,9 @@ namespace PropamaPOS.Migrations
 
             migrationBuilder.DropTable(
                 name: "Usuarios");
+
+            migrationBuilder.DropTable(
+                name: "Categorias");
 
             migrationBuilder.DropTable(
                 name: "Roles");

@@ -12,8 +12,8 @@ using PropamaPOS.Data;
 namespace PropamaPOS.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251012184658_ActualizacionClientes")]
-    partial class ActualizacionClientes
+    [Migration("20251013051329_InitialCrate")]
+    partial class InitialCrate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -105,6 +105,28 @@ namespace PropamaPOS.Migrations
                     b.ToTable("AjusteInventarioDetalles");
                 });
 
+            modelBuilder.Entity("PropamaPOS.Models.Categoria", b =>
+                {
+                    b.Property<int>("Id_Categoria")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id_Categoria"));
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id_Categoria");
+
+                    b.ToTable("Categorias");
+                });
+
             modelBuilder.Entity("PropamaPOS.Models.Cliente", b =>
                 {
                     b.Property<int>("Id_Cliente")
@@ -168,6 +190,11 @@ namespace PropamaPOS.Migrations
                     b.Property<string>("Nota")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("NumeroCompra")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
                     b.Property<decimal>("Total")
                         .HasColumnType("decimal(18,2)");
 
@@ -176,6 +203,9 @@ namespace PropamaPOS.Migrations
                     b.HasIndex("Id_Empleado");
 
                     b.HasIndex("Id_Proveedor");
+
+                    b.HasIndex("NumeroCompra")
+                        .IsUnique();
 
                     b.ToTable("Compras");
                 });
@@ -279,8 +309,9 @@ namespace PropamaPOS.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Codigo")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<decimal>("CostoPromedioUnidad")
                         .HasColumnType("decimal(18,4)");
@@ -288,6 +319,12 @@ namespace PropamaPOS.Migrations
                     b.Property<string>("Descripcion")
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
+
+                    b.Property<int?>("Id_Categoria")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsServicio")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -298,6 +335,11 @@ namespace PropamaPOS.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id_Item");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique();
+
+                    b.HasIndex("Id_Categoria");
 
                     b.ToTable("Items");
                 });
@@ -602,6 +644,16 @@ namespace PropamaPOS.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("PropamaPOS.Models.Item", b =>
+                {
+                    b.HasOne("PropamaPOS.Models.Categoria", "Categoria")
+                        .WithMany("Items")
+                        .HasForeignKey("Id_Categoria")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Categoria");
+                });
+
             modelBuilder.Entity("PropamaPOS.Models.ItemPresentacion", b =>
                 {
                     b.HasOne("PropamaPOS.Models.Item", "Item")
@@ -665,6 +717,11 @@ namespace PropamaPOS.Migrations
             modelBuilder.Entity("PropamaPOS.Models.AjusteInventario", b =>
                 {
                     b.Navigation("Detalles");
+                });
+
+            modelBuilder.Entity("PropamaPOS.Models.Categoria", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("PropamaPOS.Models.Compra", b =>

@@ -54,7 +54,7 @@
                                         @foreach (var p in item.Presentaciones)
                                         {
                                             <div>
-                                                @($"{p.Cantidad} x {p.UnidadMedida?.Nombre} — Q{p.PrecioVenta:0.00}")
+                                                @($"{p.UnidadMedida?.Nombre} ({p.Cantidad}) — Q{p.PrecioVenta:0.00}")
                                             </div>
                                         }
                                     </td>

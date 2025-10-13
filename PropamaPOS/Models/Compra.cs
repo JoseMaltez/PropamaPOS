@@ -11,6 +11,9 @@ namespace PropamaPOS.Models
         [Key]
         public int Id_Compra { get; set; }
 
+        [Required]
+        [StringLength(15)]
+        public string NumeroCompra { get; set; } = string.Empty;
         public DateTime Fecha { get; set; } = DateTime.UtcNow;
 
         public int Id_Proveedor { get; set; }

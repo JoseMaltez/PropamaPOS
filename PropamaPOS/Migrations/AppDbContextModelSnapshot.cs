@@ -187,6 +187,11 @@ namespace PropamaPOS.Migrations
                     b.Property<string>("Nota")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("NumeroCompra")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
                     b.Property<decimal>("Total")
                         .HasColumnType("decimal(18,2)");
 
@@ -195,6 +200,9 @@ namespace PropamaPOS.Migrations
                     b.HasIndex("Id_Empleado");
 
                     b.HasIndex("Id_Proveedor");
+
+                    b.HasIndex("NumeroCompra")
+                        .IsUnique();
 
                     b.ToTable("Compras");
                 });

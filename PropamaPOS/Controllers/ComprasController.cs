@@ -84,6 +84,27 @@ namespace PropamaPOS.Controllers
             return View(new CompraCrearViewModel());
         }
 
+        private async Task<string> GenerarNumeroCompraAsync()
+        {
+            int ultimoNumero = 0;
+            var ultimaCompra = await _context.Compras
+                .OrderByDescending(c => c.Id_Compra)
+                .FirstOrDefaultAsync();
+
+            if (ultimaCompra != null && !string.IsNullOrEmpty(ultimaCompra.NumeroCompra))
+            {
+                // Extraer el número después del prefijo "CMP-"
+                var parteNumerica = ultimaCompra.NumeroCompra.Replace("CMP-", "");
+                int.TryParse(parteNumerica, out ultimoNumero);
+            }
+
+            // Incrementar
+            int nuevoNumero = ultimoNumero + 1;
+
+            // Formato: CMP-000001
+            return $"CMP-{nuevoNumero.ToString("D6")}";
+        }
+
 
         // POST: Compras/Crear
         [HttpPost]
@@ -108,14 +129,17 @@ namespace PropamaPOS.Controllers
                     if (empleado != null) empleadoId = empleado.Id_Empleado;
                 }
 
+
                 var compra = new Compra
                 {
+                    NumeroCompra = await GenerarNumeroCompraAsync(),
                     Fecha = model.Fecha ?? DateTime.UtcNow,
                     Id_Proveedor = model.Id_Proveedor,
                     CreadoPor = User.Identity?.Name ?? "Administrador",
                     Nota = model.Nota,
                     Id_Empleado = empleadoId
                 };
+
 
                 _context.Compras.Add(compra);
                 await _context.SaveChangesAsync();

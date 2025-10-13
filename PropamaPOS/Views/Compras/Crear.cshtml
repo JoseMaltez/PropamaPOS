@@ -140,7 +140,7 @@
                 if (item && item.presentaciones && item.presentaciones.length > 0) {
                     presSelect.innerHTML = item.presentaciones.map(p =>
                         `<option value="${p.id_ItemPresentacion}">
-                            ${p.cantidad} ${p.unidadMedida.nombre} — Q${Number(p.precioVenta).toFixed(2)}
+                            ${p.unidadMedida.nombre} (${p.cantidad}) — Q${Number(p.precioVenta).toFixed(2)}
                          </option>`).join("");
                 } else {
                     presSelect.innerHTML = `<option value="">-- Sin presentaciones --</option>`;

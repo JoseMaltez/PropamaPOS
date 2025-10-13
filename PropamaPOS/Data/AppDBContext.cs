@@ -101,6 +101,11 @@ namespace PropamaPOS.Data
                 .HasForeignKey(c => c.Id_Empleado)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            modelBuilder.Entity<Compra>()
+                .HasIndex(c => c.NumeroCompra)
+                .IsUnique();
+
+
             // Relaciones Compra - Detalle
             modelBuilder.Entity<CompraDetalle>()
                 .HasOne(d => d.Compra)
