@@ -5,24 +5,7 @@
 @{
     ViewData["Title"] = "Detalle de Compra";
 }
-@using System
-@{
-    TimeZoneInfo tzGuatemala = null;
-    try
-    {
-        tzGuatemala = TimeZoneInfo.FindSystemTimeZoneById("Central America Standard Time");
-    }
-    catch
-    {
-        try { tzGuatemala = TimeZoneInfo.FindSystemTimeZoneById("America/Guatemala"); }
-        catch { tzGuatemala = TimeZoneInfo.Local; }
-    }
 
-    var fechaUtc = Model.Fecha;
-    var fechaLocal = fechaUtc.Kind == DateTimeKind.Utc
-        ? TimeZoneInfo.ConvertTimeFromUtc(fechaUtc, tzGuatemala)
-        : TimeZoneInfo.ConvertTime(fechaUtc, tzGuatemala);
-}
 
 
 <div class="container mt-4">
@@ -44,7 +27,7 @@
                     <strong>Proveedor:</strong> @Model.Proveedor.Nombre
                 </div>
                 <div class="col-md-4">
-                    <strong>Fecha:</strong> @fechaLocal.ToString("dd/MM/yyyy HH:mm")
+                    <strong>Fecha:</strong> @Model.Fecha.ToString("dd/MM/yyyy HH:mm")
                 </div>
                 <div class="col-md-4">
                     <strong>Registrada por:</strong> @Model.CreadoPor

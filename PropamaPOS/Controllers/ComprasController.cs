@@ -129,11 +129,11 @@ namespace PropamaPOS.Controllers
                     if (empleado != null) empleadoId = empleado.Id_Empleado;
                 }
 
-
+                var zonaGT = TimeZoneInfo.FindSystemTimeZoneById("Central America Standard Time");
                 var compra = new Compra
                 {
                     NumeroCompra = await GenerarNumeroCompraAsync(),
-                    Fecha = DateTime.UtcNow,
+                    Fecha = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, zonaGT),
                     Id_Proveedor = model.Id_Proveedor,
                     CreadoPor = User.Identity?.Name ?? "Administrador",
                     Nota = model.Nota,
