@@ -1,0 +1,279 @@
+﻿@{
+    ViewData["Title"] = "Nueva Venta";
+    var itemsJson = Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Items ?? new object());
+}
+
+<div class="container mt-3">
+    <div class="card shadow">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0">Nueva Venta / Facturación</h4>
+        </div>
+        <div class="card-body">
+            <form asp-action="Crear" method="post" id="ventaForm">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Tipo de cliente</label>
+                        <select id="facturarCon" name="facturarCon" class="form-select">
+                            <option value="CF">Consumidor Final</option>
+                            <option value="NIT">Con NIT</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4" id="nitGroup" style="display:none;">
+                        <label class="form-label">NIT</label>
+                        <div class="input-group">
+                            <input id="nitInput" name="nitInput" class="form-control" />
+                            <button type="button" id="buscarNit" class="btn btn-outline-secondary">Buscar</button>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4" id="nombreCFGroup">
+                        <label class="form-label">Nombre (opcional)</label>
+                        <input id="nombreConsumidor" name="nombreConsumidor" class="form-control" placeholder="Consumidor Final (opcional)" />
+                    </div>
+                </div>
+
+                <hr />
+                <h5>Detalle de la venta</h5>
+
+                <div class="mb-3 d-flex gap-2">
+                    <select id="tipoLinea" class="form-select" style="width:200px;">
+                        <option value="Producto">Producto</option>
+                        <option value="Servicio">Servicio</option>
+                    </select>
+
+                    <input id="buscarProducto" class="form-control" placeholder="Buscar por nombre o código" />
+                    <select id="presentacionSelect" class="form-select" style="width:200px;">
+                        <option>Seleccione presentacion</option>
+                    </select>
+
+                    <input id="cantidadPresentacion" type="number" min="1" value="1" class="form-control" style="width:120px;" />
+
+                    <input id="descuentoLinea" type="number" min="0" step="0.01" value="0" class="form-control" style="width:120px;" placeholder="Descuento Q" />
+
+                    <button type="button" id="agregarLinea" class="btn btn-primary">Agregar</button>
+                </div>
+
+                <table class="table" id="tablaLineas">
+                    <thead>
+                        <tr>
+                            <th>Producto/Servicio</th>
+                            <th>Presentación</th>
+                            <th>Cantidad</th>
+                            <th>Precio (Q)</th>
+                            <th>Descuento (Q)</th>
+                            <th>Subtotal (Q)</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="5" class="text-end">Subtotal (Q):</td>
+                            <td id="subtotalText">0.00</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="5" class="text-end">Descuentos (Q):</td>
+                            <td id="descuentosText">0.00</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="5" class="text-end fw-bold">Total (Q):</td>
+                            <td id="totalText" class="fw-bold">0.00</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <hr />
+                <h5>Pago</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Método de pago</label>
+                        <select id="metodoPago" name="ventaInput.MetodoPago" class="form-select">
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Tarjeta">Tarjeta</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4" id="efectivoGroup">
+                        <label class="form-label">Monto recibido (Q)</label>
+                        <input id="montoRecibido" name="ventaInput.MontoRecibido" type="number" step="0.01" class="form-control" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Cambio (Q)</label>
+                        <input id="cambio" name="ventaInput.Cambio" readonly class="form-control" />
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-success">Confirmar y Guardar Venta</button>
+                </div>
+
+                <!-- Inputs dinámicos que se enviarán al servidor -->
+                <div id="hiddenInputs"></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Datos pasados desde el servidor
+        const items = @Html.Raw(itemsJson ?? "[]");
+        let lineas = [];
+        function actualizarPresentacionesFor(itemId) {
+            const item = items.find(i => i.id_Item === parseInt(itemId));
+            const sel = document.getElementById('presentacionSelect');
+            sel.innerHTML = '<option>Seleccione presentacion</option>';
+            if (!item) return;
+            item.presentaciones.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id_ItemPresentacion;
+                opt.text = `${p.unidad} (${p.cantidad}) — Q${p.precioVenta.toFixed(2)}`;
+                opt.dataset.precio = p.precioVenta;
+                opt.dataset.unidades = p.cantidad;
+                sel.appendChild(opt);
+            });
+        }
+
+        // Búsqueda sencilla por código/nombre
+        document.getElementById('buscarProducto').addEventListener('input', function(){
+            const q = this.value.trim().toLowerCase();
+            const tipo = document.getElementById('tipoLinea').value;
+            const matches = items.filter(it => {
+                if ((tipo === 'Servicio') !== !!it.isServicio) return false;
+                return it.nombre.toLowerCase().includes(q) || (it.codigo && it.codigo.includes(q));
+            });
+            if (matches.length === 1) {
+                // seleccionar el item encontrado
+                actualizarPresentacionesFor(matches[0].id_Item);
+                // guardar seleccion temporal en data attribute
+                document.getElementById('presentacionSelect').dataset.selectedItem = matches[0].id_Item;
+            } else {
+                document.getElementById('presentacionSelect').dataset.selectedItem = "";
+            }
+        });
+
+        // Agregar linea
+        document.getElementById('agregarLinea').addEventListener('click', function(){
+            const presSel = document.getElementById('presentacionSelect');
+            const presId = presSel.value;
+            const itemId = presSel.dataset.selectedItem;
+            if (!presId || !itemId) { alert('Seleccione un producto/servicio y presentación'); return; }
+            const cantidadPres = parseInt(document.getElementById('cantidadPresentacion').value || '1');
+            const descuento = parseFloat(document.getElementById('descuentoLinea').value || '0');
+            const opt = presSel.options[presSel.selectedIndex];
+            const precio = parseFloat(opt.dataset.precio);
+            const unidadTxt = opt.text.split('—')[0].trim();
+
+            // Obtener item nombre
+            const item = items.find(i => i.id_Item === parseInt(itemId));
+
+            const subtotal = (precio * cantidadPres) - descuento;
+
+            const linea = {
+                id_Item: parseInt(itemId),
+                id_ItemPresentacion: parseInt(presId),
+                nombre: item.nombre,
+                presentacion: unidadTxt,
+                cantidadPresentaciones: cantidadPres,
+                precio: precio,
+                descuento: descuento,
+                subtotal: subtotal,
+                esServicio: item.isServicio
+            };
+            lineas.push(linea);
+            renderLineas();
+        });
+
+        function renderLineas(){
+            const tbody = document.querySelector('#tablaLineas tbody');
+            tbody.innerHTML = '';
+            let subtotal = 0, descuentos = 0;
+            lineas.forEach((l, idx) => {
+                subtotal += l.precio * l.cantidadPresentaciones;
+                descuentos += l.descuento;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${l.nombre}</td>
+                    <td>${l.presentacion}</td>
+                    <td>${l.cantidadPresentaciones}</td>
+                    <td>${l.precio.toFixed(2)}</td>
+                    <td>${l.descuento.toFixed(2)}</td>
+                    <td>${l.subtotal.toFixed(2)}</td>
+                    <td><button type="button" class="btn btn-sm btn-danger" data-idx="${idx}">Quitar</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('subtotalText').innerText = subtotal.toFixed(2);
+            document.getElementById('descuentosText').innerText = descuentos.toFixed(2);
+            document.getElementById('totalText').innerText = (subtotal - descuentos).toFixed(2);
+
+            // actualizar hidden inputs (para enviar al server)
+            const hidden = document.getElementById('hiddenInputs');
+            hidden.innerHTML = '';
+            lineas.forEach((l, i) => {
+                hidden.innerHTML += `<input type="hidden" name="lineas[${i}].Id_Item" value="${l.id_Item}" />`;
+                hidden.innerHTML += `<input type="hidden" name="lineas[${i}].Id_ItemPresentacion" value="${l.id_ItemPresentacion}" />`;
+                hidden.innerHTML += `<input type="hidden" name="lineas[${i}].CantidadPresentaciones" value="${l.cantidadPresentaciones}" />`;
+                hidden.innerHTML += `<input type="hidden" name="lineas[${i}].Descuento" value="${l.descuento}" />`;
+            });
+        }
+
+        // Quitar linea (delegation)
+        document.querySelector('#tablaLineas tbody').addEventListener('click', function(e){
+            if (e.target.matches('button[data-idx]')) {
+                const idx = parseInt(e.target.dataset.idx);
+                lineas.splice(idx,1);
+                renderLineas();
+            }
+        });
+
+        // Tipo cliente toggles
+        document.getElementById('facturarCon').addEventListener('change', function(){
+            const val = this.value;
+            document.getElementById('nitGroup').style.display = val === 'NIT' ? 'block' : 'none';
+            document.getElementById('nombreCFGroup').style.display = val === 'CF' ? 'block' : 'none';
+        });
+
+        // Buscar NIT (consulta local a la lista de clientes si la tienes)
+        document.getElementById('buscarNit').addEventListener('click', function(){
+            const nit = document.getElementById('nitInput').value.trim();
+            if (!nit) { alert('Ingrese NIT'); return; }
+            // hacemos petición a tu endpoint de clientes (puedes implementar uno si quieres)
+            // Por ahora simulamos: si cliente en ViewBag.Clientes, llenar campos (ej: usar AJAX)
+            fetch(`/Cliente/BuscarPorNit?nit=${encodeURIComponent(nit)}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.found) {
+                        // bloquear edición si lo deseas y mostrar info
+                        alert(`Cliente encontrado: ${data.nombre} ${data.apellido}`);
+                        // Opcional: guardar hidden inputs con cliente id para el form
+                        const hidden = document.getElementById('hiddenInputs');
+                        hidden.innerHTML += `<input type="hidden" name="clienteExistenteId" value="${data.id}" />`;
+                    } else {
+                        alert('No existe cliente con ese NIT. Se guardará uno nuevo al confirmar la venta si llenas los datos.');
+                    }
+                })
+                .catch(()=> alert('Error buscando NIT'));
+        });
+
+        // Cambio / pago
+        document.getElementById('montoRecibido').addEventListener('input', function(){
+            const recibido = parseFloat(this.value || '0');
+            const total = parseFloat(document.getElementById('totalText').innerText || '0');
+            const cambio = Math.max(0, recibido - total);
+            document.getElementById('cambio').value = cambio.toFixed(2);
+        });
+
+        // Cuando se selecciona presentación desde búsqueda única, actualizar presentacionSelect
+        document.getElementById('presentacionSelect').addEventListener('change', function(){
+            // Marcar dataset.selectedItem si no lo está
+            // (handled by search logic que pone presentacionSelect.dataset.selectedItem)
+        });
+
+        // Inicial
+        document.getElementById('facturarCon').dispatchEvent(new Event('change'));
+    </script>
+}

@@ -21,6 +21,10 @@ namespace PropamaPOS.Data
         public DbSet<CompraDetalle> CompraDetalles { get; set; }
         public DbSet<AjusteInventario> AjustesInventario { get; set; }
         public DbSet<AjusteInventarioDetalle> AjusteInventarioDetalles { get; set; }
+        public DbSet<Venta> Ventas { get; set; }
+        public DbSet<VentaDetalle> VentaDetalles { get; set; }
+        public DbSet<PagoVenta> PagoVentas { get; set; }
+
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -155,6 +159,52 @@ namespace PropamaPOS.Data
             modelBuilder.Entity<Item>()
                 .HasIndex(i => i.Codigo)
                 .IsUnique();
+
+            // Relacion Venta - Cliente
+            modelBuilder.Entity<Venta>()
+                .HasOne(v => v.Cliente)
+                .WithMany()
+                .HasForeignKey(v => v.Id_Cliente)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Venta - Empleado
+            modelBuilder.Entity<Venta>()
+                .HasOne(v => v.Empleado)
+                .WithMany()
+                .HasForeignKey(v => v.Id_Empleado)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Ventas - Detalle
+            modelBuilder.Entity<VentaDetalle>()
+                .HasOne(d => d.Venta)
+                .WithMany(v => v.Detalles)
+                .HasForeignKey(d => d.Id_Venta)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<VentaDetalle>()
+                .HasOne(d => d.Item)
+                .WithMany()
+                .HasForeignKey(d => d.Id_Item)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<VentaDetalle>()
+                .HasOne(d => d.Presentacion)
+                .WithMany()
+                .HasForeignKey(d => d.Id_ItemPresentacion)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Pagos
+            modelBuilder.Entity<PagoVenta>()
+                .HasOne(p => p.Venta)
+                .WithMany(v => v.Pagos)
+                .HasForeignKey(p => p.Id_Venta)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Índice sobre NumeroVenta
+            modelBuilder.Entity<Venta>()
+                .HasIndex(v => v.NumeroVenta)
+                .IsUnique();
+
 
             // Configuración decimal general
             modelBuilder.Entity<Item>()
