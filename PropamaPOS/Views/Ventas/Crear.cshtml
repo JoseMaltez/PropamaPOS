@@ -89,14 +89,16 @@
                         <input id="cantidadPresentacion" type="number" min="1" value="1" class="form-control" />
                     </div>
 
-                    <div class="col-md-2" id="cambioGroup">
+                    <div class="col-md-2">
                         <label class="form-label">Descuento (Q)</label>
                         <input id="descuentoLinea" type="number" min="0" step="0.01" value="0" class="form-control" />
                     </div>
 
-                    <div class="col-md-12 mt-2 text-end">
+                    <div class="col-md-12 mt-2 d-flex justify-content-end gap-2">
+                        <button type="button" id="limpiarCampos" class="btn btn-outline-secondary">Limpiar</button>
                         <button type="button" id="agregarLinea" class="btn btn-primary">Agregar</button>
                     </div>
+
                 </div>
 
                 <table class="table" id="tablaLineas">
@@ -145,7 +147,7 @@
                         <label class="form-label">Monto recibido (Q)</label>
                         <input id="montoRecibido" name="ventaInput.MontoRecibido" type="number" step="0.01" class="form-control" />
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-4" id="cambioGroup">
                         <label class="form-label">Cambio (Q)</label>
                         <input id="cambio" name="ventaInput.Cambio" readonly class="form-control" />
                     </div>
@@ -222,7 +224,12 @@
                     (m.presentaciones || []).forEach(p => {
                         const opt = document.createElement('option');
                         opt.value = p.id_ItemPresentacion;
-                        opt.text = `${p.unidad} (${p.cantidad}) — Q${parseFloat(p.precioVenta).toFixed(2)} (Stock: ${p.stock ?? '-'})`;
+                        if (m.isServicio) {
+                            opt.text = `${p.unidad} (${p.cantidad}) — Q${parseFloat(p.precioVenta).toFixed(2)}`;
+                        } else {
+                            opt.text = `${p.unidad} (${p.cantidad}) — Q${parseFloat(p.precioVenta).toFixed(2)} (Stock: ${p.stock ?? '-'})`;
+                        }
+
                         opt.dataset.precio = p.precioVenta;
                         opt.dataset.unidades = p.cantidad;
                         opt.dataset.stock = p.stock ?? 0;
@@ -295,6 +302,7 @@
             };
             lineas.push(linea);
             renderLineas();
+            limpiarCamposDetalle();
         });
 
 
@@ -331,6 +339,20 @@
                 hidden.innerHTML += `<input type="hidden" name="lineas[${i}].Descuento" value="${l.descuento}" />`;
             });
         }
+
+                function limpiarCamposDetalle() {
+            document.getElementById('tipoLinea').value = 'Producto';
+            document.getElementById('buscarProducto').value = '';
+            document.getElementById('presentacionSelect').innerHTML = '<option value="">Seleccione presentación</option>';
+            document.getElementById('cantidadPresentacion').value = 1;
+            document.getElementById('descuentoLinea').value = 0;
+            document.getElementById('presentacionSelect').dataset.selectedItem = '';
+            const alerta = document.getElementById('stockAlert');
+            if (alerta) alerta.remove();
+        }
+
+        document.getElementById('limpiarCampos').addEventListener('click', limpiarCamposDetalle);
+
 
         // Quitar linea (delegation)
         document.querySelector('#tablaLineas tbody').addEventListener('click', function(e){
@@ -488,6 +510,18 @@
                 alert('Debe ingresar un NIT válido antes de guardar la venta.');
                 return;
             }
+
+            const metodo = document.getElementById('metodoPago').value;
+            if (metodo === 'Efectivo') {
+                const total = parseFloat(document.getElementById('totalText').innerText || '0');
+                const recibido = parseFloat(document.getElementById('montoRecibido').value || '0');
+                if (isNaN(recibido) || recibido < total) {
+                    e.preventDefault();
+                    alert('El monto recibido debe ser igual o mayor al total de la venta.');
+                    return;
+                }
+            }
+
         });
 
 

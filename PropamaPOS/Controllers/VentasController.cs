@@ -247,7 +247,7 @@ namespace PropamaPOS.Controllers
                     Metodo = venta.MetodoPago,
                     Monto = venta.Total,
                     Fecha = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, zonaGT),
-                    Nota = venta.MetodoPago == MetodoPagoVenta.Tarjeta ? "Pago simulado con tarjeta" : null
+                    Nota = venta.MetodoPago == MetodoPagoVenta.Tarjeta ? "Pago con tarjeta" : null
                 };
 
                 _context.PagoVentas.Add(pago);
