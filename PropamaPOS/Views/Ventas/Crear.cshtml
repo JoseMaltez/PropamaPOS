@@ -61,31 +61,42 @@
                 <hr />
                 <h5>Detalle de la venta</h5>
 
-                <div class="mb-3 d-flex gap-2">
-                    <select id="tipoLinea" class="form-select" style="width:200px;">
-                        <option value="Producto">Producto</option>
-                        <option value="Servicio">Servicio</option>
-                    </select>
-
-                    <div style="flex:1; position:relative;">
-                        <label class="form-label mb-0">Producto / Servicio (nombre o código)</label>
-                        <input id="buscarProducto" class="form-control" placeholder="Escribe nombre o código..." autocomplete="off" />
-                        <div id="suggestions" class="list-group position-absolute w-100" style="z-index:50; display:none; max-height:250px; overflow:auto;"></div>
+                <div class="mb-3 row g-2 align-items-end">
+                    <div class="col-md-2">
+                        <label class="form-label">Tipo</label>
+                        <select id="tipoLinea" class="form-select">
+                            <option value="Producto">Producto</option>
+                            <option value="Servicio">Servicio</option>
+                        </select>
                     </div>
 
-                    <div style="width:220px;">
-                        <label class="form-label mb-0">Presentación</label>
+                    <div class="col-md-3 position-relative">
+                        <label class="form-label">Producto / Servicio (nombre o código)</label>
+                        <input id="buscarProducto" class="form-control" placeholder="Escribe nombre o código..." autocomplete="off" />
+                        <div id="suggestions" class="list-group position-absolute w-100"
+                             style="z-index:50; display:none; max-height:250px; overflow:auto;"></div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Presentación</label>
                         <select id="presentacionSelect" class="form-select">
                             <option value="">Seleccione presentación</option>
                         </select>
                     </div>
 
+                    <div class="col-md-2">
+                        <label class="form-label">Cantidad</label>
+                        <input id="cantidadPresentacion" type="number" min="1" value="1" class="form-control" />
+                    </div>
 
-                    <input id="cantidadPresentacion" type="number" min="1" value="1" class="form-control" style="width:120px;" />
+                    <div class="col-md-2" id="cambioGroup">
+                        <label class="form-label">Descuento (Q)</label>
+                        <input id="descuentoLinea" type="number" min="0" step="0.01" value="0" class="form-control" />
+                    </div>
 
-                    <input id="descuentoLinea" type="number" min="0" step="0.01" value="0" class="form-control" style="width:120px;" placeholder="Descuento Q" />
-
-                    <button type="button" id="agregarLinea" class="btn btn-primary">Agregar</button>
+                    <div class="col-md-12 mt-2 text-end">
+                        <button type="button" id="agregarLinea" class="btn btn-primary">Agregar</button>
+                    </div>
                 </div>
 
                 <table class="table" id="tablaLineas">
@@ -205,7 +216,6 @@
                     // seleccionar item y cargar presentaciones
                     document.getElementById('buscarProducto').value = m.nombre + (m.codigo ? ' • ' + m.codigo : '');
                     document.getElementById('presentacionSelect').dataset.selectedItem = m.id_Item;
-                    document.getElementById('presentacionSelect').dataset.selectedItem = '';
                     // vaciar y llenar presentacionSelect
                     const sel = document.getElementById('presentacionSelect');
                     sel.innerHTML = '<option value="">Seleccione presentación</option>';
@@ -385,20 +395,22 @@
 
 
         // Cambio / pago
-                function actualizarMetodoPagoUI() {
+            function actualizarMetodoPagoUI() {
             const metodo = document.getElementById('metodoPago').value;
             const efGroup = document.getElementById('efectivoGroup');
-            const cambioGroupInput = document.getElementById('cambio');
+            const cambioGroup = document.getElementById('cambioGroup');
+
             if (metodo === 'Tarjeta') {
-                // ocultar campos de efectivo
                 efGroup.style.display = 'none';
-                // borrar monto recibido y cambio
+                cambioGroup.style.display = 'none';
                 document.getElementById('montoRecibido').value = '';
-                cambioGroupInput.value = '';
+                document.getElementById('cambio').value = '';
             } else {
                 efGroup.style.display = 'block';
+                cambioGroup.style.display = 'block';
             }
         }
+
 
         document.getElementById('metodoPago').addEventListener('change', function() {
             actualizarMetodoPagoUI();
