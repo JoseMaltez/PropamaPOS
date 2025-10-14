@@ -288,15 +288,5 @@ namespace PropamaPOS.Controllers
             ViewBag.Clientes = await _context.Clientes.Where(c => c.Activo).ToListAsync();
         }
 
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<IActionResult> BuscarPorNit(string nit)
-        {
-            if (string.IsNullOrWhiteSpace(nit)) return Json(new { found = false });
-            var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.NIT == nit);
-            if (cliente == null) return Json(new { found = false });
-            return Json(new { found = true, id = cliente.Id_Cliente, nombre = cliente.Nombre, apellido = cliente.Apellido, direccion = cliente.Direccion });
-        }
-
     }
 }

@@ -118,6 +118,9 @@
 </div>
 
 @section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
     <script>
         // Datos pasados desde el servidor
         const items = @Html.Raw(itemsJson ?? "[]");
@@ -237,26 +240,27 @@
             document.getElementById('nombreCFGroup').style.display = val === 'CF' ? 'block' : 'none';
         });
 
-        // Buscar NIT (consulta local a la lista de clientes si la tienes)
-        document.getElementById('buscarNit').addEventListener('click', function(){
+        // Buscar NIT (consulta AJAX)
+        document.getElementById('buscarNit').addEventListener('click', function () {
             const nit = document.getElementById('nitInput').value.trim();
-            if (!nit) { alert('Ingrese NIT'); return; }
-            // hacemos petición a tu endpoint de clientes (puedes implementar uno si quieres)
-            // Por ahora simulamos: si cliente en ViewBag.Clientes, llenar campos (ej: usar AJAX)
+            if (!nit) { alert('Ingrese un NIT'); return; }
+
             fetch(`/Cliente/BuscarPorNit?nit=${encodeURIComponent(nit)}`)
                 .then(r => r.json())
                 .then(data => {
-                    if (data && data.found) {
-                        // bloquear edición si lo deseas y mostrar info
+                    if (data.found) {
                         alert(`Cliente encontrado: ${data.nombre} ${data.apellido}`);
-                        // Opcional: guardar hidden inputs con cliente id para el form
+                        // bloquear edición si lo deseas
+                        document.getElementById('nombreConsumidor').value = `${data.nombre} ${data.apellido}`;
+                        document.getElementById('nombreConsumidor').readOnly = true;
                         const hidden = document.getElementById('hiddenInputs');
-                        hidden.innerHTML += `<input type="hidden" name="clienteExistenteId" value="${data.id}" />`;
+                        hidden.innerHTML += `<input type="hidden" name="ventaInput.Cliente.Id_Cliente" value="${data.id}" />`;
                     } else {
-                        alert('No existe cliente con ese NIT. Se guardará uno nuevo al confirmar la venta si llenas los datos.');
+                        alert('Cliente no encontrado, se creará uno nuevo al guardar la factura.');
+                        document.getElementById('nombreConsumidor').readOnly = false;
                     }
                 })
-                .catch(()=> alert('Error buscando NIT'));
+                .catch(() => alert('Error al buscar NIT'));
         });
 
         // Cambio / pago

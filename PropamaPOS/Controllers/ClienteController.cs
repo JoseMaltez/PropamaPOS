@@ -164,5 +164,28 @@ namespace PropamaPOS.Controllers
         {
             return _context.Clientes.Any(e => e.Id_Cliente == id);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> BuscarPorNit(string nit)
+        {
+            if (string.IsNullOrWhiteSpace(nit))
+                return Json(new { found = false });
+
+            var cliente = await _context.Clientes
+                .FirstOrDefaultAsync(c => c.NIT == nit && c.Activo);
+
+            if (cliente == null)
+                return Json(new { found = false });
+
+            return Json(new
+            {
+                found = true,
+                id = cliente.Id_Cliente,
+                nombre = cliente.Nombre,
+                apellido = cliente.Apellido,
+                direccion = cliente.Direccion
+            });
+        }
+
     }
 }
