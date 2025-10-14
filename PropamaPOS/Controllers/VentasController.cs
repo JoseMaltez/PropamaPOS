@@ -78,7 +78,8 @@ namespace PropamaPOS.Controllers
                         id_ItemPresentacion = p.Id_ItemPresentacion,
                         cantidad = p.Cantidad,
                         precioVenta = p.PrecioVenta,
-                        unidad = p.UnidadMedida.Nombre
+                        unidad = p.UnidadMedida.Nombre,
+                        stock = i.Stock
                     })
                 })
                 .ToListAsync();
@@ -97,6 +98,7 @@ namespace PropamaPOS.Controllers
             if (lineas == null || !lineas.Any())
             {
                 ModelState.AddModelError("", "La factura debe contener al menos un producto/servicio.");
+                ViewBag.PreviousLineas = lineas;
                 await CargarViewBagsCrear();
                 return View();
             }
@@ -139,6 +141,7 @@ namespace PropamaPOS.Controllers
                 else // Consumidor Final
                 {
                     // no guardar cliente en DB, solo nombre opcional
+                    ventaInput.Cliente = null;
                 }
 
                 // Validar stock por cada linea (sumar por presentacion)
@@ -162,6 +165,7 @@ namespace PropamaPOS.Controllers
                 {
                     ModelState.AddModelError("", "No hay stock suficiente para: " + string.Join(", ", insuficientes));
                     await trx.RollbackAsync();
+                    ViewBag.PreviousLineas = lineas;
                     await CargarViewBagsCrear();
                     return View();
                 }
@@ -258,6 +262,8 @@ namespace PropamaPOS.Controllers
             {
                 await trx.RollbackAsync();
                 ModelState.AddModelError("", "Error al registrar la venta: " + ex.Message);
+                TempData["ErrorMessage"] = "Ocurrió un error al registrar la venta. " + ex.Message;
+                ViewBag.PreviousLineas = lineas;
                 await CargarViewBagsCrear();
                 return View();
             }
@@ -279,7 +285,8 @@ namespace PropamaPOS.Controllers
                         id_ItemPresentacion = p.Id_ItemPresentacion,
                         cantidad = p.Cantidad,
                         precioVenta = p.PrecioVenta,
-                        unidad = p.UnidadMedida.Nombre
+                        unidad = p.UnidadMedida.Nombre,
+                        stock = i.Stock
                     })
                 })
                 .ToListAsync();

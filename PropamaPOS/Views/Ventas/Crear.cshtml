@@ -9,7 +9,13 @@
             <h4 class="mb-0">Nueva Venta / Facturación</h4>
         </div>
         <div class="card-body">
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+            }
+
             <form asp-action="Crear" method="post" id="ventaForm">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <label class="form-label">Tipo de cliente</label>
@@ -26,10 +32,30 @@
                         </div>
                     </div>
 
+                    <!-- Campos que se usan cuando se factura CON NIT (nombre, apellido, direccion) -->
+                    <div class="col-md-12" id="clienteFields" style="display:none; margin-top:10px;">
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <label class="form-label">Nombre</label>
+                                <input id="clienteNombre" name="ventaInput.Cliente.Nombre" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Apellido (opcional)</label>
+                                <input id="clienteApellido" name="ventaInput.Cliente.Apellido" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Dirección</label>
+                                <input id="clienteDireccion" name="ventaInput.Cliente.Direccion" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Consumidor Final -->
                     <div class="col-md-4" id="nombreCFGroup">
                         <label class="form-label">Nombre (opcional)</label>
                         <input id="nombreConsumidor" name="nombreConsumidor" class="form-control" placeholder="Consumidor Final (opcional)" />
                     </div>
+
                 </div>
 
                 <hr />
@@ -41,10 +67,19 @@
                         <option value="Servicio">Servicio</option>
                     </select>
 
-                    <input id="buscarProducto" class="form-control" placeholder="Buscar por nombre o código" />
-                    <select id="presentacionSelect" class="form-select" style="width:200px;">
-                        <option>Seleccione presentacion</option>
-                    </select>
+                    <div style="flex:1; position:relative;">
+                        <label class="form-label mb-0">Producto / Servicio (nombre o código)</label>
+                        <input id="buscarProducto" class="form-control" placeholder="Escribe nombre o código..." autocomplete="off" />
+                        <div id="suggestions" class="list-group position-absolute w-100" style="z-index:50; display:none; max-height:250px; overflow:auto;"></div>
+                    </div>
+
+                    <div style="width:220px;">
+                        <label class="form-label mb-0">Presentación</label>
+                        <select id="presentacionSelect" class="form-select">
+                            <option value="">Seleccione presentación</option>
+                        </select>
+                    </div>
+
 
                     <input id="cantidadPresentacion" type="number" min="1" value="1" class="form-control" style="width:120px;" />
 
@@ -141,25 +176,66 @@
         }
 
         // Búsqueda sencilla por código/nombre
-        document.getElementById('buscarProducto').addEventListener('input', function(){
+        const suggestionsEl = document.getElementById('suggestions');
+        document.getElementById('buscarProducto').addEventListener('input', function () {
             const q = this.value.trim().toLowerCase();
             const tipo = document.getElementById('tipoLinea').value;
-            const matches = items.filter(it => {
+            if (!q) { suggestionsEl.style.display = 'none'; return; }
+
+                const matches = items.filter(it => {
+                // match tipo: servicio/ producto
                 if ((tipo === 'Servicio') !== !!it.isServicio) return false;
-                return it.nombre.toLowerCase().includes(q) || (it.codigo && it.codigo.includes(q));
+                const nombre = (it.nombre || '').toLowerCase();
+                const codigo = (it.codigo || '').toLowerCase();
+                return nombre.includes(q) || codigo.includes(q);
+            }).slice(0, 12);
+
+            suggestionsEl.innerHTML = '';
+            if (matches.length === 0) {
+                suggestionsEl.style.display = 'none';
+                return;
+            }
+
+            matches.forEach(m => {
+                const itemEl = document.createElement('button');
+                itemEl.type = 'button';
+                itemEl.className = 'list-group-item list-group-item-action';
+                itemEl.innerHTML = `<div class="d-flex justify-content-between"><div><strong>${m.nombre}</strong><div class="small text-muted">${m.codigo ?? ''}</div></div><div class="small text-muted">${m.isServicio ? 'Servicio' : 'Producto'}</div></div>`;
+                itemEl.addEventListener('click', function () {
+                    // seleccionar item y cargar presentaciones
+                    document.getElementById('buscarProducto').value = m.nombre + (m.codigo ? ' • ' + m.codigo : '');
+                    document.getElementById('presentacionSelect').dataset.selectedItem = m.id_Item;
+                    document.getElementById('presentacionSelect').dataset.selectedItem = '';
+                    // vaciar y llenar presentacionSelect
+                    const sel = document.getElementById('presentacionSelect');
+                    sel.innerHTML = '<option value="">Seleccione presentación</option>';
+                    (m.presentaciones || []).forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p.id_ItemPresentacion;
+                        opt.text = `${p.unidad} (${p.cantidad}) — Q${parseFloat(p.precioVenta).toFixed(2)} (Stock: ${p.stock ?? '-'})`;
+                        opt.dataset.precio = p.precioVenta;
+                        opt.dataset.unidades = p.cantidad;
+                        opt.dataset.stock = p.stock ?? 0;
+                        sel.appendChild(opt);
+                    });
+                    suggestionsEl.style.display = 'none';
+                });
+                suggestionsEl.appendChild(itemEl);
             });
-            if (matches.length === 1) {
-                // seleccionar el item encontrado
-                actualizarPresentacionesFor(matches[0].id_Item);
-                // guardar seleccion temporal en data attribute
-                document.getElementById('presentacionSelect').dataset.selectedItem = matches[0].id_Item;
-            } else {
-                document.getElementById('presentacionSelect').dataset.selectedItem = "";
+            suggestionsEl.style.display = 'block';
+        });
+
+        // cerrar sugerencias si click fuera
+        document.addEventListener('click', function(e){
+            if (!document.getElementById('buscarProducto').contains(e.target) &&
+                !suggestionsEl.contains(e.target)) {
+                suggestionsEl.style.display = 'none';
             }
         });
 
+
         // Agregar linea
-        document.getElementById('agregarLinea').addEventListener('click', function(){
+                document.getElementById('agregarLinea').addEventListener('click', function(){
             const presSel = document.getElementById('presentacionSelect');
             const presId = presSel.value;
             const itemId = presSel.dataset.selectedItem;
@@ -168,27 +244,49 @@
             const descuento = parseFloat(document.getElementById('descuentoLinea').value || '0');
             const opt = presSel.options[presSel.selectedIndex];
             const precio = parseFloat(opt.dataset.precio);
+            const unidadesPorPresentacion = parseInt(opt.dataset.unidades || '1');
+            const stock = parseInt(opt.dataset.stock || '0');
+
+            // unidades necesarias en unidades (no presentaciones)
+            const unidadesNecesarias = cantidadPres * unidadesPorPresentacion;
+
+            // si no es servicio, verificar stock
+            const itemObj = items.find(i => i.id_Item === parseInt(itemId));
+            const esServicio = itemObj ? itemObj.isServicio : false;
+            if (!esServicio && unidadesNecesarias > stock) {
+                // Mostrar mensaje inline (alerta pequeña)
+                const alerta = document.getElementById('stockAlert');
+                if (alerta) alerta.remove();
+                const div = document.createElement('div');
+                div.id = 'stockAlert';
+                div.className = 'alert alert-danger mt-2';
+                div.innerText = `No hay stock suficiente para ${itemObj ? itemObj.nombre : 'este artículo'}. Stock disponible: ${stock} unidad(es). Intentas vender: ${unidadesNecesarias}.`;
+                document.querySelector('#tablaLineas').before(div);
+                return;
+            } else {
+                // remover mensaje de stock si existe
+                const alertaExist = document.getElementById('stockAlert');
+                if (alertaExist) alertaExist.remove();
+            }
+
             const unidadTxt = opt.text.split('—')[0].trim();
-
-            // Obtener item nombre
-            const item = items.find(i => i.id_Item === parseInt(itemId));
-
             const subtotal = (precio * cantidadPres) - descuento;
 
             const linea = {
                 id_Item: parseInt(itemId),
                 id_ItemPresentacion: parseInt(presId),
-                nombre: item.nombre,
+                nombre: itemObj.nombre,
                 presentacion: unidadTxt,
                 cantidadPresentaciones: cantidadPres,
                 precio: precio,
                 descuento: descuento,
                 subtotal: subtotal,
-                esServicio: item.isServicio
+                esServicio: esServicio
             };
             lineas.push(linea);
             renderLineas();
         });
+
 
         function renderLineas(){
             const tbody = document.querySelector('#tablaLineas tbody');
@@ -234,11 +332,13 @@
         });
 
         // Tipo cliente toggles
-        document.getElementById('facturarCon').addEventListener('change', function(){
+                document.getElementById('facturarCon').addEventListener('change', function(){
             const val = this.value;
             document.getElementById('nitGroup').style.display = val === 'NIT' ? 'block' : 'none';
+            document.getElementById('clienteFields').style.display = 'none';
             document.getElementById('nombreCFGroup').style.display = val === 'CF' ? 'block' : 'none';
         });
+
 
         // Buscar NIT (consulta AJAX)
         document.getElementById('buscarNit').addEventListener('click', function () {
@@ -248,22 +348,62 @@
             fetch(`/Cliente/BuscarPorNit?nit=${encodeURIComponent(nit)}`)
                 .then(r => r.json())
                 .then(data => {
+                    // Mostrar el bloque de campos del cliente
+                    document.getElementById('clienteFields').style.display = 'block';
+
                     if (data.found) {
-                        alert(`Cliente encontrado: ${data.nombre} ${data.apellido}`);
-                        // bloquear edición si lo deseas
-                        document.getElementById('nombreConsumidor').value = `${data.nombre} ${data.apellido}`;
-                        document.getElementById('nombreConsumidor').readOnly = true;
+                        // Cliente existente: llenar y bloquear
+                        document.getElementById('clienteNombre').value = data.nombre;
+                        document.getElementById('clienteApellido').value = data.apellido ?? '';
+                        document.getElementById('clienteDireccion').value = data.direccion ?? '';
+
+                        document.getElementById('clienteNombre').readOnly = true;
+                        document.getElementById('clienteApellido').readOnly = true;
+                        document.getElementById('clienteDireccion').readOnly = true;
+
+                        // Ocultar campo de nombre CF
+                        document.getElementById('nombreCFGroup').style.display = 'none';
+
+                        // Guardar id en hidden input
                         const hidden = document.getElementById('hiddenInputs');
                         hidden.innerHTML += `<input type="hidden" name="ventaInput.Cliente.Id_Cliente" value="${data.id}" />`;
                     } else {
-                        alert('Cliente no encontrado, se creará uno nuevo al guardar la factura.');
-                        document.getElementById('nombreConsumidor').readOnly = false;
+                        alert('Cliente no encontrado. Puedes ingresar los datos manualmente y se creará al guardar.');
+                        document.getElementById('clienteNombre').value = '';
+                        document.getElementById('clienteApellido').value = '';
+                        document.getElementById('clienteDireccion').value = '';
+
+                        document.getElementById('clienteNombre').readOnly = false;
+                        document.getElementById('clienteApellido').readOnly = false;
+                        document.getElementById('clienteDireccion').readOnly = false;
+
+                        document.getElementById('nombreCFGroup').style.display = 'none';
                     }
                 })
                 .catch(() => alert('Error al buscar NIT'));
         });
 
+
         // Cambio / pago
+                function actualizarMetodoPagoUI() {
+            const metodo = document.getElementById('metodoPago').value;
+            const efGroup = document.getElementById('efectivoGroup');
+            const cambioGroupInput = document.getElementById('cambio');
+            if (metodo === 'Tarjeta') {
+                // ocultar campos de efectivo
+                efGroup.style.display = 'none';
+                // borrar monto recibido y cambio
+                document.getElementById('montoRecibido').value = '';
+                cambioGroupInput.value = '';
+            } else {
+                efGroup.style.display = 'block';
+            }
+        }
+
+        document.getElementById('metodoPago').addEventListener('change', function() {
+            actualizarMetodoPagoUI();
+        });
+
         document.getElementById('montoRecibido').addEventListener('input', function(){
             const recibido = parseFloat(this.value || '0');
             const total = parseFloat(document.getElementById('totalText').innerText || '0');
@@ -271,13 +411,73 @@
             document.getElementById('cambio').value = cambio.toFixed(2);
         });
 
+        // llamar al inicio para ajustar UI
+        actualizarMetodoPagoUI();
+
+
         // Cuando se selecciona presentación desde búsqueda única, actualizar presentacionSelect
         document.getElementById('presentacionSelect').addEventListener('change', function(){
             // Marcar dataset.selectedItem si no lo está
             // (handled by search logic que pone presentacionSelect.dataset.selectedItem)
         });
 
+                // Restaurar lineas si servidor devolvió la página con errores
+        @{
+            var prev = ViewBag.PreviousLineas ?? new object(); var prevJson = Newtonsoft.Json.JsonConvert.SerializeObject(prev);
+        }
+        const previousLineasFromServer = @Html.Raw(prevJson ?? "[]");
+        if (previousLineasFromServer && previousLineasFromServer.length) {
+            // mapear para la estructura JS que usa renderLineas()
+            previousLineasFromServer.forEach(pl => {
+                // si pl tiene Id_ItemPresentacion y CantidadPresentaciones/Descuento
+                const itemObj = items.find(i => i.id_Item === pl.Id_Item);
+                const present = (itemObj && itemObj.presentaciones)
+                    ? itemObj.presentaciones.find(p => p.id_ItemPresentacion === pl.Id_ItemPresentacion)
+                    : null;
+
+                const linea = {
+                    id_Item: pl.Id_Item,
+                    id_ItemPresentacion: pl.Id_ItemPresentacion,
+                    nombre: itemObj ? itemObj.nombre : (pl.Item?.Nombre ?? "Artículo"),
+                    presentacion: present ? `${present.unidad} (${present.cantidad})` : (pl.Presentacion ? pl.Presentacion.Cantidad : "—"),
+                    cantidadPresentaciones: pl.CantidadPresentaciones,
+                    precio: present ? parseFloat(present.precioVenta) : (pl.PrecioVentaPorPresentacion ?? 0),
+                    descuento: pl.Descuento ?? 0,
+                    subtotal: pl.Subtotal ?? ((present ? parseFloat(present.precioVenta) * pl.CantidadPresentaciones : 0) - (pl.Descuento ?? 0)),
+                    esServicio: pl.EsServicio
+                };
+                lineas.push(linea);
+            });
+            renderLineas();
+        }
+
+                // Si al cargar la vista ya está seleccionado NIT (por validación previa)
+        if (document.getElementById('facturarCon').value === 'NIT') {
+            document.getElementById('clienteFields').style.display = 'block';
+        }
+
+
         // Inicial
         document.getElementById('facturarCon').dispatchEvent(new Event('change'));
+
+                // Validación previa al envío
+        document.getElementById('ventaForm').addEventListener('submit', function (e) {
+            const tipoCliente = document.getElementById('facturarCon').value;
+            const nit = document.getElementById('nitInput').value.trim();
+
+            if (lineas.length === 0) {
+                e.preventDefault();
+                alert('Debe agregar al menos un producto o servicio antes de guardar.');
+                return;
+            }
+
+            if (tipoCliente === 'NIT' && !nit) {
+                e.preventDefault();
+                alert('Debe ingresar un NIT válido antes de guardar la venta.');
+                return;
+            }
+        });
+
+
     </script>
 }
