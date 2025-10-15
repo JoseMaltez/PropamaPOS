@@ -4,8 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PropamaPOS.Data;
 using PropamaPOS.Models;
-using PropamaPOS.Models.ViewModels; // opcional si creas ViewModels
+using PropamaPOS.Models.ViewModels;
 using System.Security.Claims;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 
 namespace PropamaPOS.Controllers
 {
@@ -98,6 +101,14 @@ namespace PropamaPOS.Controllers
             if (lineas == null || !lineas.Any())
             {
                 ModelState.AddModelError("", "La factura debe contener al menos un producto/servicio.");
+                ViewBag.PreviousLineas = lineas;
+                await CargarViewBagsCrear();
+                return View();
+            }
+
+            if (facturarCon == "NIT" && string.IsNullOrWhiteSpace(nitInput))
+            {
+                ModelState.AddModelError("NIT", "Debe ingresar un NIT cuando el tipo de factura es 'Con NIT'.");
                 ViewBag.PreviousLineas = lineas;
                 await CargarViewBagsCrear();
                 return View();
@@ -293,6 +304,127 @@ namespace PropamaPOS.Controllers
 
             ViewBag.Items = items;
             ViewBag.Clientes = await _context.Clientes.Where(c => c.Activo).ToListAsync();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DownloadPdf(int id)
+        {
+            var venta = await _context.Ventas
+                .Include(v => v.Cliente)
+                .Include(v => v.Empleado)
+                .Include(v => v.Detalles)
+                    .ThenInclude(d => d.Presentacion)
+                        .ThenInclude(p => p.UnidadMedida)
+                .Include(v => v.Detalles)
+                    .ThenInclude(d => d.Item)
+                .FirstOrDefaultAsync(v => v.Id_Venta == id);
+
+            if (venta == null) return NotFound();
+
+            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
+            // Datos fijos del negocio
+            string nombreNegocio = "Librería y Papelería Propama";
+            string nitNegocio = "6613799";
+            string direccionNegocio = "2da. Calle 5-41, Zona 1, Mazatenango, Suchitepéquez";
+
+            // Datos del cliente
+            string nitReceptor = venta.Cliente?.NIT ?? "CF";
+            string nombreReceptor = venta.Cliente != null
+                ? $"{venta.Cliente.Nombre} {venta.Cliente.Apellido}"
+                : venta.NombreConsumidor ?? "Consumidor Final";
+
+            var pdfBytes = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Margin(40);
+                    page.DefaultTextStyle(x => x.FontSize(11));
+                    page.Size(PageSizes.A4);
+
+                    // ENCABEZADO
+                    page.Header().Column(header =>
+                    {
+                        header.Item().Text(nombreNegocio).FontSize(18).Bold().AlignCenter();
+                        header.Item().Text($"NIT Emisor: {nitNegocio}").AlignCenter();
+                        header.Item().Text($"Dirección Emisor: {direccionNegocio}").AlignCenter();
+                        header.Item().PaddingVertical(5).LineHorizontal(1);
+
+                        header.Item().Row(row =>
+                        {
+                            row.RelativeItem().Column(col =>
+                            {
+                                col.Item().Text($"Factura: {venta.NumeroVenta}").Bold();
+                                col.Item().Text($"Fecha: {venta.Fecha:dd/MM/yyyy HH:mm}");
+                                col.Item().Text($"Empleado: {(venta.Empleado != null ? venta.Empleado.Nombre : "No registrado")}");
+                            });
+                            row.RelativeItem().Column(col =>
+                            {
+                                col.Item().Text($"NIT Receptor: {nitReceptor}");
+                                col.Item().Text($"Nombre Receptor: {nombreReceptor}");
+                                col.Item().Text($"Método de Pago: {venta.MetodoPago}");
+                            });
+                        });
+                    });
+
+                    // CONTENIDO PRINCIPAL
+                    page.Content().Column(col =>
+                    {
+                        col.Item().PaddingVertical(10).Text("Detalle de Productos y Servicios").FontSize(13).Bold();
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(c =>
+                            {
+                                c.RelativeColumn(3); // producto
+                                c.RelativeColumn(2); // presentación
+                                c.RelativeColumn(1); // cantidad
+                                c.RelativeColumn(1); // precio
+                                c.RelativeColumn(1); // descuento
+                                c.RelativeColumn(1.2f); // subtotal
+                            });
+
+                            // encabezado tabla
+                            table.Header(h =>
+                            {
+                                h.Cell().Background("#eeeeee").Padding(5).Text("Producto / Servicio").Bold();
+                                h.Cell().Background("#eeeeee").Padding(5).Text("Presentación").Bold();
+                                h.Cell().Background("#eeeeee").Padding(5).AlignRight().Text("Cant.").Bold();
+                                h.Cell().Background("#eeeeee").Padding(5).AlignRight().Text("Precio (Q)").Bold();
+                                h.Cell().Background("#eeeeee").Padding(5).AlignRight().Text("Desc. (Q)").Bold();
+                                h.Cell().Background("#eeeeee").Padding(5).AlignRight().Text("Subtotal (Q)").Bold();
+                            });
+
+                            foreach (var det in venta.Detalles)
+                            {
+                                table.Cell().Padding(4).Text(det.Item?.Nombre ?? "-");
+                                table.Cell().Padding(4).Text(det.Presentacion?.UnidadMedida?.Nombre ?? "-");
+                                table.Cell().Padding(4).AlignRight().Text(det.CantidadPresentaciones.ToString());
+                                table.Cell().Padding(4).AlignRight().Text($"Q{det.PrecioVentaPorPresentacion:F2}");
+                                table.Cell().Padding(4).AlignRight().Text($"Q{det.Descuento:F2}");
+                                table.Cell().Padding(4).AlignRight().Text($"Q{det.Subtotal:F2}");
+                            }
+                        });
+
+                        // Totales
+                        col.Item().PaddingTop(10).AlignRight().Column(total =>
+                        {
+                            total.Item().Text($"Subtotal: Q{venta.Subtotal:F2}");
+                            total.Item().Text($"Descuentos: Q{venta.Descuentos:F2}");
+                            total.Item().Text($"Total: Q{venta.Total:F2}").Bold().FontSize(13);
+                        });
+                    });
+
+                    // PIE DE PÁGINA
+                    page.Footer().Column(footer =>
+                    {
+                        footer.Item().PaddingVertical(5).LineHorizontal(1);
+                        footer.Item().AlignCenter().Text("Gracias por su compra — Librería y Papelería Propama")
+                            .FontSize(10).Italic();
+                    });
+                });
+            }).GeneratePdf();
+
+            return File(pdfBytes, "application/pdf", $"Factura_{venta.NumeroVenta}.pdf");
         }
 
     }

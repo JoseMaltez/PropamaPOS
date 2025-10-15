@@ -101,12 +101,20 @@
                 </tbody>
             </table>
 
-            <div class="mt-4 d-flex justify-content-end">
-                <a asp-action="Index" class="btn btn-secondary me-2">Volver al listado</a>
-                <button type="button" class="btn btn-outline-success" onclick="window.print()">
-                    <i class="bi bi-printer"></i> Imprimir
-                </button>
+            <div class="mt-4 d-flex justify-content-end gap-2">
+                <a asp-action="Index"
+                   class="btn btn-secondary d-inline-flex align-items-center gap-2 px-3 py-2 shadow-sm">
+                    <i class="bi bi-arrow-left fs-5"></i>
+                    <span class="fw-semibold">Volver al listado</span>
+                </a>
+
+                <a asp-action="DownloadPdf" asp-route-id="@Model.Id_Venta"
+                   class="btn btn-primary d-inline-flex align-items-center gap-2 px-3 py-2 shadow-sm">
+                    <i class="bi bi-download fs-5"></i>
+                    <span class="fw-semibold">Descargar PDF</span>
+                </a>
             </div>
+
         </div>
     </div>
 </div>

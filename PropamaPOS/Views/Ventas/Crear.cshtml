@@ -15,6 +15,7 @@
             }
 
             <form asp-action="Crear" method="post" id="ventaForm">
+                <div id="formErrors"></div>
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
                 <div class="row mb-3">
                     <div class="col-md-4">
@@ -506,9 +507,11 @@
             }
 
             if (tipoCliente === 'NIT' && !nit) {
+                const formErrors = document.getElementById('formErrors');
+                formErrors.innerHTML = '<div class="alert alert-danger">Debe ingresar un NIT válido antes de guardar la venta.</div>';
                 e.preventDefault();
-                alert('Debe ingresar un NIT válido antes de guardar la venta.');
                 return;
+
             }
 
             const metodo = document.getElementById('metodoPago').value;
