@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace PropamaPOS.Models
 {
@@ -8,24 +8,24 @@ namespace PropamaPOS.Models
         [Key]
         public int Id_ServicioComponente { get; set; }
 
-        // Servicio (Item donde IsServicio == true)
-        [Required]
+        [Required(ErrorMessage = "Debe seleccionar un servicio.")]
+        [Display(Name = "Servicio")]
         public int Id_Servicio { get; set; }
 
-        // Item consumido (producto físico)
-        [Required]
+        [Required(ErrorMessage = "Debe seleccionar un insumo.")]
+        [Display(Name = "Insumo (producto consumido)")]
         public int Id_Item { get; set; }
 
-        // Cantidad consumida por 1 unidad del servicio
-        // (usar decimal para permitir fracciones si lo necesitas)
-        [Required]
+        [Required(ErrorMessage = "Debe ingresar una cantidad válida.")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "La cantidad debe ser mayor que 0.")]
+        [Display(Name = "Cantidad por servicio")]
         public decimal CantidadPorServicio { get; set; }
 
-        // Navegación
-        [ForeignKey("Id_Servicio")]
-        public Item Servicio { get; set; } = null!;
+        // 👇 Aquí el cambio importante
+        [ValidateNever]
+        public Item? Servicio { get; set; }
 
-        [ForeignKey("Id_Item")]
-        public Item ItemConsumido { get; set; } = null!;
+        [ValidateNever]
+        public Item? ItemConsumido { get; set; }
     }
 }

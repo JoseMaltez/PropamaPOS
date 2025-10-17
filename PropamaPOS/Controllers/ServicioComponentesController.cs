@@ -38,18 +38,53 @@ namespace PropamaPOS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Crear(ServicioComponente model)
         {
+            // Depurar errores
             if (!ModelState.IsValid)
             {
+                foreach (var kv in ModelState)
+                {
+                    foreach (var err in kv.Value.Errors)
+                    {
+                        Console.WriteLine($"Error en {kv.Key}: {err.ErrorMessage}");
+                    }
+                }
+
+                ViewBag.Servicios = await _context.Items.Where(i => i.Activo && i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
+                ViewBag.Items = await _context.Items.Where(i => i.Activo && !i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
+                TempData["ErrorMessage"] = "Faltan datos o hay un error en el formulario.";
+                return View(model);
+            }
+
+            try
+            {
+                // Validar existencia de servicio e insumo
+                var servicio = await _context.Items.FirstOrDefaultAsync(i => i.Id_Item == model.Id_Servicio && i.IsServicio);
+                var insumo = await _context.Items.FirstOrDefaultAsync(i => i.Id_Item == model.Id_Item && !i.IsServicio);
+
+                if (servicio == null || insumo == null)
+                {
+                    TempData["ErrorMessage"] = "El servicio o el insumo seleccionado no existen o no son válidos.";
+                    ViewBag.Servicios = await _context.Items.Where(i => i.Activo && i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
+                    ViewBag.Items = await _context.Items.Where(i => i.Activo && !i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
+                    return View(model);
+                }
+
+                _context.ServicioComponentes.Add(model);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Componente agregado correctamente.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al guardar componente: {ex.Message}");
+                TempData["ErrorMessage"] = "Ocurrió un error al guardar el componente.";
                 ViewBag.Servicios = await _context.Items.Where(i => i.Activo && i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
                 ViewBag.Items = await _context.Items.Where(i => i.Activo && !i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
                 return View(model);
             }
-
-            _context.ServicioComponentes.Add(model);
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Componente agregado al servicio.";
-            return RedirectToAction(nameof(Index));
         }
+
 
         // GET: ServicioComponentes/Editar/5
         public async Task<IActionResult> Editar(int id)
