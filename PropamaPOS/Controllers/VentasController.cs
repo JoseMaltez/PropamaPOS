@@ -227,11 +227,47 @@ namespace PropamaPOS.Controllers
                         EsServicio = pres.Item.IsServicio
                     };
 
-                    // Restar stock si no es servicio
+                    // Restar stock o descontar insumos según el tipo de item
                     if (!pres.Item.IsServicio)
                     {
+                        // PRODUCTO NORMAL: descuenta stock directo
                         pres.Item.Stock -= unidades;
                         _context.Items.Update(pres.Item);
+                    }
+                    else
+                    {
+                        // SERVICIO: obtener los componentes y descontar sus insumos
+                        var componentes = await _context.ServicioComponentes
+                            .Include(sc => sc.ItemConsumido)
+                            .Where(sc => sc.Id_Servicio == pres.Item.Id_Item)
+                            .ToListAsync();
+
+                        foreach (var comp in componentes)
+                        {
+                            var insumo = comp.ItemConsumido;
+                            if (insumo == null) continue;
+
+                            // Calcular cuánto stock del insumo se consume en total
+                            var totalConsumido = comp.CantidadPorServicio * unidades;
+
+                            // Si trabajas con enteros de stock, redondea hacia arriba:
+                            int totalConsumidoInt = (int)Math.Ceiling(totalConsumido);
+
+                            // Validar stock suficiente
+                            if (insumo.Stock < totalConsumidoInt)
+                            {
+                                ModelState.AddModelError("", $"Stock insuficiente del insumo '{insumo.Nombre}' para el servicio '{pres.Item.Nombre}'. " +
+                                    $"Necesario: {totalConsumidoInt}, Disponible: {insumo.Stock}");
+                                await trx.RollbackAsync();
+                                ViewBag.PreviousLineas = lineas;
+                                await CargarViewBagsCrear();
+                                return View();
+                            }
+
+                            // Descontar del inventario
+                            insumo.Stock -= totalConsumidoInt;
+                            _context.Items.Update(insumo);
+                        }
                     }
 
                     subtotal += Math.Round(precioPorPresentacion * linea.CantidadPresentaciones, 2);

@@ -1,0 +1,32 @@
+﻿@model PropamaPOS.Models.ServicioComponente
+@{
+    ViewData["Title"] = "Eliminar Componente de Servicio";
+}
+
+<h3>Eliminar Componente de Servicio</h3>
+
+<div class="alert alert-warning">
+    <p><strong>¿Seguro que deseas eliminar este componente?</strong></p>
+    <p>Esta acción no se puede deshacer.</p>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Servicio</label>
+    <input class="form-control" value="@Model.Servicio?.Nombre" disabled />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Insumo (producto)</label>
+    <input class="form-control" value="@Model.ItemConsumido?.Nombre" disabled />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Cantidad por servicio</label>
+    <input class="form-control" value="@Model.CantidadPorServicio" disabled />
+</div>
+
+<form asp-action="Eliminar" method="post">
+    <input type="hidden" asp-for="Id_ServicioComponente" />
+    <button type="submit" class="btn btn-danger">Eliminar</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>

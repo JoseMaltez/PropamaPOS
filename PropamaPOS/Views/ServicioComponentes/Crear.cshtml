@@ -1,0 +1,47 @@
+﻿@model PropamaPOS.Models.ServicioComponente
+@{
+    ViewData["Title"] = "Agregar Componente";
+    var servicios = ViewBag.Servicios as List<PropamaPOS.Models.Item> ?? new();
+    var items = ViewBag.Items as List<PropamaPOS.Models.Item> ?? new();
+}
+
+<h3>Agregar Componente a Servicio</h3>
+
+<form asp-action="Crear" method="post">
+    <div class="mb-3">
+        <label>Servicio</label>
+        <select name="Id_Servicio" class="form-control">
+            <option value="">-- Seleccionar --</option>
+            @foreach (var s in servicios)
+            {
+                if (Model.Id_Servicio == s.Id_Item)
+                {
+                    <option value="@s.Id_Item" selected>@s.Nombre</option>
+                }
+                else
+                {
+                    <option value="@s.Id_Item">@s.Nombre</option>
+                }
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label>Insumo (producto)</label>
+        <select name="Id_Item" class="form-control">
+            <option value="">-- Seleccionar --</option>
+            @foreach(var i in items) {
+                <option value="@i.Id_Item">@i.Nombre</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label>Cantidad por servicio</label>
+        <input name="CantidadPorServicio" type="number" step="0.01" class="form-control" value="1" />
+    </div>
+
+    <button class="btn btn-primary">Guardar</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>
+

@@ -24,6 +24,8 @@ namespace PropamaPOS.Data
         public DbSet<Venta> Ventas { get; set; }
         public DbSet<VentaDetalle> VentaDetalles { get; set; }
         public DbSet<PagoVenta> PagoVentas { get; set; }
+        public DbSet<ServicioComponente> ServicioComponentes { get; set; }
+
 
 
 
@@ -204,6 +206,20 @@ namespace PropamaPOS.Data
             modelBuilder.Entity<Venta>()
                 .HasIndex(v => v.NumeroVenta)
                 .IsUnique();
+
+            // ServicioComponentes: relacionar servicio y item consumido
+            modelBuilder.Entity<ServicioComponente>()
+                .HasOne(sc => sc.Servicio)
+                .WithMany() // no agregamos navegación inversa en Item por ahora
+                .HasForeignKey(sc => sc.Id_Servicio)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ServicioComponente>()
+                .HasOne(sc => sc.ItemConsumido)
+                .WithMany()
+                .HasForeignKey(sc => sc.Id_Item)
+                .OnDelete(DeleteBehavior.Restrict);
+
 
 
             // Configuración decimal general

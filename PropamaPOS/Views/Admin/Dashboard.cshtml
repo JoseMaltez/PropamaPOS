@@ -43,7 +43,7 @@
             </div>
         </div>
 
-        <!-- Productos -->
+        <!-- Categorias -->
         <div class="col-md-4 mb-4">
             <div class="card text-center">
                 <div class="card-body">
@@ -54,6 +54,8 @@
             </div>
         </div>
 
+
+
         <!-- Items -->
         <div class="col-md-4 mb-4">
             <div class="card text-center">
@@ -61,6 +63,16 @@
                     <h5 class="card-title">📦 Productos y Servicios</h5>
                     <p class="card-text">Administra los servicios, productos y sus presentaciones</p>
                     <a asp-controller="Item" asp-action="Index" class="btn btn-success">Administrar</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Componentes de Servicios</h5>
+                    <p class="card-text">Definir qué insumos usa cada servicio.</p>
+                    <a asp-controller="ServicioComponentes" asp-action="Index" class="btn btn-primary">Ir al módulo</a>
                 </div>
             </div>
         </div>
@@ -97,5 +109,7 @@
                 </div>
             </div>
         </div>
+
+
     </div>
 </div>
