@@ -12,8 +12,8 @@ using PropamaPOS.Data;
 namespace PropamaPOS.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251017013439_ServicioComponente")]
-    partial class ServicioComponente
+    [Migration("20251018032307_InitialCrate")]
+    partial class InitialCrate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -181,6 +181,9 @@ namespace PropamaPOS.Migrations
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal>("IVA")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int?>("Id_Empleado")
                         .HasColumnType("int");
 
@@ -194,6 +197,9 @@ namespace PropamaPOS.Migrations
                         .IsRequired()
                         .HasMaxLength(15)
                         .HasColumnType("nvarchar(15)");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("Total")
                         .HasColumnType("decimal(18,2)");

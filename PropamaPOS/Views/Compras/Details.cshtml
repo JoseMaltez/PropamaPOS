@@ -65,6 +65,14 @@
                 </tbody>
                 <tfoot>
                     <tr>
+                        <th colspan="4" class="text-end">Subtotal (sin IVA):</th>
+                        <th>@Model.Subtotal.ToString("F2")</th>
+                    </tr>
+                    <tr>
+                        <th colspan="4" class="text-end">IVA:</th>
+                        <th>@Model.IVA.ToString("F2")</th>
+                    </tr>
+                    <tr>
                         <th colspan="4" class="text-end">Total (Q):</th>
                         <th>@Model.Total.ToString("F2")</th>
                     </tr>

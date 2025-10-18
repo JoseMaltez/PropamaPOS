@@ -28,6 +28,12 @@ namespace PropamaPOS.Models
         public string CreadoPor { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
+        public decimal Subtotal { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal IVA { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Total { get; set; }
 
         public string? Nota { get; set; }

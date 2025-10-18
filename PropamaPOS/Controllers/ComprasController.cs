@@ -144,9 +144,13 @@ namespace PropamaPOS.Controllers
                 _context.Compras.Add(compra);
                 await _context.SaveChangesAsync();
 
-                decimal total = 0m;
-                decimal markup = _config.GetValue<decimal?>("Pricing:DefaultMarkup") ?? 0.30m;
-                decimal retailSurcharge = _config.GetValue<decimal?>("Pricing:RetailSurcharge") ?? 0.20m;
+                decimal totalWithIva = 0m;            // suma de importes tal y como ingresas (con IVA)
+                decimal subtotalWithoutIva = 0m;      // suma sin IVA
+                decimal ivaTotal = 0m;
+
+                decimal ivaRate = _config.GetValue<decimal?>("Tax:IVA") ?? 0.12m;
+                decimal markup = _config.GetValue<decimal?>("Pricing:DefaultMarkup") ?? 0.15m;
+                decimal retailSurcharge = _config.GetValue<decimal?>("Pricing:RetailSurcharge") ?? 0.10m;
                 // retailSurcharge: margen extra para ventas al detalle (presentaciones pequeñas)
 
                 foreach (var linea in model.Lineas)
@@ -159,9 +163,12 @@ namespace PropamaPOS.Controllers
                     if (presentacion == null)
                         continue;
 
+                    decimal precioCostoPorPresentacionWithIva = linea.PrecioCostoPorPresentacion;
+                    decimal precioCostoPorPresentacionSinIva = Math.Round(precioCostoPorPresentacionWithIva / (1 + ivaRate), 4);
+
                     var item = presentacion.Item;
                     int unidadesCompradas = linea.CantidadPresentaciones * presentacion.Cantidad;
-                    decimal costoPorUnidad = Math.Round(linea.PrecioCostoPorPresentacion / presentacion.Cantidad, 4);
+                    decimal costoPorUnidad = Math.Round(precioCostoPorPresentacionSinIva / presentacion.Cantidad, 4);
 
                     // Calcular nuevo costo promedio
                     int stockPrevio = item.Stock;
@@ -170,6 +177,8 @@ namespace PropamaPOS.Controllers
                     int nuevoStock = stockPrevio + unidadesCompradas;
                     decimal nuevoCostoPromedio = nuevoStock == 0 ? costoPorUnidad :
                         Math.Round((costoPrevioTotal + costoNuevoTotal) / nuevoStock, 4);
+                    decimal lineTotalWithIva = Math.Round(linea.PrecioCostoPorPresentacion * linea.CantidadPresentaciones, 2);
+                    decimal lineSubtotalWithoutIva = Math.Round(lineTotalWithIva / (1 + ivaRate), 2);
 
                     // Actualizar stock y costo promedio
                     item.Stock = nuevoStock;
@@ -202,15 +211,23 @@ namespace PropamaPOS.Controllers
                         CantidadPresentaciones = linea.CantidadPresentaciones,
                         PrecioCostoPorPresentacion = linea.PrecioCostoPorPresentacion,
                         PrecioCostoPorUnidad = costoPorUnidad,
-                        Subtotal = Math.Round(linea.PrecioCostoPorPresentacion * linea.CantidadPresentaciones, 2)
+                        Subtotal = lineTotalWithIva
                     };
 
                     _context.CompraDetalles.Add(detalle);
-                    total += detalle.Subtotal;
+
+                    totalWithIva += lineTotalWithIva;
+                    subtotalWithoutIva += lineSubtotalWithoutIva;
                 }
 
-                compra.Total = total;
-                _context.Compras.Update(compra);
+                ivaTotal = Math.Round(totalWithIva - subtotalWithoutIva, 2);
+
+                // asignar a compra
+                compra.Subtotal = subtotalWithoutIva; // sin IVA
+                compra.IVA = ivaTotal;
+                compra.Total = totalWithIva; // con IVA
+
+                //_context.Compras.Update(compra);
                 await _context.SaveChangesAsync();
                 await trx.CommitAsync();
 

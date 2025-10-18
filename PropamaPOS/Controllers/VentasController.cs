@@ -141,7 +141,7 @@ namespace PropamaPOS.Controllers
                                 NIT = nitInput,
                                 Nombre = ventaInput.Cliente?.Nombre ?? "N/A",
                                 Apellido = ventaInput.Cliente?.Apellido,
-                                Direccion = ventaInput.Cliente?.Direccion,
+                                Direccion = ventaInput.Cliente?.Direccion ?? "Ciudad",
                                 Activo = true
                             };
                             _context.Clientes.Add(cliente);

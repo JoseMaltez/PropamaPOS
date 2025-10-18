@@ -1,4 +1,6 @@
 ﻿@model PropamaPOS.Models.ViewModels.CompraCrearViewModel
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@using System.Globalization
 @{
     ViewData["Title"] = "Registrar Compra";
     var proveedores = ViewBag.Proveedores as List<PropamaPOS.Models.Proveedor> ?? new();
@@ -55,15 +57,19 @@
                             </tr>
                         </thead>
                         <tbody></tbody>
-                        <tfoot>
-                            <tr>
-                                <th colspan="4" class="text-end">Total (Q):</th>
-                                <th id="totalCompra" class="fw-bold">0.00</th>
-                                <th></th>
-                            </tr>
-                        </tfoot>
                     </table>
                 </div>
+
+                <div class="mt-3 text-end">
+                    <div>Subtotal (sin IVA): <strong id="subtotalText">Q0.00</strong></div>
+                    <div>IVA: <strong id="ivaText">Q0.00</strong></div>
+                    <div class="h5">Total (con IVA): <strong id="totalText">Q0.00</strong></div>
+                </div>
+
+                <!-- Opcional: inputs hidden para enviar los valores al servidor (pero servidor recalculará igualmente) -->
+                <input type="hidden" name="Subtotal" id="subtotalHidden" />
+                <input type="hidden" name="IVA" id="ivaHidden" />
+                <input type="hidden" name="Total" id="totalHidden" />
 
                 <div class="mt-4 text-end">
                     <button type="submit" class="btn btn-success px-4">
@@ -83,13 +89,34 @@
         const items = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Items ?? new object[] { }));
         let index = 0;
 
-        function calcularTotal() {
-            let total = 0;
-            document.querySelectorAll(".subtotal-cell").forEach(cell => {
-                total += parseFloat(cell.textContent || 0);
+                function calcularTotal() {
+            // leer tasa IVA desde una variable JS (la fijamos aquí desde el servidor)
+            const ivaRate = parseFloat('@(Configuration.GetValue<decimal?>("Tax:IVA")?.ToString(CultureInfo.InvariantCulture) ?? "0.12")') || 0.12;
+
+            // sumar filas
+            let totalWithIva = 0;
+            document.querySelectorAll('#tablaLineas tbody tr').forEach(tr => {
+                const cantidad = parseFloat(tr.querySelector('.cantidad').value || tr.dataset.cantidad || 0);
+                const precio = parseFloat(tr.querySelector('.precio').value || tr.dataset.precio || 0);
+                // si en tu fila la clase es distinta, adapta los selectores
+                totalWithIva += (cantidad * precio);
             });
-            document.getElementById("totalCompra").textContent = total.toFixed(2);
+
+            const subtotalWithoutIva = +(totalWithIva / (1 + ivaRate)).toFixed(2);
+            const ivaTotal = +(totalWithIva - subtotalWithoutIva).toFixed(2);
+            const total = +totalWithIva.toFixed(2);
+
+            // actualizar UI
+            document.getElementById('subtotalText').innerText = 'Q' + subtotalWithoutIva.toFixed(2);
+            document.getElementById('ivaText').innerText = 'Q' + ivaTotal.toFixed(2);
+            document.getElementById('totalText').innerText = 'Q' + total.toFixed(2);
+
+            // hidden inputs
+            document.getElementById('subtotalHidden').value = subtotalWithoutIva;
+            document.getElementById('ivaHidden').value = ivaTotal;
+            document.getElementById('totalHidden').value = total;
         }
+
 
         function agregarFila() {
             const tbody = document.querySelector("#tablaLineas tbody");
