@@ -99,21 +99,58 @@ namespace PropamaPOS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Crear([FromForm] Venta ventaInput, [FromForm] List<VentaDetalle> lineas, string facturarCon, string nitInput, string nombreConsumidor)
         {
-            // facturarCon: "NIT" o "CF" (Consumidor Final)
             if (lineas == null || !lineas.Any())
             {
-                ModelState.AddModelError("", "La factura debe contener al menos un producto/servicio.");
+                ModelState.AddModelError("", "Debe agregar al menos un producto o servicio a la venta.");
                 ViewBag.PreviousLineas = lineas;
                 await CargarViewBagsCrear();
                 return View();
             }
 
-            if (facturarCon == "NIT" && string.IsNullOrWhiteSpace(nitInput))
+            foreach (var l in lineas)
             {
-                ModelState.AddModelError("NIT", "Debe ingresar un NIT cuando el tipo de factura es 'Con NIT'.");
+                if (l.CantidadPresentaciones <= 0)
+                    ModelState.AddModelError("", $"La cantidad del producto no puede ser cero o negativa.");
+
+                if (l.Descuento < 0)
+                    ModelState.AddModelError("", $"El descuento del producto no puede ser negativo.");
+            }
+
+            if (!ModelState.IsValid)
+            {
                 ViewBag.PreviousLineas = lineas;
                 await CargarViewBagsCrear();
                 return View();
+            }
+
+            if (facturarCon == "NIT")
+            {
+                if (string.IsNullOrWhiteSpace(nitInput))
+                {
+                    ModelState.AddModelError("NIT", "Debe ingresar un NIT válido si selecciona 'Con NIT'.");
+                    ViewBag.PreviousLineas = lineas;
+                    await CargarViewBagsCrear();
+                    return View();
+                }
+
+                if (!System.Text.RegularExpressions.Regex.IsMatch(nitInput, @"^[A-Za-z0-9\-]+$"))
+                {
+                    ModelState.AddModelError("NIT", "El NIT contiene caracteres inválidos.");
+                    ViewBag.PreviousLineas = lineas;
+                    await CargarViewBagsCrear();
+                    return View();
+                }
+            }
+
+            if (ventaInput.MetodoPago == MetodoPagoVenta.Efectivo)
+            {
+                if (ventaInput.MontoRecibido < 0)
+                {
+                    ModelState.AddModelError("", "El monto recibido no puede ser negativo.");
+                    ViewBag.PreviousLineas = lineas;
+                    await CargarViewBagsCrear();
+                    return View();
+                }
             }
 
             using var trx = await _context.Database.BeginTransactionAsync();
