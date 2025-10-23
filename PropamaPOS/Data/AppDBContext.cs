@@ -176,6 +176,11 @@ namespace PropamaPOS.Data
                 .HasForeignKey(v => v.Id_Empleado)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            modelBuilder.Entity<Venta>()
+                .Property(v => v.IVA)
+                .HasColumnType("decimal(18,2)");
+
+
             // Ventas - Detalle
             modelBuilder.Entity<VentaDetalle>()
                 .HasOne(d => d.Venta)

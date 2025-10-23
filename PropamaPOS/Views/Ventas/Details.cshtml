@@ -63,18 +63,23 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="5" class="text-end fw-bold">Subtotal (Q):</td>
-                        <td>@Model.Subtotal.ToString("F2")</td>
+                        <th colspan="4" class="text-end">Subtotal (sin IVA):</th>
+                        <th>@Model.Subtotal.ToString("F2")</th>
                     </tr>
                     <tr>
-                        <td colspan="5" class="text-end fw-bold">Descuentos (Q):</td>
-                        <td>@Model.Descuentos.ToString("F2")</td>
+                        <th colspan="4" class="text-end">Descuentos (Q):</th>
+                        <th>@Model.Descuentos.ToString("F2")</th>
                     </tr>
-                    <tr class="table-success">
-                        <td colspan="5" class="text-end fw-bold">Total (Q):</td>
-                        <td class="fw-bold">@Model.Total.ToString("F2")</td>
+                    <tr>
+                        <th colspan="4" class="text-end">IVA:</th>
+                        <th>@Model.IVA.ToString("F2")</th>
+                    </tr>
+                    <tr>
+                        <th colspan="4" class="text-end">Total (Q):</th>
+                        <th>@Model.Total.ToString("F2")</th>
                     </tr>
                 </tfoot>
+
             </table>
 
             <hr />

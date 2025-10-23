@@ -1,4 +1,7 @@
-﻿@{
+﻿@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@using System.Globalization
+
+@{
     ViewData["Title"] = "Nueva Venta";
     var itemsJson = Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Items ?? new object());
 }
@@ -33,7 +36,7 @@
                         </div>
                     </div>
 
-                    <!-- Campos que se usan cuando se factura CON NIT (nombre, apellido, direccion) -->
+                    <!-- Campos NIT -->
                     <div class="col-md-12" id="clienteFields" style="display:none; margin-top:10px;">
                         <div class="row g-2">
                             <div class="col-md-4">
@@ -117,7 +120,7 @@
                     <tbody></tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="5" class="text-end">Subtotal (Q):</td>
+                            <td colspan="5" class="text-end">Subtotal (sin IVA):</td>
                             <td id="subtotalText">0.00</td>
                             <td></td>
                         </tr>
@@ -127,7 +130,12 @@
                             <td></td>
                         </tr>
                         <tr>
-                            <td colspan="5" class="text-end fw-bold">Total (Q):</td>
+                            <td colspan="5" class="text-end">IVA:</td>
+                            <td id="ivaText">0.00</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="5" class="text-end fw-bold">Total (con IVA):</td>
                             <td id="totalText" class="fw-bold">0.00</td>
                             <td></td>
                         </tr>
@@ -159,7 +167,6 @@
                     <button type="submit" class="btn btn-success">Confirmar y Guardar Venta</button>
                 </div>
 
-                <!-- Inputs dinámicos que se enviarán al servidor -->
                 <div id="hiddenInputs"></div>
             </form>
         </div>
@@ -189,7 +196,7 @@
             });
         }
 
-        // Búsqueda sencilla por código/nombre
+        // Búsqueda por código/nombre
         const suggestionsEl = document.getElementById('suggestions');
         document.getElementById('buscarProducto').addEventListener('input', function () {
             const q = this.value.trim().toLowerCase();
@@ -197,7 +204,6 @@
             if (!q) { suggestionsEl.style.display = 'none'; return; }
 
                 const matches = items.filter(it => {
-                // match tipo: servicio/ producto
                 if ((tipo === 'Servicio') !== !!it.isServicio) return false;
                 const nombre = (it.nombre || '').toLowerCase();
                 const codigo = (it.codigo || '').toLowerCase();
@@ -216,10 +222,10 @@
                 itemEl.className = 'list-group-item list-group-item-action';
                 itemEl.innerHTML = `<div class="d-flex justify-content-between"><div><strong>${m.nombre}</strong><div class="small text-muted">${m.codigo ?? ''}</div></div><div class="small text-muted">${m.isServicio ? 'Servicio' : 'Producto'}</div></div>`;
                 itemEl.addEventListener('click', function () {
-                    // seleccionar item y cargar presentaciones
+
                     document.getElementById('buscarProducto').value = m.nombre + (m.codigo ? ' • ' + m.codigo : '');
                     document.getElementById('presentacionSelect').dataset.selectedItem = m.id_Item;
-                    // vaciar y llenar presentacionSelect
+
                     const sel = document.getElementById('presentacionSelect');
                     sel.innerHTML = '<option value="">Seleccione presentación</option>';
                     (m.presentaciones || []).forEach(p => {
@@ -307,39 +313,59 @@
         });
 
 
-        function renderLineas(){
+                function renderLineas(){
             const tbody = document.querySelector('#tablaLineas tbody');
             tbody.innerHTML = '';
             let subtotal = 0, descuentos = 0;
+
+            // obtener tasa IVA desde servidor (cadena inyectada)
+            const ivaRate = parseFloat('@(Configuration.GetValue<decimal?>("Tax:IVA")?.ToString(CultureInfo.InvariantCulture) ?? "0.12")') || 0.12;
+
             lineas.forEach((l, idx) => {
                 subtotal += l.precio * l.cantidadPresentaciones;
                 descuentos += l.descuento;
+                const precioConIva = +(l.precio * (1 + ivaRate)); // precio de venta mostrado en factura con IVA
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${l.nombre}</td>
                     <td>${l.presentacion}</td>
                     <td>${l.cantidadPresentaciones}</td>
-                    <td>${l.precio.toFixed(2)}</td>
+                    <td>${precioConIva.toFixed(2)}</td>
                     <td>${l.descuento.toFixed(2)}</td>
                     <td>${l.subtotal.toFixed(2)}</td>
                     <td><button type="button" class="btn btn-sm btn-danger" data-idx="${idx}">Quitar</button></td>
                 `;
                 tbody.appendChild(tr);
             });
+
+            const imponible = +(subtotal - descuentos);
+            const ivaTotal = +(imponible * ivaRate);
+            const total = +(imponible + ivaTotal);
+
             document.getElementById('subtotalText').innerText = subtotal.toFixed(2);
             document.getElementById('descuentosText').innerText = descuentos.toFixed(2);
-            document.getElementById('totalText').innerText = (subtotal - descuentos).toFixed(2);
+            document.getElementById('ivaText').innerText = ivaTotal.toFixed(2);
+            document.getElementById('totalText').innerText = total.toFixed(2);
 
-            // actualizar hidden inputs (para enviar al server)
+            // hidden inputs para enviar (opcional — servidor recalculará por seguridad)
             const hidden = document.getElementById('hiddenInputs');
-            hidden.innerHTML = '';
-            lineas.forEach((l, i) => {
-                hidden.innerHTML += `<input type="hidden" name="lineas[${i}].Id_Item" value="${l.id_Item}" />`;
-                hidden.innerHTML += `<input type="hidden" name="lineas[${i}].Id_ItemPresentacion" value="${l.id_ItemPresentacion}" />`;
-                hidden.innerHTML += `<input type="hidden" name="lineas[${i}].CantidadPresentaciones" value="${l.cantidadPresentaciones}" />`;
-                hidden.innerHTML += `<input type="hidden" name="lineas[${i}].Descuento" value="${l.descuento}" />`;
-            });
+            if (hidden) {
+                hidden.innerHTML = '';
+                lineas.forEach((l, i) => {
+                    hidden.innerHTML += `<input type="hidden" name="lineas[${i}].Id_Item" value="${l.id_Item}" />`;
+                    hidden.innerHTML += `<input type="hidden" name="lineas[${i}].Id_ItemPresentacion" value="${l.id_ItemPresentacion}" />`;
+                    hidden.innerHTML += `<input type="hidden" name="lineas[${i}].CantidadPresentaciones" value="${l.cantidadPresentaciones}" />`;
+                    hidden.innerHTML += `<input type="hidden" name="lineas[${i}].Descuento" value="${l.descuento}" />`;
+                });
+
+                // totals (opcional)
+                hidden.innerHTML += `<input type="hidden" name="ventaInput.Subtotal" value="${subtotal.toFixed(2)}" />`;
+                hidden.innerHTML += `<input type="hidden" name="ventaInput.Descuentos" value="${descuentos.toFixed(2)}" />`;
+                hidden.innerHTML += `<input type="hidden" name="ventaInput.IVA" value="${(ivaTotal).toFixed(2)}" />`;
+                hidden.innerHTML += `<input type="hidden" name="ventaInput.Total" value="${(total).toFixed(2)}" />`;
+            }
         }
+
 
                 function limpiarCamposDetalle() {
             document.getElementById('tipoLinea').value = 'Producto';
@@ -385,7 +411,6 @@
                     document.getElementById('clienteFields').style.display = 'block';
 
                     if (data.found) {
-                        // Cliente existente: llenar y bloquear
                         document.getElementById('clienteNombre').value = data.nombre;
                         document.getElementById('clienteApellido').value = data.apellido ?? '';
                         document.getElementById('clienteDireccion').value = data.direccion ?? '';
@@ -394,10 +419,8 @@
                         document.getElementById('clienteApellido').readOnly = true;
                         document.getElementById('clienteDireccion').readOnly = true;
 
-                        // Ocultar campo de nombre CF
                         document.getElementById('nombreCFGroup').style.display = 'none';
 
-                        // Guardar id en hidden input
                         const hidden = document.getElementById('hiddenInputs');
                         hidden.innerHTML += `<input type="hidden" name="ventaInput.Cliente.Id_Cliente" value="${data.id}" />`;
                     } else {
@@ -446,17 +469,12 @@
             document.getElementById('cambio').value = cambio.toFixed(2);
         });
 
-        // llamar al inicio para ajustar UI
         actualizarMetodoPagoUI();
 
 
-        // Cuando se selecciona presentación desde búsqueda única, actualizar presentacionSelect
         document.getElementById('presentacionSelect').addEventListener('change', function(){
-            // Marcar dataset.selectedItem si no lo está
-            // (handled by search logic que pone presentacionSelect.dataset.selectedItem)
         });
 
-                // Restaurar lineas si servidor devolvió la página con errores
         @{
             var prev = ViewBag.PreviousLineas ?? new object(); var prevJson = Newtonsoft.Json.JsonConvert.SerializeObject(prev);
         }

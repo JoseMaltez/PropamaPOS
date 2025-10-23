@@ -16,10 +16,12 @@ namespace PropamaPOS.Controllers
     public class VentasController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IConfiguration _config;
 
-        public VentasController(AppDbContext context)
+        public VentasController(AppDbContext context, IConfiguration config)
         {
             _context = context;
+            _config = config;
         }
 
         public async Task<IActionResult> Index()
@@ -193,6 +195,7 @@ namespace PropamaPOS.Controllers
                     Id_Empleado = empleadoId,
                 };
 
+                decimal ivaRate = _config.GetValue<decimal?>("Tax:IVA") ?? 0.12m;
                 decimal subtotal = 0m;
                 decimal totalDescuentos = 0m;
 
@@ -278,10 +281,13 @@ namespace PropamaPOS.Controllers
 
                 venta.Subtotal = subtotal;
                 venta.Descuentos = totalDescuentos;
-                venta.Total = subtotal - totalDescuentos;
 
-                // Manejo de pago: vamos a crear un PagoVenta con info mínima
-                // ventaInput.MontoRecibido y ventaInput.MetodoPago se pueden recibir desde el form
+                decimal imponible = Math.Round(subtotal - totalDescuentos, 2);
+                decimal ivaTotal = Math.Round(imponible * ivaRate, 2);
+                decimal totalConIva = Math.Round(imponible + ivaTotal, 2);
+
+                venta.IVA = ivaTotal;
+                venta.Total = totalConIva;
                 venta.MetodoPago = ventaInput.MetodoPago;
                 venta.MontoRecibido = ventaInput.MontoRecibido;
                 venta.Cambio = ventaInput.MontoRecibido > 0 ? Math.Round(ventaInput.MontoRecibido - venta.Total, 2) : 0;
@@ -345,6 +351,8 @@ namespace PropamaPOS.Controllers
         [HttpGet]
         public async Task<IActionResult> DownloadPdf(int id)
         {
+            decimal ivaRate = _config.GetValue<decimal?>("Tax:IVA") ?? 0.12m;
+
             var venta = await _context.Ventas
                 .Include(v => v.Cliente)
                 .Include(v => v.Empleado)
@@ -359,7 +367,7 @@ namespace PropamaPOS.Controllers
 
             QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
-            // Datos fijos del negocio
+            // Encabezado
             string nombreNegocio = "Librería y Papelería Propama";
             string nitNegocio = "6613799";
             string direccionNegocio = "2da. Calle 5-41, Zona 1, Mazatenango, Suchitepéquez";
@@ -435,7 +443,7 @@ namespace PropamaPOS.Controllers
                                 table.Cell().Padding(4).Text(det.Item?.Nombre ?? "-");
                                 table.Cell().Padding(4).Text(det.Presentacion?.UnidadMedida?.Nombre ?? "-");
                                 table.Cell().Padding(4).AlignRight().Text(det.CantidadPresentaciones.ToString());
-                                table.Cell().Padding(4).AlignRight().Text($"Q{det.PrecioVentaPorPresentacion:F2}");
+                                table.Cell().Padding(4).AlignRight().Text($"Q{(det.PrecioVentaPorPresentacion * (1 + ivaRate)):F2}");
                                 table.Cell().Padding(4).AlignRight().Text($"Q{det.Descuento:F2}");
                                 table.Cell().Padding(4).AlignRight().Text($"Q{det.Subtotal:F2}");
                             }
@@ -446,8 +454,10 @@ namespace PropamaPOS.Controllers
                         {
                             total.Item().Text($"Subtotal: Q{venta.Subtotal:F2}");
                             total.Item().Text($"Descuentos: Q{venta.Descuentos:F2}");
+                            total.Item().Text($"IVA: Q{venta.IVA:F2}");
                             total.Item().Text($"Total: Q{venta.Total:F2}").Bold().FontSize(13);
                         });
+
                     });
 
                     // PIE DE PÁGINA

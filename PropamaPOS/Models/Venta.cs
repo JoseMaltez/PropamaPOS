@@ -22,6 +22,8 @@ namespace PropamaPOS.Models
         public string NombreConsumidor { get; set; } = "Consumidor Final";
         public decimal Subtotal { get; set; }
         public decimal Descuentos { get; set; }
+        public decimal IVA { get; set; }
+
         public decimal Total { get; set; }
         public MetodoPagoVenta MetodoPago { get; set; }
         public decimal MontoRecibido { get; set; } // para efectivo
