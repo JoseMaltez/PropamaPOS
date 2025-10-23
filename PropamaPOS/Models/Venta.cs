@@ -23,6 +23,7 @@ namespace PropamaPOS.Models
         public decimal Subtotal { get; set; }
         public decimal Descuentos { get; set; }
         public decimal IVA { get; set; }
+        public decimal AjusteRedondeo { get; set; }
 
         public decimal Total { get; set; }
         public MetodoPagoVenta MetodoPago { get; set; }

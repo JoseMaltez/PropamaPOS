@@ -136,7 +136,6 @@ namespace PropamaPOS.Controllers
                     int stockPrevio = item.Stock;
                     int stockDespues = stockPrevio + unidadesSigned;
 
-                    // Evitar stock negativo (por defecto)
                     if (stockDespues < 0)
                     {
                         ModelState.AddModelError("", $"No hay suficiente stock para {item.Nombre}. Stock actual: {stockPrevio}, intentado remover: {Math.Abs(unidadesSigned)}");

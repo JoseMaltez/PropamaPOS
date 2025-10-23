@@ -283,11 +283,30 @@ namespace PropamaPOS.Controllers
                 venta.Descuentos = totalDescuentos;
 
                 decimal imponible = Math.Round(subtotal - totalDescuentos, 2);
-                decimal ivaTotal = Math.Round(imponible * ivaRate, 2);
-                decimal totalConIva = Math.Round(imponible + ivaTotal, 2);
 
-                venta.IVA = ivaTotal;
-                venta.Total = totalConIva;
+                // IVA calculado fiscalmente (sobre base sin IVA)
+                decimal ivaFiscal = Math.Round(imponible * ivaRate, 2);
+                decimal totalFiscal = Math.Round(imponible + ivaFiscal, 2);
+
+                // 🔹 IVA por unidad (redondeado por cada producto)
+                decimal totalPorUnidad = 0m;
+                foreach (var linea in lineas)
+                {
+                    var pres = await _context.ItemPresentaciones
+                        .FirstOrDefaultAsync(p => p.Id_ItemPresentacion == linea.Id_ItemPresentacion);
+                    if (pres == null) continue;
+
+                    decimal precioUnitConIva = Math.Round(pres.PrecioVenta * (1 + ivaRate), 2);
+                    decimal subtotalLineaConIva = Math.Round((precioUnitConIva * linea.CantidadPresentaciones) - linea.Descuento, 2);
+                    totalPorUnidad += subtotalLineaConIva;
+                }
+
+                // 🔹 Calcular diferencia (ajuste)
+                decimal ajuste = Math.Round(totalPorUnidad - totalFiscal, 2);
+
+                venta.IVA = ivaFiscal;
+                venta.Total = totalFiscal + ajuste;  // Ajuste incluido
+                venta.AjusteRedondeo = ajuste;
                 venta.MetodoPago = ventaInput.MetodoPago;
                 venta.MontoRecibido = ventaInput.MontoRecibido;
                 venta.Cambio = ventaInput.MontoRecibido > 0 ? Math.Round(ventaInput.MontoRecibido - venta.Total, 2) : 0;
@@ -443,9 +462,14 @@ namespace PropamaPOS.Controllers
                                 table.Cell().Padding(4).Text(det.Item?.Nombre ?? "-");
                                 table.Cell().Padding(4).Text(det.Presentacion?.UnidadMedida?.Nombre ?? "-");
                                 table.Cell().Padding(4).AlignRight().Text(det.CantidadPresentaciones.ToString());
-                                table.Cell().Padding(4).AlignRight().Text($"Q{(det.PrecioVentaPorPresentacion * (1 + ivaRate)):F2}");
+
+                                decimal precioConIva = Math.Round(det.PrecioVentaPorPresentacion * (1 + ivaRate), 2);
+                                decimal subtotalConIva = Math.Round((precioConIva * det.CantidadPresentaciones) - det.Descuento, 2);
+
+                                table.Cell().Padding(4).AlignRight().Text($"Q{precioConIva:F2}");
                                 table.Cell().Padding(4).AlignRight().Text($"Q{det.Descuento:F2}");
-                                table.Cell().Padding(4).AlignRight().Text($"Q{det.Subtotal:F2}");
+                                table.Cell().Padding(4).AlignRight().Text($"Q{subtotalConIva:F2}");
+
                             }
                         });
 
@@ -455,6 +479,10 @@ namespace PropamaPOS.Controllers
                             total.Item().Text($"Subtotal: Q{venta.Subtotal:F2}");
                             total.Item().Text($"Descuentos: Q{venta.Descuentos:F2}");
                             total.Item().Text($"IVA: Q{venta.IVA:F2}");
+
+                            if (Math.Abs(venta.AjusteRedondeo) >= 0.01m)
+                                total.Item().Text($"Ajuste por redondeo: Q{venta.AjusteRedondeo:F2}");
+
                             total.Item().Text($"Total: Q{venta.Total:F2}").Bold().FontSize(13);
                         });
 

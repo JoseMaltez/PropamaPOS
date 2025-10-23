@@ -55,29 +55,47 @@
                             <td>@det.Item?.Nombre</td>
                             <td>@(det.Presentacion != null ? $"{det.Presentacion.UnidadMedida.Nombre} ({det.Presentacion.Cantidad})" : "-")</td>
                             <td>@det.CantidadPresentaciones</td>
-                            <td>@det.PrecioVentaPorPresentacion.ToString("F2")</td>
+                            @{
+                                var ivaRate = 0.12m;
+                                var precioConIva = Math.Round(det.PrecioVentaPorPresentacion * (1 + ivaRate), 2);
+                                var subtotalConIva = Math.Round((precioConIva * det.CantidadPresentaciones) - det.Descuento, 2);
+                            }
+                            <td>@precioConIva.ToString("F2")</td>
                             <td>@det.Descuento.ToString("F2")</td>
-                            <td>@det.Subtotal.ToString("F2")</td>
+                            <td>@subtotalConIva.ToString("F2")</td>
                         </tr>
                     }
                 </tbody>
                 <tfoot>
                     <tr>
+                        <th></th>
                         <th colspan="4" class="text-end">Subtotal (sin IVA):</th>
                         <th>@Model.Subtotal.ToString("F2")</th>
                     </tr>
                     <tr>
+                        <th></th>
                         <th colspan="4" class="text-end">Descuentos (Q):</th>
                         <th>@Model.Descuentos.ToString("F2")</th>
                     </tr>
                     <tr>
+                        <th></th>
                         <th colspan="4" class="text-end">IVA:</th>
                         <th>@Model.IVA.ToString("F2")</th>
                     </tr>
+                    @if (Math.Abs(Model.AjusteRedondeo) >= 0.01m)
+                    {
+                        <tr>
+                            <th></th>
+                            <th colspan="4" class="text-end">Ajuste por redondeo:</th>
+                            <th>@Model.AjusteRedondeo.ToString("F2")</th>
+                        </tr>
+                    }
                     <tr>
+                        <th></th>
                         <th colspan="4" class="text-end">Total (Q):</th>
                         <th>@Model.Total.ToString("F2")</th>
                     </tr>
+
                 </tfoot>
 
             </table>

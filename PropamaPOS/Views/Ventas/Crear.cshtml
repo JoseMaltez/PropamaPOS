@@ -134,6 +134,11 @@
                             <td id="ivaText">0.00</td>
                             <td></td>
                         </tr>
+                        <tr id="ajusteRow" style="display:none;">
+                            <td colspan="5" class="text-end">Ajuste de redondeo (Q):</td>
+                            <td id="ajusteText">0.00</td>
+                            <td></td>
+                        </tr>
                         <tr>
                             <td colspan="5" class="text-end fw-bold">Total (con IVA):</td>
                             <td id="totalText" class="fw-bold">0.00</td>
@@ -313,7 +318,7 @@
         });
 
 
-                function renderLineas(){
+        function renderLineas(){
             const tbody = document.querySelector('#tablaLineas tbody');
             tbody.innerHTML = '';
             let subtotal = 0, descuentos = 0;
@@ -322,9 +327,12 @@
             const ivaRate = parseFloat('@(Configuration.GetValue<decimal?>("Tax:IVA")?.ToString(CultureInfo.InvariantCulture) ?? "0.12")') || 0.12;
 
             lineas.forEach((l, idx) => {
+                const precioConIva = +(l.precio * (1 + ivaRate)); // precio mostrado al cliente
+                const subtotalConIva = +(precioConIva * l.cantidadPresentaciones - l.descuento);
+
                 subtotal += l.precio * l.cantidadPresentaciones;
                 descuentos += l.descuento;
-                const precioConIva = +(l.precio * (1 + ivaRate)); // precio de venta mostrado en factura con IVA
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${l.nombre}</td>
@@ -332,7 +340,7 @@
                     <td>${l.cantidadPresentaciones}</td>
                     <td>${precioConIva.toFixed(2)}</td>
                     <td>${l.descuento.toFixed(2)}</td>
-                    <td>${l.subtotal.toFixed(2)}</td>
+                    <td>${subtotalConIva.toFixed(2)}</td>
                     <td><button type="button" class="btn btn-sm btn-danger" data-idx="${idx}">Quitar</button></td>
                 `;
                 tbody.appendChild(tr);
@@ -342,10 +350,21 @@
             const ivaTotal = +(imponible * ivaRate);
             const total = +(imponible + ivaTotal);
 
+                        // Cálculo estimado del ajuste (por diferencias de redondeo)
+            const totalPorUnidad = lineas.reduce((acc, l) => {
+                const precioConIva = +(l.precio * (1 + ivaRate)).toFixed(2);
+                const sub = +(precioConIva * l.cantidadPresentaciones - l.descuento).toFixed(2);
+                return acc + sub;
+            }, 0);
+
+            const ajuste = +(totalPorUnidad - total).toFixed(2);
+
+            document.getElementById('ajusteText').innerText = ajuste.toFixed(2);
+            document.getElementById('ajusteRow').style.display = Math.abs(ajuste) >= 0.01 ? '' : 'none';
             document.getElementById('subtotalText').innerText = subtotal.toFixed(2);
             document.getElementById('descuentosText').innerText = descuentos.toFixed(2);
             document.getElementById('ivaText').innerText = ivaTotal.toFixed(2);
-            document.getElementById('totalText').innerText = total.toFixed(2);
+            document.getElementById('totalText').innerText = (total + ajuste).toFixed(2);
 
             // hidden inputs para enviar (opcional — servidor recalculará por seguridad)
             const hidden = document.getElementById('hiddenInputs');
@@ -362,7 +381,7 @@
                 hidden.innerHTML += `<input type="hidden" name="ventaInput.Subtotal" value="${subtotal.toFixed(2)}" />`;
                 hidden.innerHTML += `<input type="hidden" name="ventaInput.Descuentos" value="${descuentos.toFixed(2)}" />`;
                 hidden.innerHTML += `<input type="hidden" name="ventaInput.IVA" value="${(ivaTotal).toFixed(2)}" />`;
-                hidden.innerHTML += `<input type="hidden" name="ventaInput.Total" value="${(total).toFixed(2)}" />`;
+                hidden.innerHTML += `<input type="hidden" name="ventaInput.Total" value="${(total + ajuste).toFixed(2)}" />`;
             }
         }
 
