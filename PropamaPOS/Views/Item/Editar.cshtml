@@ -41,10 +41,18 @@
                             <select asp-for="Id_Categoria" class="form-select" asp-items="ViewBag.Categorias" id="categoriaSelect" disabled="@(esServicio ? "disabled" : null)"></select>
                         </div>
 
+                        <div class="mb-3" id="stockMinimoContainer" style="display:none;">
+                            <label for="StockMinimo" class="form-label">Stock Mínimo</label>
+                            <input asp-for="StockMinimo" class="form-control" type="number" min="0" step="1" />
+                            <span asp-validation-for="StockMinimo" class="text-danger"></span>
+                            <div class="form-text">Dejar en 0 si no aplica. No se aplica para servicios.</div>
+                        </div>
+
+
                         <!-- Checkbox solo informativo (bloqueado) -->
                         <div class="form-check mb-4">
                             <input type="checkbox" class="form-check-input" id="IsServicio" name="IsServicio" value="true" @(esServicio ? "checked='checked'" : "") disabled="disabled" />
-                            <label class="form-check-label" for="IsServicio">Es un servicio (no se controla stock ni compras)</label>
+                            <label class="form-check-label" for="IsServicio">Es un servicio?</label>
                             <input type="hidden" name="IsServicio" value="@(esServicio.ToString().ToLower())" />
                         </div>
 
@@ -129,12 +137,13 @@
         (function () {
             const unidades = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(unidades));
             const esServicio = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(esServicio));
+            const stockMinimoContainer = document.getElementById('stockMinimoContainer');
             const tableBody = document.querySelector('#presentacionesTable tbody');
             const addBtn = document.getElementById('addPresentacion');
             const categoriaSelect = document.getElementById('categoriaSelect');
             const servicioNombre = "servicio";
+            const isServicio = document.getElementById('IsServicio');
 
-            // Disable potential empty option (if exists)
             if (categoriaSelect && categoriaSelect.options.length > 0) {
                 const first = categoriaSelect.options[0];
                 if (first && first.value === "") first.disabled = true;
@@ -147,13 +156,10 @@
                 });
             }
 
-            // Initialize category visibility
             if (categoriaSelect) hideServicioOption(!esServicio);
 
-            // If esServicio, lock UI for single-unit service
             if (esServicio) {
                 if (addBtn) addBtn.disabled = true;
-                // ensure unidad is set to "Unidad" and cantidad=1 and precio inputs present
                 const unidadSelect = tableBody.querySelector('select.unidad-select') || tableBody.querySelector('select');
                 const cantidadInput = tableBody.querySelector('input[name*=".Cantidad"]');
                 const precioInput = tableBody.querySelector('.precio-input');
@@ -169,18 +175,14 @@
                 }
                 if (precioInput) precioInput.removeAttribute('readonly');
 
-                // remove delete buttons
                 tableBody.querySelectorAll('.remove-row').forEach(b => b.remove());
             } else {
-                // Product: hide price inputs column (if rendered) and ensure add button works
                 document.querySelectorAll('.col-precio').forEach(td => td.style.display = 'none');
 
-                // Attach add button behavior (create a new TR matching columns)
                 if (addBtn) {
                     let nextIndex = tableBody.querySelectorAll('tr').length;
                     addBtn.addEventListener('click', function () {
                         const tr = document.createElement('tr');
-                        // Build row WITHOUT precio column when product
                         tr.innerHTML = `
                             <td>
                                 <select name="Presentaciones[${nextIndex}].Id_UnidadMedida" class="form-select" required>
@@ -203,7 +205,22 @@
                         e.target.closest('tr').remove();
                     }
                 });
+
             }
+
+
+            function toggleStockMinimo() {
+                if (esServicio) {
+                    stockMinimoContainer.style.display = 'none';
+                } else {
+                    stockMinimoContainer.style.display = 'block';
+                }
+            }
+            toggleStockMinimo();
+
+
+
+
         })();
     </script>
 }

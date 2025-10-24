@@ -129,8 +129,10 @@ namespace PropamaPOS.Controllers
                 Id_Categoria = model.Id_Categoria,
                 IsServicio = model.IsServicio,
                 Stock = model.IsServicio ? 0 : 0,
+                StockMinimo = model.IsServicio ? null : (model.StockMinimo ?? 0),
                 CostoPromedioUnidad = 0m
             };
+
 
 
             _context.Items.Add(item);
@@ -177,6 +179,7 @@ namespace PropamaPOS.Controllers
                 Codigo = item.Codigo,
                 Id_Categoria = item.Id_Categoria,
                 IsServicio = item.IsServicio,
+                StockMinimo = item.StockMinimo,
                 Presentaciones = item.Presentaciones
                     .Where(p => p.Activo)
                     .Select(p => new ItemPresentacionViewModel
@@ -188,6 +191,7 @@ namespace PropamaPOS.Controllers
                     }).ToList(),
                 Activo = item.Activo
             };
+
 
             ViewBag.Unidades = await _context.UnidadesMedida.ToListAsync();
             ViewBag.Categorias = new SelectList(_context.Categorias, "Id_Categoria", "Nombre");
@@ -310,6 +314,8 @@ namespace PropamaPOS.Controllers
             item.Id_Categoria = model.Id_Categoria;
             item.IsServicio = model.IsServicio;
 
+            item.StockMinimo = item.IsServicio ? null : (model.StockMinimo ?? item.StockMinimo ?? 0);
+
             // Si es servicio, asegurarnos stock y costo 0
             if (item.IsServicio)
             {
@@ -403,7 +409,7 @@ namespace PropamaPOS.Controllers
                 _context.Items.Update(item);
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = "Producto desactivado (soft-delete).";
+                TempData["SuccessMessage"] = "Producto eliminado.";
             }
             return RedirectToAction(nameof(Index));
         }

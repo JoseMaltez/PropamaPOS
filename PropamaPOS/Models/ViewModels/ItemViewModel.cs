@@ -33,6 +33,9 @@ namespace PropamaPOS.Models.ViewModels
 
         public bool IsServicio { get; set; } = false;
 
+        [Range(0, int.MaxValue, ErrorMessage = "El stock mínimo debe ser un número entero no negativo")]
+        public int? StockMinimo { get; set; }
+
         public int? Id_Categoria { get; set; }
 
         public List<ItemPresentacionViewModel> Presentaciones { get; set; } = new();

@@ -38,6 +38,7 @@
                                 <th>Categoría</th>
                                 <th>Presentaciones / Precio (Q)</th>
                                 <th>Stock</th>
+                                <th>Stock Mínimo</th>
                                 <th>Estado</th>
                                 <th></th>
                             </tr>
@@ -68,6 +69,7 @@
                                             @item.Stock
                                         }
                                     </td>
+                                    <td>@(item.StockMinimo.HasValue? item.StockMinimo.Value.ToString() : "N/A")</td>
                                     <td>
                                         @if (item.IsServicio)
                                         {

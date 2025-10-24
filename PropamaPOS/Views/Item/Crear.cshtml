@@ -35,13 +35,20 @@
 
                         <div class="mb-3">
                             <label asp-for="Id_Categoria" class="form-label">Categoría</label>
-                            <!-- Nota: eliminé el <option> manual para evitar "-- Seleccionar --" -->
                             <select asp-for="Id_Categoria" class="form-select" asp-items="ViewBag.Categorias" id="categoriaSelect"></select>
                         </div>
 
+                        <div class="mb-3" id="stockMinimoContainer" style="display:none;">
+                            <label for="StockMinimo" class="form-label">Stock Mínimo</label>
+                            <input asp-for="StockMinimo" class="form-control" type="number" min="0" step="1" />
+                            <span asp-validation-for="StockMinimo" class="text-danger"></span>
+                            <div class="form-text">Dejar en 0 si no aplica. No se aplica para servicios.</div>
+                        </div>
+
+
                         <div class="form-check mb-4">
                             <input asp-for="IsServicio" class="form-check-input" id="IsServicio" />
-                            <label class="form-check-label" for="IsServicio">Es un servicio (no se controla stock ni compras)</label>
+                            <label class="form-check-label" for="IsServicio">Es un servicio?</label>
                         </div>
 
                         <hr />
@@ -88,15 +95,14 @@
             const unidades = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(unidades));
             const tableBody = document.querySelector('#presentacionesTable tbody');
             const isServicio = document.getElementById('IsServicio');
+            const stockMinimoContainer = document.getElementById('stockMinimoContainer');
             const categoriaSelect = document.getElementById('categoriaSelect');
             const addBtn = document.getElementById('addPresentacion');
             const servicioNombre = "servicio";
             const unidadNombre = "unidad";
             let nextIndex = 0;
 
-            // Templates
             function createRow(index, presetUnidadId, presetCantidad, showPrecio, removable = true) {
-                // If showPrecio is false, still include the input but rely on CSS to hide the column; keep it to maintain form model consistency
                 const precioValue = (typeof presetCantidad === 'object' && presetCantidad !== null) ? '' : (arguments[2] ?? '');
                 const tr = document.createElement('tr');
                 tr.dataset.index = index;
@@ -118,6 +124,18 @@
                 if (presetUnidadId) tr.querySelector('.unidad-select').value = presetUnidadId;
                 return tr;
             }
+
+            function toggleStockMinimo() {
+                if (isServicio.checked) {
+                    stockMinimoContainer.style.display = 'none';
+                    const input = document.querySelector('input[name="StockMinimo"]');
+                    if (input) input.value = '';
+                } else {
+                    stockMinimoContainer.style.display = 'block';
+                }
+            }
+            toggleStockMinimo();
+            isServicio.addEventListener('change', toggleStockMinimo);
 
             function presetPrecioToString(v) {
                 if (v === undefined || v === null) return '';
@@ -142,7 +160,6 @@
                 }
             }
 
-            // Helpers categoria
             function findServicioOption() {
                 return Array.from(categoriaSelect.options).find(o => (o.text || '').trim().toLowerCase() === servicioNombre);
             }
@@ -159,33 +176,28 @@
                 return u ? u.Id_UnidadMedida : (unidades[0] ? unidades[0].Id_UnidadMedida : 0);
             }
 
-            // Add button behavior (always attach, but enable/disable according to mode)
             if (addBtn) {
                 addBtn.addEventListener('click', function(){
-                    // Only allow adding if not service
                     if (isServicio.checked) return;
                     addRow(null, 1, 0, true);
                 });
             }
 
-            // Remove row
             tableBody.addEventListener('click', function(e){
                 if (e.target && e.target.matches('.remove-row')) {
                     e.target.closest('tr').remove();
                 }
             });
 
-            // Service ON
             function applyServiceMode() {
                 const servOpt = findServicioOption();
                 if (servOpt) {
                     categoriaSelect.value = servOpt.value;
                 }
                 categoriaSelect.setAttribute('disabled','disabled');
-                hideServicioOption(false); // show servicio while checked
+                hideServicioOption(false);
                 addBtn.disabled = true;
 
-                // create single locked row
                 clearRows();
                 const unidadId = findUnidadId();
                 addRow(unidadId, 1, '', false);
@@ -196,56 +208,44 @@
                     const cantidad = row.querySelector('.cantidad-input');
                     cantidad.value = 1;
                     cantidad.setAttribute('readonly','readonly');
-                    // precio visible and editable — leave as is
                 }
 
                 updatePrecioVisibility();
             }
 
-            // Service OFF
             function removeServiceMode() {
-                // un-block category and hide servicio option
                 categoriaSelect.removeAttribute('disabled');
                 hideServicioOption(true);
                 addBtn.disabled = false;
 
-                // clear the single service row so user can add multiple presentations
                 clearRows();
                 updatePrecioVisibility();
             }
 
-            // Initialize UI state on load
             (function init() {
-                // Hide servicio by default (unless checked)
                 hideServicioOption(true);
 
-                // If the select has no option selected (rare) choose first real option
                 if (!categoriaSelect.value && categoriaSelect.options.length > 0) {
-                    // set to first non-hidden option
                     const first = Array.from(categoriaSelect.options).find(o => !o.hidden);
                     if (first) categoriaSelect.value = first.value;
                 }
 
-                // If checkbox is present we wire change
                 if (isServicio) {
                     isServicio.addEventListener('change', function(){
                         if (isServicio.checked) applyServiceMode();
                         else removeServiceMode();
                     });
 
-                    // initialize according to current state
                     if (isServicio.checked) {
                         applyServiceMode();
                     } else {
                         removeServiceMode();
                     }
                 } else {
-                    // fallback — show/hide price column depending on presence of checkbox
                     updatePrecioVisibility();
                 }
             })();
 
-            // Prevent submitting with invalid category (bonus check) — since we removed the empty option this is mostly safety
             document.getElementById('itemForm').addEventListener('submit', function(e){
                 if (!categoriaSelect.value) {
                     e.preventDefault();
@@ -253,6 +253,9 @@
                     return false;
                 }
             });
+
+
+
 
         })();
     </script>

@@ -23,6 +23,7 @@ namespace PropamaPOS.Models
         public bool IsServicio { get; set; } = false;
 
         public int Stock { get; set; } = 0;
+        public int? StockMinimo { get; set; } = null;
 
         // Costo promedio por unidad (cálculo automático para productos)
         [Column(TypeName = "decimal(18,4)")]
