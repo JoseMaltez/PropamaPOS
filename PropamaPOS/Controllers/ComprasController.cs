@@ -93,15 +93,10 @@ namespace PropamaPOS.Controllers
 
             if (ultimaCompra != null && !string.IsNullOrEmpty(ultimaCompra.NumeroCompra))
             {
-                // Extraer el número después del prefijo "CMP-"
                 var parteNumerica = ultimaCompra.NumeroCompra.Replace("CMP-", "");
                 int.TryParse(parteNumerica, out ultimoNumero);
             }
-
-            // Incrementar
             int nuevoNumero = ultimoNumero + 1;
-
-            // Formato: CMP-000001
             return $"CMP-{nuevoNumero.ToString("D6")}";
         }
 
@@ -120,7 +115,7 @@ namespace PropamaPOS.Controllers
             using var trx = await _context.Database.BeginTransactionAsync();
             try
             {
-                // Intentar obtener el empleado desde el usuario autenticado
+                // obtener empleado si aplica
                 int? empleadoId = null;
                 var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
                 if (int.TryParse(userIdClaim, out int idUsuario))
@@ -137,31 +132,27 @@ namespace PropamaPOS.Controllers
                     Id_Proveedor = model.Id_Proveedor,
                     CreadoPor = User.Identity?.Name ?? "Administrador",
                     Nota = model.Nota,
-                    Id_Empleado = empleadoId
+                    Id_Empleado = empleadoId,
+                    Estado = CompraEstado.Borrador // <-- guardar como borrador
                 };
-
 
                 _context.Compras.Add(compra);
                 await _context.SaveChangesAsync();
 
-                decimal totalWithIva = 0m;            // suma de importes tal y como ingresas (con IVA)
-                decimal subtotalWithoutIva = 0m;      // suma sin IVA
+                decimal totalWithIva = 0m;
+                decimal subtotalWithoutIva = 0m;
                 decimal ivaTotal = 0m;
 
                 decimal ivaRate = _config.GetValue<decimal?>("Tax:IVA") ?? 0.12m;
-                decimal markup = _config.GetValue<decimal?>("Pricing:DefaultMarkup") ?? 0.15m;
-                decimal retailSurcharge = _config.GetValue<decimal?>("Pricing:RetailSurcharge") ?? 0.10m;
-                // retailSurcharge: margen extra para ventas al detalle (presentaciones pequeñas)
 
+                // GUARDAR DETALLES (registro histórico) pero SIN modificar stock/precios
                 foreach (var linea in model.Lineas)
                 {
                     var presentacion = await _context.ItemPresentaciones
                         .Include(p => p.Item)
-                            .ThenInclude(i => i.Presentaciones)
                         .FirstOrDefaultAsync(p => p.Id_ItemPresentacion == linea.Id_ItemPresentacion);
 
-                    if (presentacion == null)
-                        continue;
+                    if (presentacion == null) continue;
 
                     decimal precioCostoPorPresentacionWithIva = linea.PrecioCostoPorPresentacion;
                     decimal precioCostoPorPresentacionSinIva = Math.Round(precioCostoPorPresentacionWithIva / (1 + ivaRate), 4);
@@ -169,40 +160,9 @@ namespace PropamaPOS.Controllers
                     var item = presentacion.Item;
                     int unidadesCompradas = linea.CantidadPresentaciones * presentacion.Cantidad;
                     decimal costoPorUnidad = Math.Round(precioCostoPorPresentacionSinIva / presentacion.Cantidad, 4);
-
-                    // Calcular nuevo costo promedio
-                    int stockPrevio = item.Stock;
-                    decimal costoPrevioTotal = stockPrevio * item.CostoPromedioUnidad;
-                    decimal costoNuevoTotal = unidadesCompradas * costoPorUnidad;
-                    int nuevoStock = stockPrevio + unidadesCompradas;
-                    decimal nuevoCostoPromedio = nuevoStock == 0 ? costoPorUnidad :
-                        Math.Round((costoPrevioTotal + costoNuevoTotal) / nuevoStock, 4);
                     decimal lineTotalWithIva = Math.Round(linea.PrecioCostoPorPresentacion * linea.CantidadPresentaciones, 2);
                     decimal lineSubtotalWithoutIva = Math.Round(lineTotalWithIva / (1 + ivaRate), 2);
 
-                    // Actualizar stock y costo promedio
-                    item.Stock = nuevoStock;
-                    item.CostoPromedioUnidad = nuevoCostoPromedio;
-                    _context.Items.Update(item);
-
-                    // --- PROPAGAR PRECIOS A TODAS LAS PRESENTACIONES DEL ITEM ---
-                    var allPres = item.Presentaciones.Where(p => p.Activo).ToList();
-                    foreach (var pres in allPres)
-                    {
-                        // Nuevo costo por presentacion basado en costoPorUnidad
-                        decimal costoPorPresentacion = Math.Round(costoPorUnidad * pres.Cantidad, 2);
-                        pres.PrecioCosto = costoPorPresentacion;
-
-                        // Determinar markup por presentación: si es venta al detalle (p.Cantidad == 1) aplicar surcharge
-                        decimal extra = pres.Cantidad == 1 ? retailSurcharge : 0m;
-                        decimal markupForPresentation = markup + extra;
-
-                        pres.PrecioVenta = Math.Round(costoPorPresentacion * (1 + markupForPresentation), 2);
-
-                        _context.ItemPresentaciones.Update(pres);
-                    }
-
-                    // Crear detalle de compra (registro histórico) usando la presentacion comprada
                     var detalle = new CompraDetalle
                     {
                         Id_Compra = compra.Id_Compra,
@@ -222,16 +182,14 @@ namespace PropamaPOS.Controllers
 
                 ivaTotal = Math.Round(totalWithIva - subtotalWithoutIva, 2);
 
-                // asignar a compra
                 compra.Subtotal = subtotalWithoutIva; // sin IVA
                 compra.IVA = ivaTotal;
                 compra.Total = totalWithIva; // con IVA
 
-                //_context.Compras.Update(compra);
                 await _context.SaveChangesAsync();
                 await trx.CommitAsync();
 
-                TempData["SuccessMessage"] = "Compra registrada exitosamente.";
+                TempData["SuccessMessage"] = "Compra registrada en estado Borrador.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -240,6 +198,147 @@ namespace PropamaPOS.Controllers
                 ModelState.AddModelError("", $"Error al registrar la compra: {ex.Message}");
                 await CargarViewBags();
                 return View(model);
+            }
+        }
+
+        // POST: Compras/MarcarPendiente/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarcarPendiente(int id)
+        {
+            var compra = await _context.Compras.FindAsync(id);
+            if (compra == null) return NotFound();
+
+            if (compra.Estado != CompraEstado.Borrador)
+            {
+                TempData["ErrorMessage"] = "Solo las compras en estado Borrador pueden marcarse como Pendiente.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            compra.Estado = CompraEstado.Pendiente;
+            _context.Compras.Update(compra);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Compra {compra.NumeroCompra} marcada como Pendiente.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // POST: Compras/Cancelar/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cancelar(int id)
+        {
+            var compra = await _context.Compras.FindAsync(id);
+            if (compra == null) return NotFound();
+
+            if (compra.Estado == CompraEstado.Recibida)
+            {
+                TempData["ErrorMessage"] = "No se puede cancelar una compra que ya fue recibida.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            compra.Estado = CompraEstado.Cancelada;
+            _context.Compras.Update(compra);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Compra {compra.NumeroCompra} cancelada.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // POST: Compras/MarcarRecibida/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarcarRecibida(int id)
+        {
+            var compra = await _context.Compras
+                .Include(c => c.Detalles)
+                    .ThenInclude(d => d.Presentacion)
+                        .ThenInclude(p => p.Item) // necesitamos el item y sus presentaciones
+                .Include(c => c.Detalles)
+                    .ThenInclude(d => d.Item)
+                .FirstOrDefaultAsync(c => c.Id_Compra == id);
+
+            if (compra == null) return NotFound();
+
+            if (compra.Estado == CompraEstado.Recibida)
+            {
+                TempData["ErrorMessage"] = "La compra ya está en estado Recibida.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (compra.Estado == CompraEstado.Cancelada)
+            {
+                TempData["ErrorMessage"] = "No se puede recibir una compra cancelada.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Aplicar efectos ahora
+            using var trx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // Reusar la lógica que ya tenías para actualizar stock, costo promedio y precios.
+                // Vamos a basarnos en los datos guardados en cada CompraDetalle.
+                decimal ivaRate = _config.GetValue<decimal?>("Tax:IVA") ?? 0.12m;
+                decimal markup = _config.GetValue<decimal?>("Pricing:DefaultMarkup") ?? 0.15m;
+                decimal retailSurcharge = _config.GetValue<decimal?>("Pricing:RetailSurcharge") ?? 0.10m;
+
+                foreach (var det in compra.Detalles)
+                {
+                    var presentacion = await _context.ItemPresentaciones
+                        .Include(p => p.Item)
+                            .ThenInclude(i => i.Presentaciones)
+                        .FirstOrDefaultAsync(p => p.Id_ItemPresentacion == det.Id_ItemPresentacion);
+
+                    if (presentacion == null) continue;
+
+                    var item = presentacion.Item;
+
+                    // cantidades y costos ya almacenados en det
+                    int unidadesCompradas = det.CantidadPresentaciones * presentacion.Cantidad;
+                    decimal costoPorUnidad = det.PrecioCostoPorUnidad;
+
+                    // Calcular nuevo costo promedio
+                    int stockPrevio = item.Stock;
+                    decimal costoPrevioTotal = stockPrevio * item.CostoPromedioUnidad;
+                    decimal costoNuevoTotal = unidadesCompradas * costoPorUnidad;
+                    int nuevoStock = stockPrevio + unidadesCompradas;
+                    decimal nuevoCostoPromedio = nuevoStock == 0 ? costoPorUnidad :
+                        Math.Round((costoPrevioTotal + costoNuevoTotal) / nuevoStock, 4);
+
+                    // Actualizar stock y costo promedio del item
+                    item.Stock = nuevoStock;
+                    item.CostoPromedioUnidad = nuevoCostoPromedio;
+                    _context.Items.Update(item);
+
+                    // Propagar precios a todas las presentaciones activas del item
+                    var allPres = item.Presentaciones.Where(p => p.Activo).ToList();
+                    foreach (var pres in allPres)
+                    {
+                        decimal costoPorPresentacion = Math.Round(costoPorUnidad * pres.Cantidad, 2);
+                        pres.PrecioCosto = costoPorPresentacion;
+
+                        decimal extra = pres.Cantidad == 1 ? retailSurcharge : 0m;
+                        decimal markupForPresentation = markup + extra;
+
+                        pres.PrecioVenta = Math.Round(costoPorPresentacion * (1 + markupForPresentation), 2);
+
+                        _context.ItemPresentaciones.Update(pres);
+                    }
+                }
+
+                compra.Estado = CompraEstado.Recibida;
+                _context.Compras.Update(compra);
+                await _context.SaveChangesAsync();
+
+                await trx.CommitAsync();
+                TempData["SuccessMessage"] = $"Compra {compra.NumeroCompra} marcada como Recibida y se aplicaron los cambios de inventario/precios.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                await trx.RollbackAsync();
+                TempData["ErrorMessage"] = $"Error al marcar como Recibida: {ex.Message}";
+                return RedirectToAction(nameof(Index));
             }
         }
 
@@ -274,5 +373,152 @@ namespace PropamaPOS.Controllers
 
             ViewBag.Items = items;
         }
+
+
+        // GET: Compras/Editar/5
+        public async Task<IActionResult> Editar(int id)
+        {
+            var compra = await _context.Compras
+                .Include(c => c.Detalles)
+                    .ThenInclude(d => d.Presentacion)
+                        .ThenInclude(p => p.UnidadMedida)
+                .Include(c => c.Detalles)
+                    .ThenInclude(d => d.Item)
+                .FirstOrDefaultAsync(c => c.Id_Compra == id);
+
+            if (compra == null) return NotFound();
+            if (compra.Estado != CompraEstado.Borrador)
+            {
+                TempData["ErrorMessage"] = "Solo las compras en estado Borrador pueden editarse.";
+                return RedirectToAction(nameof(Index));
+            }
+            var model = new CompraCrearViewModel
+            {
+                Id_Proveedor = compra.Id_Proveedor,
+                Fecha = compra.Fecha,
+                Nota = compra.Nota,
+                Lineas = compra.Detalles.Select(d => new Models.ViewModels.CompraLineaCrearViewModel
+                {
+                    Id_ItemPresentacion = d.Id_ItemPresentacion,
+                    CantidadPresentaciones = d.CantidadPresentaciones,
+                    PrecioCostoPorPresentacion = d.PrecioCostoPorPresentacion
+                }).ToList()
+            };
+
+            ViewBag.Proveedores = await _context.Proveedores.Where(p => p.Activo).OrderBy(p => p.Nombre).ToListAsync();
+
+            var items = await _context.Items
+                .Where(i => i.Activo && !i.IsServicio)
+                .Include(i => i.Presentaciones)
+                    .ThenInclude(p => p.UnidadMedida)
+                .Select(i => new
+                {
+                    id_Item = i.Id_Item,
+                    nombre = i.Nombre,
+                    presentaciones = i.Presentaciones.Select(p => new
+                    {
+                        id_ItemPresentacion = p.Id_ItemPresentacion,
+                        cantidad = p.Cantidad,
+                        precioVenta = p.PrecioVenta,
+                        unidadMedida = new
+                        {
+                            id_UnidadMedida = p.UnidadMedida.Id_UnidadMedida,
+                            nombre = p.UnidadMedida.Nombre
+                        }
+                    })
+                })
+                .ToListAsync();
+
+            ViewBag.Items = items;
+            ViewBag.Id_Compra = compra.Id_Compra;
+
+            return View("Editar", model); 
+        }
+
+        // POST: Compras/Editar/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Editar(int id, CompraCrearViewModel model)
+        {
+            var compra = await _context.Compras
+                .Include(c => c.Detalles)
+                .FirstOrDefaultAsync(c => c.Id_Compra == id);
+
+            if (compra == null) return NotFound();
+            if (compra.Estado != CompraEstado.Borrador)
+            {
+                TempData["ErrorMessage"] = "Solo las compras en estado Borrador pueden editarse.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (!ModelState.IsValid)
+            {
+                await CargarViewBags();
+                return View("Crear", model);
+            }
+
+            using var trx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                compra.Id_Proveedor = model.Id_Proveedor;
+                compra.Nota = model.Nota;
+                compra.Fecha = model.Fecha ?? compra.Fecha;
+
+                var antiguos = await _context.CompraDetalles.Where(d => d.Id_Compra == compra.Id_Compra).ToListAsync();
+                _context.CompraDetalles.RemoveRange(antiguos);
+
+                decimal totalWithIva = 0m;
+                decimal subtotalWithoutIva = 0m;
+                decimal ivaRate = _config.GetValue<decimal?>("Tax:IVA") ?? 0.12m;
+
+                foreach (var linea in model.Lineas)
+                {
+                    var presentacion = await _context.ItemPresentaciones
+                        .Include(p => p.Item)
+                        .FirstOrDefaultAsync(p => p.Id_ItemPresentacion == linea.Id_ItemPresentacion);
+
+                    if (presentacion == null) continue;
+
+                    decimal lineTotalWithIva = Math.Round(linea.PrecioCostoPorPresentacion * linea.CantidadPresentaciones, 2);
+                    decimal lineSubtotalWithoutIva = Math.Round(lineTotalWithIva / (1 + ivaRate), 2);
+                    decimal precioCostoPorPresentacionSinIva = Math.Round(linea.PrecioCostoPorPresentacion / (1 + ivaRate), 4);
+                    decimal costoPorUnidad = Math.Round(precioCostoPorPresentacionSinIva / presentacion.Cantidad, 4);
+
+                    var detalle = new CompraDetalle
+                    {
+                        Id_Compra = compra.Id_Compra,
+                        Id_Item = presentacion.Item.Id_Item,
+                        Id_ItemPresentacion = presentacion.Id_ItemPresentacion,
+                        CantidadPresentaciones = linea.CantidadPresentaciones,
+                        PrecioCostoPorPresentacion = linea.PrecioCostoPorPresentacion,
+                        PrecioCostoPorUnidad = costoPorUnidad,
+                        Subtotal = lineTotalWithIva
+                    };
+
+                    _context.CompraDetalles.Add(detalle);
+
+                    totalWithIva += lineTotalWithIva;
+                    subtotalWithoutIva += lineSubtotalWithoutIva;
+                }
+
+                compra.Subtotal = subtotalWithoutIva;
+                compra.IVA = Math.Round(totalWithIva - subtotalWithoutIva, 2);
+                compra.Total = totalWithIva;
+
+                await _context.SaveChangesAsync();
+                await trx.CommitAsync();
+
+                TempData["SuccessMessage"] = "Compra actualizada.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                await trx.RollbackAsync();
+                ModelState.AddModelError("", $"Error al actualizar la compra: {ex.Message}");
+                await CargarViewBags();
+                return View("Crear", model);
+            }
+        }
+
     }
 }

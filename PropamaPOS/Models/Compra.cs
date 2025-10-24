@@ -6,6 +6,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PropamaPOS.Models
 {
+    public enum CompraEstado
+    {
+        Borrador = 0,
+        Pendiente = 1,
+        Cancelada = 2,
+        Recibida = 3
+    }
+
     public class Compra
     {
         [Key]
@@ -37,6 +45,8 @@ namespace PropamaPOS.Models
         public decimal Total { get; set; }
 
         public string? Nota { get; set; }
+
+        public CompraEstado Estado { get; set; } = CompraEstado.Borrador;
 
         public ICollection<CompraDetalle> Detalles { get; set; } = new List<CompraDetalle>();
     }

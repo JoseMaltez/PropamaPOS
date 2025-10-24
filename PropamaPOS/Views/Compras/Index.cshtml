@@ -1,14 +1,10 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model IEnumerable<PropamaPOS.Models.Compra>
+﻿@model IEnumerable<PropamaPOS.Models.Compra>
 @{
     ViewData["Title"] = "Historial de Compras";
 }
 
-
-
 <div class="container mt-4">
+    @await Html.PartialAsync("_AlertsPartial")
     <div class="card shadow-sm">
         <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
             <h4 class="mb-0"><i class="bi bi-basket"></i> Historial de Compras</h4>
@@ -23,26 +19,74 @@
                         <th>Número de Compra</th>
                         <th>Fecha</th>
                         <th>Proveedor</th>
-                        <th>Total (Q)</th>
-                        <th>Registrada por</th>
-                        <th>Nota</th>
+                        <th>Total</th>
+                        <th>Estado</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var compra in Model)
+                    @foreach (var c in Model)
                     {
                         <tr>
-                            <td>@compra.NumeroCompra</td>
-                            <td>@compra.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td>@compra.Proveedor.Nombre</td>
-                            <td>@compra.Total.ToString("F2")</td>
-                            <td>@compra.CreadoPor</td>
-                            <td>@(string.IsNullOrEmpty(compra.Nota) ? "-" : compra.Nota)</td>
+                            <td>@c.NumeroCompra</td>
+                            <td>@c.Fecha.ToLocalTime().ToString("g")</td>
+                            <td>@(c.Proveedor != null ? c.Proveedor.Nombre : "-")</td>
+                            <td>@c.Total.ToString("F2")</td>
                             <td>
-                                <a asp-action="Details" asp-route-id="@compra.Id_Compra" class="btn btn-outline-primary btn-sm">
+                                <span class="badge bg-@(c.Estado == PropamaPOS.Models.CompraEstado.Borrador ? "secondary" :
+                                                                                          c.Estado == PropamaPOS.Models.CompraEstado.Pendiente ? "info" :
+                                                                                          c.Estado == PropamaPOS.Models.CompraEstado.Cancelada ? "danger" :
+                                                                                          "success")">
+                                @c.Estado
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a asp-action="Details" asp-route-id="@c.Id_Compra" class="btn btn-sm btn-outline-secondary" title="Ver detalle">
                                     <i class="bi bi-eye"></i> Ver
                                 </a>
+
+                                    @* Editar solo si está en Borrador *@
+                                @if (c.Estado == PropamaPOS.Models.CompraEstado.Borrador)
+                                    {
+                                        <a asp-action="Editar" asp-route-id="@c.Id_Compra" class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="bi bi-pencil"></i> Editar
+                                        </a>
+
+                                        <form asp-action="MarcarPendiente" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@c.Id_Compra" />
+                                            <button type="submit" class="btn btn-sm btn-outline-info" title="Confirmar / Pendiente">
+                                                <i class="bi bi-send"></i> Confirmar
+                                            </button>
+                                        </form>
+
+                                        <form asp-action="Cancelar" method="post" class="d-inline ms-1">
+                                            <input type="hidden" name="id" value="@c.Id_Compra" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancelar">
+                                                <i class="bi bi-x-circle"></i> Cancelar
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (c.Estado == PropamaPOS.Models.CompraEstado.Pendiente)
+                                    {
+                                        <form asp-action="MarcarRecibida" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@c.Id_Compra" />
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Marcar como recibida">
+                                                <i class="bi bi-box-seam"></i> Recibida
+                                            </button>
+                                        </form>
+
+                                        <form asp-action="Cancelar" method="post" class="d-inline ms-1">
+                                            <input type="hidden" name="id" value="@c.Id_Compra" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancelar">
+                                                <i class="bi bi-x-circle"></i> Cancelar
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }
