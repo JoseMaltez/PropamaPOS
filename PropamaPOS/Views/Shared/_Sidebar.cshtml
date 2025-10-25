@@ -92,38 +92,6 @@
                     }
                 </div>
             </div>
-
-            <!-- Ajustes -->
-            <div class="menu-section mt-2">
-                <a class="nav-link" data-bs-toggle="collapse" href="#mSettings" role="button" aria-expanded="false">
-                    <i class="bi bi-gear-wide-connected"></i>
-                    <span>Configuración</span>
-                    <i class="bi bi-caret-right-fill float-end"></i>
-                </a>
-                <div class="collapse" id="mSettings">
-                    @if (isAdmin)
-                    {
-                        <a class="nav-link ms-3" asp-controller="Ajustes" asp-action="Index">
-                            <i class="bi bi-tools"></i>
-                            <span>Preferencias</span>
-                        </a>
-                    }
-                    <a class="nav-link ms-3" asp-controller="Account" asp-action="AccessDenied">
-                        <i class="bi bi-shield-lock"></i>
-                        <span>Permisos</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Logout -->
-            <div class="mt-4 p-2">
-                <form asp-controller="Account" asp-action="Logout" method="post">
-                    <button class="btn btn-outline-danger w-100" type="submit">
-                        <i class="bi bi-box-arrow-right"></i>
-                        <span>Cerrar sesión</span>
-                    </button>
-                </form>
-            </div>
         </nav>
     </aside>
 }
