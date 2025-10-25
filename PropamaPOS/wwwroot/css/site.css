@@ -39,7 +39,8 @@ body {
     top: 56px;
     overflow-y: auto;
     background-color: #f8f9fa;
-    transition: width 0.25s ease;
+    overflow-x: hidden;
+    transition: width 0.3s ease;
 }
 
     .propama-sidebar .nav-link {
@@ -64,16 +65,20 @@ body {
             background: rgba(0, 0, 0, 0.05);
         }
 
-    /* ===== Estado colapsado ===== */
+    /* Estado colapsado */
     .propama-sidebar.collapsed {
         width: 60px;
         min-width: 60px;
+        overflow-x: hidden;
+        transition: width 0.3s ease; 
     }
 
         .propama-sidebar.collapsed .nav-link span {
             display: none;
         }
 
+        /* Oculta las flechas cuando está colapsada */
+        .propama-sidebar.collapsed .bi-caret-right-fill,
         .propama-sidebar.collapsed .bi-caret-down-fill {
             display: none !important;
         }
@@ -90,17 +95,6 @@ body {
         .propama-sidebar.collapsed #sidebarCollapseBtn {
             position: absolute;
             right: 5px;
-        }
-
-
-    .propama-sidebar .sidebar-header {
-        position: relative;
-        min-height: 50px;
-    }
-
-
-        .propama-sidebar .sidebar-header strong {
-            font-size: 1.05rem;
         }
 
 

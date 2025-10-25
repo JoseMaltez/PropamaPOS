@@ -51,42 +51,89 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 // Sidebar
+// Sidebar
 (function () {
     const sidebar = document.getElementById('appSidebar');
     const btn = document.getElementById('sidebarCollapseBtn');
-
     if (!sidebar || !btn) return;
 
-    // aplicar estado guardado
-    const collapsed = localStorage.getItem('propama_sidebar_collapsed') === 'true';
-    if (collapsed) {
-        sidebar.classList.add('collapsed');
-        document.body.classList.add('sidebar-collapsed');
-        btn.innerHTML = '<i class="bi bi-chevron-right"></i>';
-    }
+    // --- Estado inicial ---
+    let isCollapsed = localStorage.getItem('propama_sidebar_collapsed') === 'true';
+    applySidebarState(isCollapsed, true); // true = sin animación inicial
 
+    // --- Botón principal ---
     btn.addEventListener('click', function (e) {
         e.preventDefault();
-        const isCollapsed = sidebar.classList.toggle('collapsed');
-        if (isCollapsed) {
+        isCollapsed = !isCollapsed;
+        applySidebarState(isCollapsed);
+    });
+
+    // --- Función principal de animación ---
+    function applySidebarState(collapsed, instant = false) {
+        sidebar.style.transition = instant ? "none" : "width 0.3s ease";
+        document.body.style.transition = instant ? "none" : "margin-left 0.3s ease";
+
+        if (collapsed) {
+            sidebar.classList.add('collapsed');
             document.body.classList.add('sidebar-collapsed');
             btn.innerHTML = '<i class="bi bi-chevron-right"></i>';
+
+            // Cerrar submenús
+            const openMenus = sidebar.querySelectorAll('.collapse.show');
+            openMenus.forEach(menu => {
+                const bsCollapse = bootstrap.Collapse.getOrCreateInstance(menu);
+                bsCollapse.hide();
+            });
         } else {
+            // 👇 Forzamos un reflow para que la transición de expansión se vea suave
+            sidebar.classList.remove('collapsed');
+            void sidebar.offsetWidth; // <<--- importante
+            sidebar.style.transition = "width 0.3s ease";
             document.body.classList.remove('sidebar-collapsed');
             btn.innerHTML = '<i class="bi bi-chevron-left"></i>';
         }
-        localStorage.setItem('propama_sidebar_collapsed', isCollapsed);
-    });
 
-    // Cerrar submenús al colapsar
-    if (isCollapsed) {
-        const openMenus = sidebar.querySelectorAll('.collapse.show');
-        openMenus.forEach(menu => {
-            const bsCollapse = bootstrap.Collapse.getOrCreateInstance(menu);
-            bsCollapse.hide();
-        });
+        // Guardar estado
+        localStorage.setItem('propama_sidebar_collapsed', collapsed);
     }
 
+    // --- Manejo de categorías ---
+    const categoryLinks = sidebar.querySelectorAll('[data-bs-toggle="collapse"]');
+    categoryLinks.forEach(link => {
+        const arrow = link.querySelector('.bi-caret-right-fill, .bi-caret-down-fill');
+        const collapseId = link.getAttribute('href');
+        const collapseEl = document.querySelector(collapseId);
 
+        if (!collapseEl) return;
+
+        // Actualizar flecha
+        collapseEl.addEventListener('show.bs.collapse', () => {
+            if (arrow) {
+                arrow.classList.remove('bi-caret-right-fill');
+                arrow.classList.add('bi-caret-down-fill');
+            }
+        });
+        collapseEl.addEventListener('hide.bs.collapse', () => {
+            if (arrow) {
+                arrow.classList.remove('bi-caret-down-fill');
+                arrow.classList.add('bi-caret-right-fill');
+            }
+        });
+
+        // Si la sidebar está colapsada, expandirla primero antes de abrir
+        link.addEventListener('click', function (e) {
+            if (isCollapsed) {
+                e.preventDefault();
+                isCollapsed = false;
+                applySidebarState(false);
+                setTimeout(() => {
+                    const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseEl);
+                    bsCollapse.show();
+                }, 310);
+            }
+        });
+    });
 })();
+
+
 
