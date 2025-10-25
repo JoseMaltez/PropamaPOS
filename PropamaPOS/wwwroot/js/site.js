@@ -49,8 +49,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-
-// Sidebar
 // Sidebar
 (function () {
     const sidebar = document.getElementById('appSidebar');
@@ -59,7 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // --- Estado inicial ---
     let isCollapsed = localStorage.getItem('propama_sidebar_collapsed') === 'true';
-    applySidebarState(isCollapsed, true); // true = sin animación inicial
+    applySidebarState(isCollapsed, true); 
 
     // --- Botón principal ---
     btn.addEventListener('click', function (e) {
@@ -68,7 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
         applySidebarState(isCollapsed);
     });
 
-    // --- Función principal de animación ---
+    // animación 
     function applySidebarState(collapsed, instant = false) {
         sidebar.style.transition = instant ? "none" : "width 0.3s ease";
         document.body.style.transition = instant ? "none" : "margin-left 0.3s ease";
@@ -85,9 +83,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 bsCollapse.hide();
             });
         } else {
-            // 👇 Forzamos un reflow para que la transición de expansión se vea suave
             sidebar.classList.remove('collapsed');
-            void sidebar.offsetWidth; // <<--- importante
+            void sidebar.offsetWidth;
             sidebar.style.transition = "width 0.3s ease";
             document.body.classList.remove('sidebar-collapsed');
             btn.innerHTML = '<i class="bi bi-chevron-left"></i>';
@@ -97,7 +94,7 @@ document.addEventListener("DOMContentLoaded", function () {
         localStorage.setItem('propama_sidebar_collapsed', collapsed);
     }
 
-    // --- Manejo de categorías ---
+    // Manejo de categorías
     const categoryLinks = sidebar.querySelectorAll('[data-bs-toggle="collapse"]');
     categoryLinks.forEach(link => {
         const arrow = link.querySelector('.bi-caret-right-fill, .bi-caret-down-fill');
@@ -120,7 +117,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // Si la sidebar está colapsada, expandirla primero antes de abrir
         link.addEventListener('click', function (e) {
             if (isCollapsed) {
                 e.preventDefault();

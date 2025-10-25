@@ -131,3 +131,42 @@ body.sidebar-collapsed main {
         }
 }
 
+/* centrar botón toggle */
+.propama-sidebar .sidebar-header {
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0.75rem;
+    position: relative;
+    border-bottom: 1px solid #dee2e6;
+}
+
+    /* toggle expandido */
+    .propama-sidebar .sidebar-header .toggle-btn {
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        top: 0;
+        right: 0;
+        transform: none;
+    }
+
+/* colapsado  */
+.propama-sidebar.collapsed .sidebar-header {
+    justify-content: center;
+    padding: 0;
+}
+
+    /* Centrar en modo colapsado */
+    .propama-sidebar.collapsed .sidebar-header .toggle-btn {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        right: auto;
+    }
