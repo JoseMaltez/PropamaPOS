@@ -48,3 +48,35 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+
+
+// Sidebar
+(function () {
+    const sidebar = document.getElementById('appSidebar');
+    const btn = document.getElementById('sidebarCollapseBtn');
+
+    if (!sidebar || !btn) return;
+
+    // aplicar estado guardado
+    const collapsed = localStorage.getItem('propama_sidebar_collapsed') === 'true';
+    if (collapsed) {
+        sidebar.classList.add('collapsed');
+        document.body.classList.add('sidebar-collapsed');
+        btn.innerHTML = '<i class="bi bi-chevron-right"></i>';
+    }
+
+    btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        const isCollapsed = sidebar.classList.toggle('collapsed');
+        if (isCollapsed) {
+            document.body.classList.add('sidebar-collapsed');
+            btn.innerHTML = '<i class="bi bi-chevron-right"></i>';
+        } else {
+            document.body.classList.remove('sidebar-collapsed');
+            btn.innerHTML = '<i class="bi bi-chevron-left"></i>';
+        }
+        localStorage.setItem('propama_sidebar_collapsed', isCollapsed);
+    });
+
+})();
+

@@ -82,7 +82,20 @@ namespace PropamaPOS.Controllers
                 new ClaimsPrincipal(claimsIdentity),
                 authProperties);
 
-            return RedirectToAction("Index", "Home"); // (metodo, controlador) url: /Home/Index
+            // return RedirectToAction("Index", "Home"); // (metodo, controlador) url: /Home/Index
+
+            if (usuario.Rol?.Nombre?.Equals("Admin", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                return RedirectToAction("Dashboard", "Admin");
+            }
+            else if (usuario.Rol?.Nombre?.Equals("Empleado", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                return RedirectToAction("Dashboard", "Empleado");
+            }
+            else
+            {
+                return RedirectToAction("Index", "Home");
+            }
         }
 
         [HttpPost]

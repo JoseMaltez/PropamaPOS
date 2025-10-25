@@ -59,6 +59,8 @@ builder.Services.AddControllersWithViews(options =>
 
 builder.Services.AddAuthorization(); //Manejar roles y permisos
 
+builder.Services.AddHttpContextAccessor();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

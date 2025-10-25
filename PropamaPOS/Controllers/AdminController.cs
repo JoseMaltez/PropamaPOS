@@ -20,10 +20,26 @@ namespace PropamaPOS.Controllers
         }
 
         // GET: Admin/Dashboard
-        public IActionResult Dashboard()
+        // GET: Admin/Dashboard
+        public async Task<IActionResult> Dashboard()
         {
+            var totalEmpleados = await _context.Empleados.CountAsync();
+            var totalProveedores = await _context.Proveedores.CountAsync();
+            var totalClientes = await _context.Clientes.CountAsync();
+            var totalItems = await _context.Items.CountAsync();
+            var comprasPendientes = await _context.Compras.CountAsync(c => c.Estado == CompraEstado.Pendiente);
+            var ventasHoy = await _context.Ventas.CountAsync(v => v.Fecha.Date == DateTime.UtcNow.Date);
+
+            ViewBag.TotalEmpleados = totalEmpleados;
+            ViewBag.TotalProveedores = totalProveedores;
+            ViewBag.TotalClientes = totalClientes;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.ComprasPendientes = comprasPendientes;
+            ViewBag.VentasHoy = ventasHoy;
+
             return View();
         }
+
 
         // GET: Admin/Empleados
         public async Task<IActionResult> Empleados()

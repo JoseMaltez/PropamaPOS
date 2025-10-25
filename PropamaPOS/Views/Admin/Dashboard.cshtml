@@ -1,114 +1,79 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
     ViewData["Title"] = "Dashboard Administrador";
 }
 
 <div class="container mt-4">
-    <h2 class="mb-4">Panel de Administración</h2>
+    <h2 class="mb-3">Panel de Administración</h2>
 
-    <div class="row">
-        <!-- Empleados -->
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">👥 Empleados</h5>
-                    <p class="card-text">Gestiona empleados del sistema</p>
-                    <a asp-action="Empleados" class="btn btn-primary">Administrar</a>
+                    <h6 class="card-title">👥 Empleados</h6>
+                    <h3>@ViewBag.TotalEmpleados</h3>
+                    <p class="mb-0">Empleados registrados</p>
+                    <a asp-action="Empleados" class="btn btn-sm btn-outline-primary mt-2">Administrar</a>
                 </div>
             </div>
         </div>
 
-        <!-- Proveedores -->
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">🏭 Proveedores</h5>
-                    <p class="card-text">Gestiona proveedores del sistema</p>
-                    <a asp-controller="Proveedor" asp-action="Index" class="btn btn-warning">Administrar</a>
+                    <h6 class="card-title">🏭 Proveedores</h6>
+                    <h3>@ViewBag.TotalProveedores</h3>
+                    <p class="mb-0">Proveedores activos</p>
+                    <a asp-controller="Proveedor" asp-action="Index" class="btn btn-sm btn-outline-warning mt-2">Ir</a>
                 </div>
             </div>
         </div>
 
-        <!-- Clientes -->
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">🙋‍♂️ Clientes</h5>
-                    <p class="card-text">Gestiona clientes del sistema</p>
-                    <a asp-controller="Cliente" asp-action="Index" class="btn btn-info">Administrar</a>
+                    <h6 class="card-title">🙋‍♂️ Clientes</h6>
+                    <h3>@ViewBag.TotalClientes</h3>
+                    <p class="mb-0">Clientes registrados</p>
+                    <a asp-controller="Cliente" asp-action="Index" class="btn btn-sm btn-outline-info mt-2">Ir</a>
                 </div>
             </div>
         </div>
 
-        <!-- Categorias -->
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
+        <div class="col-md-4">
+            <div class="card shadow-sm mt-3">
                 <div class="card-body">
-                    <h5 class="card-title">🗄️ Categorias</h5>
-                    <p class="card-text">Administra las categorias para los productos</p>
-                    <a asp-controller="Categoria" asp-action="Index" class="btn btn-info">Administrar</a>
+                    <h6 class="card-title">📦 Productos</h6>
+                    <h3>@ViewBag.TotalItems</h3>
+                    <p class="mb-0">Items en catálogo</p>
+                    <a asp-controller="Item" asp-action="Index" class="btn btn-sm btn-outline-success mt-2">Ir</a>
                 </div>
             </div>
         </div>
 
-
-
-        <!-- Items -->
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
+        <div class="col-md-4">
+            <div class="card shadow-sm mt-3">
                 <div class="card-body">
-                    <h5 class="card-title">📦 Productos y Servicios</h5>
-                    <p class="card-text">Administra los servicios, productos y sus presentaciones</p>
-                    <a asp-controller="Item" asp-action="Index" class="btn btn-success">Administrar</a>
+                    <h6 class="card-title">📥 Compras pendientes</h6>
+                    <h3>@ViewBag.ComprasPendientes</h3>
+                    <p class="mb-0">Compras por recibir</p>
+                    <a asp-controller="Compras" asp-action="Index" class="btn btn-sm btn-outline-primary mt-2">Revisar</a>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
+        <div class="col-md-4">
+            <div class="card shadow-sm mt-3">
                 <div class="card-body">
-                    <h5 class="card-title">🗃️ Componentes de Servicios</h5>
-                    <p class="card-text">Definir qué insumos usa cada servicio.</p>
-                    <a asp-controller="ServicioComponentes" asp-action="Index" class="btn btn-primary">Ir al módulo</a>
+                    <h6 class="card-title">💰 Ventas hoy</h6>
+                    <h3>@ViewBag.VentasHoy</h3>
+                    <p class="mb-0">Ventas registradas hoy</p>
+                    <a asp-controller="Ventas" asp-action="Index" class="btn btn-sm btn-outline-success mt-2">Ir</a>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Compras -->
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">🧾 Compras</h5>
-                    <p class="card-text">Registra compras y gestiona el historial de inventario</p>
-                    <a asp-controller="Compras" asp-action="Index" class="btn btn-secondary">Ir al módulo</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Ventas -->
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">💲 Ventas</h5>
-                    <p class="card-text">Registra una nueva venta en el sistema</p>
-                    <a asp-controller="Ventas" asp-action="Index" class="btn btn-primary">Ir al módulo</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Ajustes -->
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">🛠 Ajustes Inventario</h5>
-                    <p class="card-text">Registrar movimientos manuales de stock</p>
-                    <a asp-controller="Ajustes" asp-action="Index" class="btn btn-dark">Ir</a>
-                </div>
-            </div>
-        </div>
-
-
+    <div class="mt-4">
+        <p class="text-muted small">Panel simple y realista — suficiente para el proyecto final. Si quieres, puedo añadir gráficos simples después.</p>
     </div>
 </div>

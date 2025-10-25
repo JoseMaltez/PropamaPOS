@@ -53,8 +53,21 @@
             </div>
         </nav>
     </header>
-    <div class="container">
+    @* <div class="container">
         <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div> *@
+
+    <div class="d-flex">
+        <!-- Sidebar (partial) -->
+        @if (User.Identity?.IsAuthenticated ?? false)
+        {
+            <partial name="_Sidebar" />
+        }
+
+        <!-- Main content area -->
+        <main class="flex-grow-1 p-3">
             @RenderBody()
         </main>
     </div>
