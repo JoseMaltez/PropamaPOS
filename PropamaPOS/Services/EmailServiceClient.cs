@@ -49,7 +49,7 @@ namespace PropamaPOS.Services
             }
             catch (HttpRequestException ex)
             {
-                // Esto ocurre si no hay conexión o el servicio está caído
+                // conexión o el servicio está caído
                 return (false, $"No se pudo conectar con el microservicio: {ex.Message}");
             }
             catch (Exception ex)

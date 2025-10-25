@@ -38,7 +38,6 @@ namespace PropamaPOS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Crear(ServicioComponente model)
         {
-            // Depurar errores
             if (!ModelState.IsValid)
             {
                 foreach (var kv in ModelState)
@@ -57,7 +56,6 @@ namespace PropamaPOS.Controllers
 
             try
             {
-                // Validar existencia de servicio e insumo
                 var servicio = await _context.Items.FirstOrDefaultAsync(i => i.Id_Item == model.Id_Servicio && i.IsServicio);
                 var insumo = await _context.Items.FirstOrDefaultAsync(i => i.Id_Item == model.Id_Item && !i.IsServicio);
 
@@ -140,7 +138,6 @@ namespace PropamaPOS.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // Endpoint auxiliar para verificar stock (opcional, usado por AJAX desde la UI)
         [HttpGet]
         public async Task<IActionResult> CheckStock(int idServicio, int cantidad)
         {

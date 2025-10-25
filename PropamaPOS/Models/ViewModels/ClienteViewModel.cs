@@ -11,7 +11,6 @@ namespace PropamaPOS.Models.ViewModels
         [MaxLength(100)]
         public string Nombre { get; set; }
 
-        // Apellido opcional
         [MaxLength(100)]
         public string? Apellido { get; set; }
 

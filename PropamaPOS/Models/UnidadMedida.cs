@@ -9,9 +9,9 @@ namespace PropamaPOS.Models
 
         [Required]
         [MaxLength(50)]
-        public string Nombre { get; set; }   // e.g. "Unidad", "Caja", "Paquete"
+        public string Nombre { get; set; }
 
         [MaxLength(10)]
-        public string? Abreviatura { get; set; } // e.g. "ud", "caja"
+        public string? Abreviatura { get; set; }
     }
 }

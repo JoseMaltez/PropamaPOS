@@ -14,7 +14,7 @@ namespace PropamaPOS.Models
         [Required]
         public DateTime Expiracion { get; set; }
 
-        // Relacion con Usuario
+
         [Required]
         public int Id_Usuario { get; set; }
 

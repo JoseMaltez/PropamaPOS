@@ -1,5 +1,4 @@
-﻿// PropamaPOS/Controllers/VentasController.cs
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PropamaPOS.Data;
@@ -156,7 +155,6 @@ namespace PropamaPOS.Controllers
             using var trx = await _context.Database.BeginTransactionAsync();
             try
             {
-                // empleado actual (si hay)
                 int? empleadoId = null;
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (int.TryParse(userIdClaim, out int idUsuario))
@@ -165,7 +163,6 @@ namespace PropamaPOS.Controllers
                     if (empleado != null) empleadoId = empleado.Id_Empleado;
                 }
 
-                // Cliente handling
                 Cliente? cliente = null;
                 if (facturarCon == "NIT")
                 {
@@ -174,7 +171,6 @@ namespace PropamaPOS.Controllers
                         cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.NIT == nitInput);
                         if (cliente == null)
                         {
-                            // Crear nuevo cliente usando campos de ventaInput.Cliente (si llenaste)
                             cliente = new Cliente
                             {
                                 NIT = nitInput,
@@ -190,11 +186,9 @@ namespace PropamaPOS.Controllers
                 }
                 else // Consumidor Final
                 {
-                    // no guardar cliente en DB, solo nombre opcional
                     ventaInput.Cliente = null;
                 }
 
-                // Validar stock por cada linea (sumar por presentacion)
                 var insuficientes = new List<string>();
                 foreach (var linea in lineas)
                 {
@@ -220,7 +214,6 @@ namespace PropamaPOS.Controllers
                     return View();
                 }
 
-                // Preparar la venta
                 var zonaGT = TimeZoneInfo.FindSystemTimeZoneById("Central America Standard Time");
                 var venta = new Venta
                 {
@@ -236,11 +229,9 @@ namespace PropamaPOS.Controllers
                 decimal subtotal = 0m;
                 decimal totalDescuentos = 0m;
 
-                // Guardar venta primero para obtener Id_Venta
                 _context.Ventas.Add(venta);
                 await _context.SaveChangesAsync();
 
-                // Procesar lineas
                 foreach (var linea in lineas)
                 {
                     var pres = await _context.ItemPresentaciones
@@ -267,16 +258,13 @@ namespace PropamaPOS.Controllers
                         EsServicio = pres.Item.IsServicio
                     };
 
-                    // Restar stock o descontar insumos según el tipo de item
                     if (!pres.Item.IsServicio)
                     {
-                        // PRODUCTO NORMAL: descuenta stock directo
                         pres.Item.Stock -= unidades;
                         _context.Items.Update(pres.Item);
                     }
                     else
                     {
-                        // SERVICIO: obtener los componentes y descontar sus insumos
                         var componentes = await _context.ServicioComponentes
                             .Include(sc => sc.ItemConsumido)
                             .Where(sc => sc.Id_Servicio == pres.Item.Id_Item)
@@ -287,10 +275,8 @@ namespace PropamaPOS.Controllers
                             var insumo = comp.ItemConsumido;
                             if (insumo == null) continue;
 
-                            // Calcular cuánto stock del insumo se consume en total
                             var totalConsumido = comp.CantidadPorServicio * unidades;
 
-                            // Si trabajas con enteros de stock, redondea hacia arriba:
                             int totalConsumidoInt = (int)Math.Ceiling(totalConsumido);
 
                             // Validar stock suficiente
@@ -320,12 +306,8 @@ namespace PropamaPOS.Controllers
                 venta.Descuentos = totalDescuentos;
 
                 decimal imponible = Math.Round(subtotal - totalDescuentos, 2);
-
-                // IVA calculado fiscalmente (sobre base sin IVA)
                 decimal ivaFiscal = Math.Round(imponible * ivaRate, 2);
                 decimal totalFiscal = Math.Round(imponible + ivaFiscal, 2);
-
-                // 🔹 IVA por unidad (redondeado por cada producto)
                 decimal totalPorUnidad = 0m;
                 foreach (var linea in lineas)
                 {
@@ -338,11 +320,10 @@ namespace PropamaPOS.Controllers
                     totalPorUnidad += subtotalLineaConIva;
                 }
 
-                // 🔹 Calcular diferencia (ajuste)
                 decimal ajuste = Math.Round(totalPorUnidad - totalFiscal, 2);
 
                 venta.IVA = ivaFiscal;
-                venta.Total = totalFiscal + ajuste;  // Ajuste incluido
+                venta.Total = totalFiscal + ajuste;
                 venta.AjusteRedondeo = ajuste;
                 venta.MetodoPago = ventaInput.MetodoPago;
                 venta.MontoRecibido = ventaInput.MontoRecibido;
@@ -442,7 +423,7 @@ namespace PropamaPOS.Controllers
                     page.DefaultTextStyle(x => x.FontSize(11));
                     page.Size(PageSizes.A4);
 
-                    // ENCABEZADO
+                    // encabezado
                     page.Header().Column(header =>
                     {
                         header.Item().Text(nombreNegocio).FontSize(18).Bold().AlignCenter();
@@ -467,7 +448,7 @@ namespace PropamaPOS.Controllers
                         });
                     });
 
-                    // CONTENIDO PRINCIPAL
+                    // contenido principal
                     page.Content().Column(col =>
                     {
                         col.Item().PaddingVertical(10).Text("Detalle de Productos y Servicios").FontSize(13).Bold();
@@ -525,7 +506,7 @@ namespace PropamaPOS.Controllers
 
                     });
 
-                    // PIE DE PÁGINA
+                    // pie de pagina
                     page.Footer().Column(footer =>
                     {
                         footer.Item().PaddingVertical(5).LineHorizontal(1);

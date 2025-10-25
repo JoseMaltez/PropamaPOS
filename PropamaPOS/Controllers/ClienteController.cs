@@ -20,7 +20,6 @@ namespace PropamaPOS.Controllers
         }
 
         // GET: Cliente
-        //q = query string para búsqueda
         public async Task<IActionResult> Index(string q, int page = 1)
         {
             var query = _context.Clientes.AsQueryable();

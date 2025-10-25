@@ -1,5 +1,4 @@
-﻿// PropamaPOS/Models/ViewModels/ItemViewModel.cs
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace PropamaPOS.Models.ViewModels
@@ -10,7 +9,7 @@ namespace PropamaPOS.Models.ViewModels
         public int Id_UnidadMedida { get; set; }
         public int Cantidad { get; set; } = 1;
 
-        // Para servicios o para edición manual de precio
+
         [DataType(DataType.Currency)]
         public decimal? PrecioVenta { get; set; }
     }

@@ -17,7 +17,7 @@ namespace PropamaPOS.Models
         public Proveedor Proveedor { get; set; }
 
         [MaxLength(100)]
-        public string? CodigoProveedor { get; set; } // SKU o código interno del proveedor
+        public string? CodigoProveedor { get; set; }
 
         public bool Activo { get; set; } = true;
     }

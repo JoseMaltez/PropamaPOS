@@ -18,11 +18,11 @@ namespace PropamaPOS.Models
         public int? Id_ItemPresentacion { get; set; }
         public ItemPresentacion? Presentacion { get; set; }
 
-        public int CantidadPresentaciones { get; set; } // cuántas presentaciones vendidas (ej. 2 cajas)
-        public int CantidadUnidades { get; set; } // cantidad en unidades (presentacion.Cantidad * CantidadPresentaciones)
-        public decimal PrecioVentaPorPresentacion { get; set; } // precio que estaba en presentacion
-        public decimal Descuento { get; set; } // descuento individual
-        public decimal Subtotal { get; set; } // despues de descuento
+        public int CantidadPresentaciones { get; set; } 
+        public int CantidadUnidades { get; set; } 
+        public decimal PrecioVentaPorPresentacion { get; set; } 
+        public decimal Descuento { get; set; } 
+        public decimal Subtotal { get; set; } 
         public bool EsServicio { get; set; }
     }
 }

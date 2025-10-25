@@ -15,7 +15,6 @@ namespace PropamaPOS.Models
         [MaxLength(250)]
         public string? Descripcion { get; set; }
 
-        // Relación uno a muchos: una categoría tiene muchos ítems
         public ICollection<Item>? Items { get; set; }
     }
 }

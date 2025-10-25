@@ -143,7 +143,6 @@ namespace PropamaPOS.Controllers
 
             //Crear url con token (metodo, controlador, parametros, esquema)
             var resetLink = Url.Action("ResetPassword", "Account", new { token = token }, Request.Scheme);
-            //Console.WriteLine($"Link de restablecimiento: {resetLink}");
             var subject = "Restablecimiento de contraseña";
             var body = $@"
             <p>Hola,</p>

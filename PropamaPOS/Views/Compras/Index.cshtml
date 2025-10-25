@@ -46,7 +46,7 @@
                                     <i class="bi bi-eye"></i> Ver
                                 </a>
 
-                                    @* Editar solo si está en Borrador *@
+
                                 @if (c.Estado == PropamaPOS.Models.CompraEstado.Borrador)
                                     {
                                         <a asp-action="Editar" asp-route-id="@c.Id_Compra" class="btn btn-sm btn-outline-primary" title="Editar">

@@ -83,7 +83,7 @@
     <partial name="_ValidationScriptsPartial" />
 
     <script>
-        // Serializamos los datos del servidor
+        // Serializar los datos del servidor
         const items = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Items ?? new object[] { }));
         const lineasExistentes = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Lineas ?? new List<PropamaPOS.Models.ViewModels.CompraLineaCrearViewModel>()));
         const ivaRate = parseFloat('@(Configuration.GetValue<decimal?>("Tax:IVA")?.ToString(CultureInfo.InvariantCulture) ?? "0.12")') || 0.12;
@@ -157,8 +157,6 @@
             calcularTotal();
         }
 
-        // Inicialización: agregar líneas existentes
-                // Inicialización: agregar líneas existentes
         document.addEventListener("DOMContentLoaded", () => {
             if (lineasExistentes && lineasExistentes.length > 0) {
                 lineasExistentes.forEach(l => crearFila({

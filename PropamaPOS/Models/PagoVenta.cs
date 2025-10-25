@@ -15,6 +15,6 @@ namespace PropamaPOS.Models
         public MetodoPagoVenta Metodo { get; set; }
         public decimal Monto { get; set; }
         public DateTime Fecha { get; set; }
-        public string? Nota { get; set; } // para simular autorizar tarjeta, poner trx id
+        public string? Nota { get; set; }
     }
 }

@@ -17,7 +17,6 @@ namespace PropamaPOS.Models
         [ForeignKey("Id_UnidadMedida")]
         public UnidadMedida UnidadMedida { get; set; }
 
-        // Cantidad de unidades individuales contenidas en esta presentación
         public int Cantidad { get; set; } = 1;
 
         [Column(TypeName = "decimal(18,2)")]

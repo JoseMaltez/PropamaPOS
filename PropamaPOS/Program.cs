@@ -15,10 +15,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 var defaultCulture = new CultureInfo("es-GT");
-// Si prefieres usar punto como separador, usa "en-US" o personaliza abajo
 
 CultureInfo customCulture = (CultureInfo)defaultCulture.Clone();
-// Fuerza el punto como separador decimal (si lo deseas)
 customCulture.NumberFormat.NumberDecimalSeparator = ".";
 customCulture.NumberFormat.CurrencyDecimalSeparator = ".";
 

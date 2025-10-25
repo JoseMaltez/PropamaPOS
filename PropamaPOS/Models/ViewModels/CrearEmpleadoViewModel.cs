@@ -21,7 +21,7 @@ namespace PropamaPOS.Models.ViewModels
         [Required]
         public int Id_Rol { get; set; }
 
-        // Datos de empleado
+
         [Required(ErrorMessage = "El nombre es obligatorio")]
         [MaxLength(100)]
         public string Nombre { get; set; }

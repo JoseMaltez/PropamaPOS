@@ -145,7 +145,6 @@ namespace PropamaPOS.Controllers
 
                 decimal ivaRate = _config.GetValue<decimal?>("Tax:IVA") ?? 0.12m;
 
-                // GUARDAR DETALLES (registro histórico) pero SIN modificar stock/precios
                 foreach (var linea in model.Lineas)
                 {
                     var presentacion = await _context.ItemPresentaciones
@@ -182,9 +181,9 @@ namespace PropamaPOS.Controllers
 
                 ivaTotal = Math.Round(totalWithIva - subtotalWithoutIva, 2);
 
-                compra.Subtotal = subtotalWithoutIva; // sin IVA
+                compra.Subtotal = subtotalWithoutIva; 
                 compra.IVA = ivaTotal;
-                compra.Total = totalWithIva; // con IVA
+                compra.Total = totalWithIva;
 
                 await _context.SaveChangesAsync();
                 await trx.CommitAsync();
@@ -253,7 +252,7 @@ namespace PropamaPOS.Controllers
             var compra = await _context.Compras
                 .Include(c => c.Detalles)
                     .ThenInclude(d => d.Presentacion)
-                        .ThenInclude(p => p.Item) // necesitamos el item y sus presentaciones
+                        .ThenInclude(p => p.Item)
                 .Include(c => c.Detalles)
                     .ThenInclude(d => d.Item)
                 .FirstOrDefaultAsync(c => c.Id_Compra == id);
@@ -272,12 +271,9 @@ namespace PropamaPOS.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Aplicar efectos ahora
             using var trx = await _context.Database.BeginTransactionAsync();
             try
             {
-                // Reusar la lógica que ya tenías para actualizar stock, costo promedio y precios.
-                // Vamos a basarnos en los datos guardados en cada CompraDetalle.
                 decimal ivaRate = _config.GetValue<decimal?>("Tax:IVA") ?? 0.12m;
                 decimal markup = _config.GetValue<decimal?>("Pricing:DefaultMarkup") ?? 0.15m;
                 decimal retailSurcharge = _config.GetValue<decimal?>("Pricing:RetailSurcharge") ?? 0.10m;
@@ -293,7 +289,6 @@ namespace PropamaPOS.Controllers
 
                     var item = presentacion.Item;
 
-                    // cantidades y costos ya almacenados en det
                     int unidadesCompradas = det.CantidadPresentaciones * presentacion.Cantidad;
                     decimal costoPorUnidad = det.PrecioCostoPorUnidad;
 
@@ -310,7 +305,7 @@ namespace PropamaPOS.Controllers
                     item.CostoPromedioUnidad = nuevoCostoPromedio;
                     _context.Items.Update(item);
 
-                    // Propagar precios a todas las presentaciones activas del item
+                    // Propagar precios
                     var allPres = item.Presentaciones.Where(p => p.Activo).ToList();
                     foreach (var pres in allPres)
                     {

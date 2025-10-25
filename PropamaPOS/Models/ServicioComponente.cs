@@ -21,7 +21,6 @@ namespace PropamaPOS.Models
         [Display(Name = "Cantidad por servicio")]
         public decimal CantidadPorServicio { get; set; }
 
-        // 👇 Aquí el cambio importante
         [ValidateNever]
         public Item? Servicio { get; set; }
 

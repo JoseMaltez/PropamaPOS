@@ -27,8 +27,8 @@ namespace PropamaPOS.Models
 
         public decimal Total { get; set; }
         public MetodoPagoVenta MetodoPago { get; set; }
-        public decimal MontoRecibido { get; set; } // para efectivo
-        public decimal Cambio { get; set; } // para efectivo
+        public decimal MontoRecibido { get; set; }
+        public decimal Cambio { get; set; }
         public string CreadoPor { get; set; } = "";
         public int? Id_Empleado { get; set; }
         public Empleado? Empleado { get; set; }

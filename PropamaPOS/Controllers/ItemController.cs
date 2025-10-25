@@ -63,14 +63,11 @@ namespace PropamaPOS.Controllers
                 return View(model);
             }
 
-            // --- Forzar comportamiento consistente cuando IsServicio está marcado/no marcado ---
             if (model.IsServicio)
             {
-                // 1) Forzar que exista solo 1 presentacion: Unidad y cantidad = 1
                 var unidad = await _context.UnidadesMedida.FirstOrDefaultAsync(u => u.Nombre.ToLower() == "unidad");
                 int unidadId = unidad != null ? unidad.Id_UnidadMedida : (await _context.UnidadesMedida.OrderBy(u => u.Id_UnidadMedida).Select(u => u.Id_UnidadMedida).FirstOrDefaultAsync());
 
-                // Crear lista con UNA presentación (manteniendo precio si el usuario ya lo puso en la UI)
                 decimal? precioManual = model.Presentaciones?.FirstOrDefault()?.PrecioVenta;
                 model.Presentaciones = new List<PropamaPOS.Models.ViewModels.ItemPresentacionViewModel>
                 {
@@ -82,7 +79,6 @@ namespace PropamaPOS.Controllers
                     }
                 };
 
-                // 2) Forzar categoría 'Servicio' si existe
                 var catServ = await _context.Categorias.FirstOrDefaultAsync(c => c.Nombre.ToLower() == "servicio");
                 if (catServ != null)
                 {
@@ -91,19 +87,16 @@ namespace PropamaPOS.Controllers
             }
             else
             {
-                // Si no es servicio y la categoría seleccionada es la categoría 'Servicio',
-                // cambiar a la primera categoría que no sea 'Servicio' (para evitar dejarla por defecto)
                 var catServ = await _context.Categorias.FirstOrDefaultAsync(c => c.Nombre.ToLower() == "servicio");
                 if (catServ != null && model.Id_Categoria == catServ.Id_Categoria)
                 {
                     var other = await _context.Categorias.Where(c => c.Id_Categoria != catServ.Id_Categoria).OrderBy(c => c.Nombre).FirstOrDefaultAsync();
                     if (other != null) model.Id_Categoria = other.Id_Categoria;
-                    else model.Id_Categoria = 0; // si no hay otra, dejar 0 (se validará luego)
+                    else model.Id_Categoria = 0;
                 }
             }
-
-
-            // Validar duplicados entre presentaciones (misma unidad)
+            
+            //presentaciones duplicadas
             var duplicateUnit = model.Presentaciones
                 .Where(p => p.Id_UnidadMedida > 0)
                 .GroupBy(p => p.Id_UnidadMedida)
@@ -138,7 +131,6 @@ namespace PropamaPOS.Controllers
             _context.Items.Add(item);
             await _context.SaveChangesAsync();
 
-            // Guardar presentaciones. Para servicios, se permite especificar PrecioVenta manual.
             if (model.Presentaciones != null && model.Presentaciones.Any())
             {
                 foreach (var p in model.Presentaciones)
@@ -149,7 +141,7 @@ namespace PropamaPOS.Controllers
                         Id_Item = item.Id_Item,
                         Id_UnidadMedida = p.Id_UnidadMedida,
                         Cantidad = p.Cantidad > 0 ? p.Cantidad : 1,
-                        PrecioVenta = p.PrecioVenta ?? 0m,    // para servicios o precio manual
+                        PrecioVenta = p.PrecioVenta ?? 0m,    // para servicios precio manual
                         PrecioCosto = model.IsServicio ? (decimal?)null : null,  // nulo hasta primera compra
                         Activo = true
                     };
@@ -212,10 +204,8 @@ namespace PropamaPOS.Controllers
                 return View(model);
             }
 
-            // --- Forzar comportamiento consistente cuando IsServicio está marcado/no marcado ---
             if (model.IsServicio)
             {
-                // Buscar unidad "Unidad" o la primera unidad disponible
                 var unidad = await _context.UnidadesMedida.FirstOrDefaultAsync(u => u.Nombre.ToLower() == "unidad");
                 int unidadId = unidad != null
                     ? unidad.Id_UnidadMedida
@@ -223,19 +213,16 @@ namespace PropamaPOS.Controllers
 
                 decimal? precioManual = model.Presentaciones?.FirstOrDefault()?.PrecioVenta ?? 0;
 
-                // Buscar si ya existe una presentación para este item con esa unidad
                 var existingPres = await _context.ItemPresentaciones
                     .FirstOrDefaultAsync(p => p.Id_Item == model.Id_Item && p.Id_UnidadMedida == unidadId);
 
                 if (existingPres != null)
                 {
-                    // ✅ Actualizamos la existente
                     existingPres.Cantidad = 1;
                     existingPres.PrecioVenta = precioManual ?? 0;
                     existingPres.Activo = true;
                     _context.ItemPresentaciones.Update(existingPres);
 
-                    // Reflejar también en el modelo (para que no cree una nueva)
                     model.Presentaciones = new List<PropamaPOS.Models.ViewModels.ItemPresentacionViewModel>
             {
                 new PropamaPOS.Models.ViewModels.ItemPresentacionViewModel
@@ -249,7 +236,6 @@ namespace PropamaPOS.Controllers
                 }
                 else
                 {
-                    // ✅ Si no existe (caso raro), la creamos
                     model.Presentaciones = new List<PropamaPOS.Models.ViewModels.ItemPresentacionViewModel>
             {
                 new PropamaPOS.Models.ViewModels.ItemPresentacionViewModel
@@ -261,7 +247,6 @@ namespace PropamaPOS.Controllers
             };
                 }
 
-                // 2) Forzar categoría 'Servicio' si existe
                 var catServ = await _context.Categorias.FirstOrDefaultAsync(c => c.Nombre.ToLower() == "servicio");
                 if (catServ != null)
                 {
@@ -270,8 +255,6 @@ namespace PropamaPOS.Controllers
             }
             else
             {
-                // Si no es servicio y la categoría seleccionada es la categoría 'Servicio',
-                // cambiar a la primera categoría que no sea 'Servicio' (para evitar dejarla por defecto)
                 var catServ = await _context.Categorias.FirstOrDefaultAsync(c => c.Nombre.ToLower() == "servicio");
                 if (catServ != null && model.Id_Categoria == catServ.Id_Categoria)
                 {
@@ -284,14 +267,12 @@ namespace PropamaPOS.Controllers
                 }
             }
 
-            // --- Cargar item original con presentaciones ---
             var item = await _context.Items
                 .Include(i => i.Presentaciones)
                 .FirstOrDefaultAsync(i => i.Id_Item == id);
 
             if (item == null) return NotFound();
 
-            // Validar duplicados presentaciones
             var duplicateUnit2 = model.Presentaciones
                 .Where(p => p.Id_UnidadMedida > 0)
                 .GroupBy(p => p.Id_UnidadMedida)
@@ -306,7 +287,6 @@ namespace PropamaPOS.Controllers
                 return View(model);
             }
 
-            // --- Actualizar propiedades del Item ---
             item.Nombre = model.Nombre;
             item.Descripcion = model.Descripcion;
             item.Codigo = model.Codigo;
@@ -316,20 +296,17 @@ namespace PropamaPOS.Controllers
 
             item.StockMinimo = item.IsServicio ? null : (model.StockMinimo ?? item.StockMinimo ?? 0);
 
-            // Si es servicio, asegurarnos stock y costo 0
             if (item.IsServicio)
             {
                 item.Stock = 0;
                 item.CostoPromedioUnidad = 0m;
             }
 
-            // --- Actualizar presentaciones ---
             var postedIds = model.Presentaciones
                 .Where(p => p.Id_ItemPresentacion.HasValue)
                 .Select(p => p.Id_ItemPresentacion!.Value)
                 .ToList();
 
-            // Desactivar las que se quitaron
             var toDeactivate = item.Presentaciones
                 .Where(p => !postedIds.Contains(p.Id_ItemPresentacion))
                 .ToList();
@@ -340,7 +317,6 @@ namespace PropamaPOS.Controllers
                 _context.ItemPresentaciones.Update(p);
             }
 
-            // Crear o actualizar las presentaciones enviadas
             foreach (var p in model.Presentaciones)
             {
                 if (p.Id_ItemPresentacion.HasValue)
