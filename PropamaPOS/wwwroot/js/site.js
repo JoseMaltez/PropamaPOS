@@ -78,5 +78,15 @@ document.addEventListener("DOMContentLoaded", function () {
         localStorage.setItem('propama_sidebar_collapsed', isCollapsed);
     });
 
+    // Cerrar submenús al colapsar
+    if (isCollapsed) {
+        const openMenus = sidebar.querySelectorAll('.collapse.show');
+        openMenus.forEach(menu => {
+            const bsCollapse = bootstrap.Collapse.getOrCreateInstance(menu);
+            bsCollapse.hide();
+        });
+    }
+
+
 })();
 

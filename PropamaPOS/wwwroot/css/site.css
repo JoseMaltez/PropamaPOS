@@ -34,39 +34,93 @@ body {
 .propama-sidebar {
     width: 240px;
     min-width: 240px;
-    max-width: 280px;
     height: calc(100vh - 56px);
     position: sticky;
     top: 56px;
     overflow-y: auto;
+    background-color: #f8f9fa;
+    transition: width 0.25s ease;
 }
 
     .propama-sidebar .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         padding: .55rem .75rem;
         color: #2c3e50;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: all 0.2s ease;
     }
 
-        .propama-sidebar .nav-link:hover {
-            background: rgba(0,0,0,0.03);
+        .propama-sidebar .nav-link i {
+            flex-shrink: 0;
+            width: 20px;
+            text-align: center;
         }
 
+        .propama-sidebar .nav-link:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+    /* ===== Estado colapsado ===== */
     .propama-sidebar.collapsed {
-        width: 60px !important;
-        min-width: 60px !important;
+        width: 60px;
+        min-width: 60px;
     }
 
-    .propama-sidebar .sidebar-header strong {
-        font-size: 1.05rem;
+        .propama-sidebar.collapsed .nav-link span {
+            display: none;
+        }
+
+        .propama-sidebar.collapsed .bi-caret-down-fill {
+            display: none !important;
+        }
+
+        .propama-sidebar.collapsed .nav-link i {
+            margin-right: 0 !important;
+            text-align: center;
+        }
+
+        .propama-sidebar.collapsed .sidebar-header strong {
+            display: none;
+        }
+
+        .propama-sidebar.collapsed #sidebarCollapseBtn {
+            position: absolute;
+            right: 5px;
+        }
+
+
+    .propama-sidebar .sidebar-header {
+        position: relative;
+        min-height: 50px;
     }
+
+
+        .propama-sidebar .sidebar-header strong {
+            font-size: 1.05rem;
+        }
+
 
 main {
-    transition: margin-left .2s ease;
+    transition: margin-left .25s ease;
 }
-
 
 body.sidebar-collapsed main {
     margin-left: 60px;
 }
+
+.propama-sidebar .toggle-btn {
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 
 
 @media (max-width: 767px) {
