@@ -1,0 +1,108 @@
+﻿@model IEnumerable<PropamaPOS.Models.Venta>
+@{
+    ViewData["Title"] = "Reportes - Ventas";
+    var clientes = ViewBag.Clientes as List<PropamaPOS.Models.Cliente> ?? new();
+    var currentCliente = ViewBag.CurrentCliente as int?;
+    var currentDesde = ViewBag.CurrentDesde as string;
+    var currentHasta = ViewBag.CurrentHasta as string;
+}
+
+<div class="container mt-4">
+    @await Html.PartialAsync("_AlertsPartial")
+
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="bi bi-journal-text"></i> Reporte de Ventas</h4>
+            <div>
+                <a asp-action="Index" asp-controller="Ventas" class="btn btn-light btn-sm">
+                    <i class="bi bi-arrow-left"></i> Volver a Ventas
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <form method="get" asp-action="IndexVentas" class="row g-2 align-items-end mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Cliente</label>
+                    <select name="clienteId" class="form-select">
+                        <option value="">-- Todos --</option>
+                        @foreach (var c in clientes)
+                        {
+                            if (currentCliente == c.Id_Cliente)
+                            {
+                                <option value="@c.Id_Cliente" selected>@c.Nombre @c.Apellido</option>
+                            }
+                            else
+                            {
+                                <option value="@c.Id_Cliente">@c.Nombre @c.Apellido</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Desde</label>
+                    <input type="date" name="desde" class="form-control" value="@currentDesde" />
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Hasta</label>
+                    <input type="date" name="hasta" class="form-control" value="@currentHasta" />
+                </div>
+
+                <div class="col-md-2 d-grid">
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                    <a asp-action="IndexVentas" class="btn btn-outline-secondary mt-1">Limpiar</a>
+                </div>
+            </form>
+
+            <div class="mb-3 d-flex justify-content-end gap-2">
+                <a asp-action="DownloadVentasPdf" asp-route-clienteId="@currentCliente" asp-route-desde="@currentDesde" asp-route-hasta="@currentHasta"
+                   class="btn btn-success">
+                    <i class="bi bi-download"></i> Descargar PDF
+                </a>
+            </div>
+
+            <table class="table table-sm table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Número</th>
+                        <th>Cliente</th>
+                        <th>Líneas</th>
+                        <th class="text-end">Subtotal</th>
+                        <th class="text-end">IVA</th>
+                        <th class="text-end">Total</th>
+                        <th class="text-end">Utilidad</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var v in Model)
+                    {
+                        var utilidadVenta = 0.0m;
+                        foreach (var d in v.Detalles)
+                        {
+                            var precioCosto = d.Presentacion?.PrecioCosto ?? 0m;
+                            utilidadVenta += (d.PrecioVentaPorPresentacion - precioCosto) * d.CantidadPresentaciones;
+                        }
+                        <tr>
+                            <td>@v.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                            <td>@v.NumeroVenta</td>
+                            <td>@(v.Cliente != null ? $"{v.Cliente.Nombre} {v.Cliente.Apellido}" : v.NombreConsumidor)</td>
+                            <td>@(v.Detalles?.Count ?? 0)</td>
+                            <td class="text-end">Q@(v.Subtotal.ToString("F2"))</td>
+                            <td class="text-end">Q@(v.IVA.ToString("F2"))</td>
+                            <td class="text-end">Q@(v.Total.ToString("F2"))</td>
+                            <td class="text-end">Q@(utilidadVenta.ToString("F2"))</td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-controller="Ventas" asp-route-id="@v.Id_Venta" class="btn btn-sm btn-outline-primary">Ver</a>
+                                <a asp-action="DownloadPdf" asp-controller="Ventas" asp-route-id="@v.Id_Venta" class="btn btn-sm btn-outline-success">PDF</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

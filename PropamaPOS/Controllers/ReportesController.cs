@@ -177,5 +177,181 @@ namespace PropamaPOS.Controllers
 
             return File(pdfBytes, "application/pdf", $"Reporte_Compras_{DateTime.UtcNow:yyyyMMdd}.pdf");
         }
+
+        // GET: Reportes/Ventas?clienteId=1&desde=2025-01-01&hasta=2025-01-31
+        public async Task<IActionResult> IndexVentas(int? clienteId, DateTime? desde, DateTime? hasta)
+        {
+            var query = _context.Ventas
+                .Include(v => v.Cliente)
+                .Include(v => v.Empleado)
+                .Include(v => v.Detalles)
+                    .ThenInclude(d => d.Presentacion)
+                        .ThenInclude(p => p.UnidadMedida)
+                .Include(v => v.Detalles)
+                    .ThenInclude(d => d.Item)
+                .AsQueryable();
+
+            if (clienteId.HasValue)
+                query = query.Where(v => v.Id_Cliente == clienteId.Value);
+
+            if (desde.HasValue)
+                query = query.Where(v => v.Fecha.Date >= desde.Value.Date);
+
+            if (hasta.HasValue)
+                query = query.Where(v => v.Fecha.Date <= hasta.Value.Date);
+
+            var ventas = await query.OrderByDescending(v => v.Fecha).ToListAsync();
+
+            ViewBag.Clientes = await _context.Clientes.Where(c => c.Activo).OrderBy(c => c.Nombre).ToListAsync();
+            ViewBag.CurrentCliente = clienteId;
+            ViewBag.CurrentDesde = desde?.ToString("yyyy-MM-dd");
+            ViewBag.CurrentHasta = hasta?.ToString("yyyy-MM-dd");
+
+            return View("Ventas", ventas);
+        }
+
+        // GET: Reportes/DownloadVentasPdf?clienteId=1&desde=2025-01-01&hasta=2025-01-31
+        public async Task<IActionResult> DownloadVentasPdf(int? clienteId, DateTime? desde, DateTime? hasta)
+        {
+            var query = _context.Ventas
+                .Include(v => v.Cliente)
+                .Include(v => v.Empleado)
+                .Include(v => v.Detalles)
+                    .ThenInclude(d => d.Presentacion)
+                        .ThenInclude(p => p.UnidadMedida)
+                .Include(v => v.Detalles)
+                    .ThenInclude(d => d.Item)
+                .AsQueryable();
+
+            if (clienteId.HasValue)
+                query = query.Where(v => v.Id_Cliente == clienteId.Value);
+
+            if (desde.HasValue)
+                query = query.Where(v => v.Fecha.Date >= desde.Value.Date);
+
+            if (hasta.HasValue)
+                query = query.Where(v => v.Fecha.Date <= hasta.Value.Date);
+
+            var ventas = await query.OrderByDescending(v => v.Fecha).ToListAsync();
+
+            QuestPDF.Settings.License = LicenseType.Community;
+
+            // Info del negocio - ajusta si quieres leer desde config
+            string nombreNegocio = "Librería y Papelería Propama";
+            string nitNegocio = "6613799";
+            string direccionNegocio = "2da. Calle 5-41, Zona 1, Mazatenango, Suchitepéquez";
+
+            var pdfBytes = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Margin(30);
+                    page.Size(PageSizes.A4);
+                    page.DefaultTextStyle(x => x.FontSize(9));
+
+                    // Header
+                    page.Header().Column(header =>
+                    {
+                        header.Item().AlignCenter().Text(nombreNegocio).FontSize(14).Bold();
+                        header.Item().AlignCenter().Text($"NIT: {nitNegocio}").FontSize(9);
+                        header.Item().AlignCenter().Text(direccionNegocio).FontSize(9);
+                        header.Item().PaddingVertical(6).LineHorizontal(1);
+                        header.Item().Text("Reporte de Ventas").FontSize(12).Bold().AlignCenter();
+                        string periodo = (desde.HasValue || hasta.HasValue)
+                            ? $"Periodo: {(desde?.ToString("dd/MM/yyyy") ?? "Inicio")} - {(hasta?.ToString("dd/MM/yyyy") ?? "Fin")}"
+                            : $"Periodo: Todos";
+                        header.Item().AlignCenter().Text(periodo).FontSize(9);
+                    });
+
+                    page.Content().PaddingVertical(6).Column(content =>
+                    {
+                        // Tabla resumen de ventas
+                        content.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.RelativeColumn(2); // Fecha
+                                columns.RelativeColumn(2); // Número
+                                columns.RelativeColumn(3); // Cliente
+                                columns.RelativeColumn(1); // Líneas
+                                columns.RelativeColumn(2); // Subtotal
+                                columns.RelativeColumn(2); // IVA
+                                columns.RelativeColumn(2); // Total
+                                columns.RelativeColumn(2); // Utilidad
+                            });
+
+                            // Header
+                            table.Header(headerRow =>
+                            {
+                                headerRow.Cell().Element(CellStyle).Text("Fecha");
+                                headerRow.Cell().Element(CellStyle).Text("Número");
+                                headerRow.Cell().Element(CellStyle).Text("Cliente");
+                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Líneas");
+                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Subtotal");
+                                headerRow.Cell().Element(CellStyle).AlignRight().Text("IVA");
+                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Total");
+                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Utilidad");
+                            });
+
+                            decimal totalSubtotal = 0m;
+                            decimal totalIva = 0m;
+                            decimal totalTotal = 0m;
+                            decimal totalUtilidad = 0m;
+
+                            foreach (var v in ventas)
+                            {
+                                int lineas = v.Detalles?.Count ?? 0;
+                                var fecha = v.Fecha.ToLocalTime().ToString("dd/MM/yyyy");
+                                table.Cell().Element(CellStyle).Text(fecha);
+                                table.Cell().Element(CellStyle).Text(v.NumeroVenta ?? "-");
+                                string clienteNombre = v.Cliente != null ? $"{v.Cliente.Nombre} {v.Cliente.Apellido}".Trim() : v.NombreConsumidor ?? "Consumidor Final";
+                                table.Cell().Element(CellStyle).Text(clienteNombre);
+                                table.Cell().Element(CellStyle).AlignRight().Text(lineas.ToString());
+                                table.Cell().Element(CellStyle).AlignRight().Text($"Q{v.Subtotal:F2}");
+                                table.Cell().Element(CellStyle).AlignRight().Text($"Q{v.IVA:F2}");
+                                table.Cell().Element(CellStyle).AlignRight().Text($"Q{v.Total:F2}");
+
+                                // Calcular utilidad por venta: para cada detalle (precioVentaPorPresentacion - precioCostoPorPresentacion) * CantidadPresentaciones
+                                decimal utilidadVenta = 0m;
+                                foreach (var det in v.Detalles)
+                                {
+                                    decimal precioVentaPres = det.PrecioVentaPorPresentacion;
+                                    decimal precioCostoPres = det.Presentacion?.PrecioCosto ?? 0m; // si es null, asumimos 0 (servicio o costo no registrado)
+                                    decimal utilidadLinea = (precioVentaPres - precioCostoPres) * det.CantidadPresentaciones;
+                                    utilidadVenta += utilidadLinea;
+                                }
+
+                                table.Cell().Element(CellStyle).AlignRight().Text($"Q{utilidadVenta:F2}");
+
+                                totalSubtotal += v.Subtotal;
+                                totalIva += v.IVA;
+                                totalTotal += v.Total;
+                                totalUtilidad += utilidadVenta;
+                            }
+
+                            // Totales
+                            table.Footer(footer =>
+                            {
+                                footer.Cell().ColumnSpan(4).Element(CellStyle).AlignRight().Text("Totales:");
+                                footer.Cell().Element(CellStyle).AlignRight().Text($"Q{totalSubtotal:F2}");
+                                footer.Cell().Element(CellStyle).AlignRight().Text($"Q{totalIva:F2}");
+                                footer.Cell().Element(CellStyle).AlignRight().Text($"Q{totalTotal:F2}");
+                                footer.Cell().Element(CellStyle).AlignRight().Text($"Q{totalUtilidad:F2}");
+                            });
+
+                            // estilo celda
+                            IContainer CellStyle(IContainer c2) => c2.Padding(4).BorderBottom(1).BorderColor(Colors.Grey.Lighten3);
+                        });
+
+                        // Opcional: sección con detalles por venta (si quieres)
+                    });
+
+                    page.Footer().AlignCenter().Text($"Generado: {DateTime.Now.ToString("g", CultureInfo.InvariantCulture)}").FontSize(8);
+                });
+            }).GeneratePdf();
+
+            return File(pdfBytes, "application/pdf", $"Reporte_Ventas_{DateTime.UtcNow:yyyyMMdd}.pdf");
+        }
+
     }
 }
