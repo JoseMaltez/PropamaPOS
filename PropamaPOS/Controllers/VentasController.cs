@@ -23,15 +23,80 @@ namespace PropamaPOS.Controllers
             _config = config;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string numero = null, string cliente = null, DateTime? fechaDesde = null, DateTime? fechaHasta = null, int page = 1)
         {
-            var ventas = await _context.Ventas
-                .Include(v => v.Cliente)
-                .Include(v => v.Empleado)
-                .OrderByDescending(v => v.Fecha)
+            const int PageSize = 30;
+
+            // cargar lista base con includes necesarios
+            var query = _context.Ventas
+                        .Include(v => v.Cliente)
+                        .Include(v => v.Empleado)
+                        .AsQueryable();
+
+            // --- Filtros ---
+
+            // Por número de factura
+            if (!string.IsNullOrWhiteSpace(numero))
+            {
+                numero = numero.Trim();
+                query = query.Where(v => v.NumeroVenta.Contains(numero));
+            }
+
+            // Por cliente o consumidor final (nombre o NIT)
+            if (!string.IsNullOrWhiteSpace(cliente))
+            {
+                cliente = cliente.Trim().ToLower();
+                query = query.Where(v =>
+                    (v.Cliente != null && (
+                        v.Cliente.Nombre.ToLower().Contains(cliente) ||
+                        (v.Cliente.Apellido != null && v.Cliente.Apellido.ToLower().Contains(cliente)) ||
+                        (v.Cliente.NIT != null && v.Cliente.NIT.ToLower().Contains(cliente))
+                    ))
+                    || (v.Cliente == null && v.NombreConsumidor.ToLower().Contains(cliente))
+                );
+            }
+
+            // Por rango de fechas
+            if (fechaDesde.HasValue)
+            {
+                var desde = fechaDesde.Value.Date;
+                query = query.Where(v => v.Fecha >= desde);
+            }
+
+            if (fechaHasta.HasValue)
+            {
+                var hasta = fechaHasta.Value.Date.AddDays(1).AddTicks(-1);
+                query = query.Where(v => v.Fecha <= hasta);
+            }
+
+            // Orden descendente por fecha
+            query = query.OrderByDescending(v => v.Fecha);
+
+            // Paginación
+            var total = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(total / (double)PageSize);
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            var ventas = await query
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
                 .ToListAsync();
+
+            // ViewBag para recordar filtros
+            ViewBag.CurrentNumero = numero;
+            ViewBag.CurrentCliente = cliente;
+            ViewBag.CurrentFechaDesde = fechaDesde?.ToString("yyyy-MM-dd");
+            ViewBag.CurrentFechaHasta = fechaHasta?.ToString("yyyy-MM-dd");
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.PageSize = PageSize;
+            ViewBag.TotalItems = total;
+
             return View(ventas);
         }
+
+
 
         public async Task<IActionResult> Details(int id)
         {
@@ -351,12 +416,21 @@ namespace PropamaPOS.Controllers
             catch (Exception ex)
             {
                 await trx.RollbackAsync();
-                ModelState.AddModelError("", "Error al registrar la venta: " + ex.Message);
-                TempData["ErrorMessage"] = "Ocurrió un error al registrar la venta. " + ex.Message;
+
+                // Agregar mensaje de error visible en pantalla
+                ModelState.AddModelError("", $"Ocurrió un error interno: {ex.Message}");
+
+                // También guardar en TempData por si se redibuja sin el summary
+                TempData["ErrorMessage"] = "Error al registrar la venta: " + ex.Message;
+
+                // Log rápido en consola (útil en desarrollo)
+                Console.WriteLine("ERROR EN VENTA: " + ex.ToString());
+
                 ViewBag.PreviousLineas = lineas;
                 await CargarViewBagsCrear();
                 return View();
             }
+
         }
 
         private async Task CargarViewBagsCrear()

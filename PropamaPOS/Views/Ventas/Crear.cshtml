@@ -5,7 +5,6 @@
     ViewData["Title"] = "Nueva Venta";
     var itemsJson = Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Items ?? new object());
 }
-
 <div class="container mt-3">
     <div class="card shadow">
         <div class="card-header bg-success text-white">
@@ -16,10 +15,27 @@
             {
                 <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
             }
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+            }
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <li>@err.ErrorMessage</li>
+                        }
+                    </ul>
+                </div>
+            }
+
 
             <form asp-action="Crear" method="post" id="ventaForm">
                 <div id="formErrors"></div>
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <div asp-validation-summary="All" class="alert alert-danger"></div>
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <label class="form-label">Tipo de cliente</label>
