@@ -92,6 +92,25 @@
                     }
                 </div>
             </div>
+
+            <!-- Reportes -->
+            <div class="menu-section mt-2">
+                <a class="nav-link" data-bs-toggle="collapse" href="#mReportes" role="button" aria-expanded="false">
+                    <i class="bi bi-bar-chart-fill"></i>
+                    <span>Reportes</span>
+                    <i class="bi bi-caret-right-fill float-end"></i>
+                </a>
+                <div class="collapse" id="mReportes">
+                    @if (isAdmin)
+                    {
+                        <a class="nav-link ms-3" asp-controller="Reportes" asp-action="Index">
+                            <i class="bi bi-journal-text"></i>
+                            <span>Compras</span>
+                        </a>
+                    }
+                    @* Si en el futuro quieres que empleados también lo vean, cambia la condición a (isAdmin || isEmpleado) *@
+                </div>
+            </div>
         </nav>
     </aside>
 }
