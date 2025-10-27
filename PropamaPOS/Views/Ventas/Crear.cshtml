@@ -11,6 +11,7 @@
             <h4 class="mb-0">Nueva Venta / Facturación</h4>
         </div>
         <div class="card-body">
+
             @if (TempData["ErrorMessage"] != null)
             {
                 <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
@@ -20,22 +21,13 @@
                 <div class="alert alert-success">@TempData["SuccessMessage"]</div>
             }
 
-            @if (!ViewData.ModelState.IsValid)
-            {
-                <div class="alert alert-danger">
-                    <ul>
-                        @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                        {
-                            <li>@err.ErrorMessage</li>
-                        }
-                    </ul>
-                </div>
-            }
-
-
             <form asp-action="Crear" method="post" id="ventaForm">
+                @Html.AntiForgeryToken()
                 <div id="formErrors"></div>
-                <div asp-validation-summary="All" class="alert alert-danger"></div>
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div asp-validation-summary="All" class="alert alert-danger"></div>
+                }
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <label class="form-label">Tipo de cliente</label>
@@ -299,7 +291,7 @@
             const itemObj = items.find(i => i.id_Item === parseInt(itemId));
             const esServicio = itemObj ? itemObj.isServicio : false;
             if (!esServicio && unidadesNecesarias > stock) {
-                // Mostrar mensaje inline (alerta pequeña)
+                // Mostrar mensaje inline
                 const alerta = document.getElementById('stockAlert');
                 if (alerta) alerta.remove();
                 const div = document.createElement('div');
@@ -339,11 +331,11 @@
             tbody.innerHTML = '';
             let subtotal = 0, descuentos = 0;
 
-            // obtener tasa IVA desde servidor (cadena inyectada)
+
             const ivaRate = parseFloat('@(Configuration.GetValue<decimal?>("Tax:IVA")?.ToString(CultureInfo.InvariantCulture) ?? "0.12")') || 0.12;
 
             lineas.forEach((l, idx) => {
-                const precioConIva = +(l.precio * (1 + ivaRate)); // precio mostrado al cliente
+                const precioConIva = +(l.precio * (1 + ivaRate)); 
                 const subtotalConIva = +(precioConIva * l.cantidadPresentaciones - l.descuento);
 
                 subtotal += l.precio * l.cantidadPresentaciones;
@@ -366,7 +358,7 @@
             const ivaTotal = +(imponible * ivaRate);
             const total = +(imponible + ivaTotal);
 
-                        // Cálculo estimado del ajuste (por diferencias de redondeo)
+
             const totalPorUnidad = lineas.reduce((acc, l) => {
                 const precioConIva = +(l.precio * (1 + ivaRate)).toFixed(2);
                 const sub = +(precioConIva * l.cantidadPresentaciones - l.descuento).toFixed(2);
@@ -382,7 +374,6 @@
             document.getElementById('ivaText').innerText = ivaTotal.toFixed(2);
             document.getElementById('totalText').innerText = (total + ajuste).toFixed(2);
 
-            // hidden inputs para enviar (opcional — servidor recalculará por seguridad)
             const hidden = document.getElementById('hiddenInputs');
             if (hidden) {
                 hidden.innerHTML = '';
@@ -426,12 +417,28 @@
         });
 
         // Tipo cliente toggles
-                document.getElementById('facturarCon').addEventListener('change', function(){
+        document.getElementById('facturarCon').addEventListener('change', function(){
             const val = this.value;
-            document.getElementById('nitGroup').style.display = val === 'NIT' ? 'block' : 'none';
-            document.getElementById('clienteFields').style.display = 'none';
-            document.getElementById('nombreCFGroup').style.display = val === 'CF' ? 'block' : 'none';
+            const nitGroup = document.getElementById('nitGroup');
+            const clienteFields = document.getElementById('clienteFields');
+            const nombreCFGroup = document.getElementById('nombreCFGroup');
+
+            // Mostrar/ocultar
+            nitGroup.style.display = val === 'NIT' ? 'block' : 'none';
+            clienteFields.style.display = val === 'NIT' ? 'block' : 'none';
+            nombreCFGroup.style.display = val === 'CF' ? 'block' : 'none';
+
+            // Limpiar campos del otro modo
+            if (val === 'NIT') {
+                document.getElementById('nombreConsumidor').value = '';
+            } else {
+                document.getElementById('nitInput').value = '';
+                document.getElementById('clienteNombre').value = '';
+                document.getElementById('clienteApellido').value = '';
+                document.getElementById('clienteDireccion').value = '';
+            }
         });
+
 
 
         // Buscar NIT (consulta AJAX)

@@ -1,13 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.EntityFrameworkCore;
 using PropamaPOS.Data;
 using PropamaPOS.Models;
 using PropamaPOS.Models.ViewModels;
-using System.Security.Claims;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using System.Security.Claims;
 
 namespace PropamaPOS.Controllers
 {
@@ -161,7 +162,12 @@ namespace PropamaPOS.Controllers
         // POST: Ventas/Crear
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Crear([FromForm] Venta ventaInput, [FromForm] List<VentaDetalle> lineas, string facturarCon, string nitInput, string nombreConsumidor)
+        public async Task<IActionResult> Crear(
+        [FromForm] Venta ventaInput,
+        [FromForm] List<VentaDetalle> lineas,
+        string facturarCon,
+        string nitInput,
+        string nombreConsumidor)
         {
             if (lineas == null || !lineas.Any())
             {
@@ -180,11 +186,10 @@ namespace PropamaPOS.Controllers
                     ModelState.AddModelError("", $"El descuento del producto no puede ser negativo.");
             }
 
-            if (!ModelState.IsValid)
+            if (facturarCon == "CF")
             {
-                ViewBag.PreviousLineas = lineas;
-                await CargarViewBagsCrear();
-                return View();
+                ventaInput.Cliente = null;
+                ModelState.Clear();
             }
 
             if (facturarCon == "NIT")
@@ -197,7 +202,7 @@ namespace PropamaPOS.Controllers
                     return View();
                 }
 
-                if (!System.Text.RegularExpressions.Regex.IsMatch(nitInput, @"^[A-Za-z0-9\-]+$"))
+                if (!System.Text.RegularExpressions.Regex.IsMatch(nitInput, @"^[0-9\-]+$"))
                 {
                     ModelState.AddModelError("NIT", "El NIT contiene caracteres inválidos.");
                     ViewBag.PreviousLineas = lineas;
@@ -229,30 +234,60 @@ namespace PropamaPOS.Controllers
                 }
 
                 Cliente? cliente = null;
+
                 if (facturarCon == "NIT")
                 {
-                    if (!string.IsNullOrEmpty(nitInput))
+                    // Validar NIT
+                    if (string.IsNullOrWhiteSpace(nitInput))
                     {
-                        cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.NIT == nitInput);
-                        if (cliente == null)
-                        {
-                            cliente = new Cliente
-                            {
-                                NIT = nitInput,
-                                Nombre = ventaInput.Cliente?.Nombre ?? "N/A",
-                                Apellido = ventaInput.Cliente?.Apellido,
-                                Direccion = ventaInput.Cliente?.Direccion ?? "Ciudad",
-                                Activo = true
-                            };
-                            _context.Clientes.Add(cliente);
-                            await _context.SaveChangesAsync();
-                        }
+                        ModelState.AddModelError("", "Debe ingresar un NIT válido si selecciona 'Con NIT'.");
+                        await CargarViewBagsCrear();
+                        ViewBag.PreviousLineas = lineas;
+                        return View();
                     }
-                }
-                else // Consumidor Final
-                {
+
+                    nitInput = nitInput.Trim();
+
+                    cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.NIT == nitInput);
+
+                    if (cliente == null)
+                    {
+                        // Crear nuevo cliente con los datos del formulario
+                        var nombre = ventaInput.Cliente?.Nombre?.Trim();
+                        if (string.IsNullOrEmpty(nombre))
+                        {
+                            ModelState.AddModelError("", "El nombre es obligatorio para un nuevo cliente con NIT.");
+                            await CargarViewBagsCrear();
+                            ViewBag.PreviousLineas = lineas;
+                            return View();
+                        }
+
+                        cliente = new Cliente
+                        {
+                            NIT = nitInput,
+                            Nombre = nombre,
+                            Apellido = ventaInput.Cliente?.Apellido?.Trim(),
+                            Direccion = string.IsNullOrWhiteSpace(ventaInput.Cliente?.Direccion) ? "Ciudad" : ventaInput.Cliente.Direccion.Trim(),
+                            Activo = true
+                        };
+
+                        _context.Clientes.Add(cliente);
+                        await _context.SaveChangesAsync();
+                    }
+
+                    ventaInput.Id_Cliente = cliente.Id_Cliente;
                     ventaInput.Cliente = null;
                 }
+                else
+                {
+                    ventaInput.Id_Cliente = null;
+                    ventaInput.Cliente = null;
+
+                    // Si no puso nombre, asignar automáticamente
+                    if (string.IsNullOrWhiteSpace(nombreConsumidor))
+                        nombreConsumidor = "Consumidor Final";
+                }
+
 
                 var insuficientes = new List<string>();
                 foreach (var linea in lineas)

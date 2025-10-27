@@ -82,14 +82,14 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 
-    <script>
+    @* <script>
         setTimeout(() => {
             document.querySelectorAll('.alert').forEach(a => {
                 const bsAlert = bootstrap.Alert.getOrCreateInstance(a);
                 bsAlert.close();
             });
         }, 10000);
-    </script>
+    </script> *@
 
 </body>
 </html>
