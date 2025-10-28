@@ -98,6 +98,7 @@ namespace PropamaPOS.Migrations
                     Descripcion = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),
                     IsServicio = table.Column<bool>(type: "bit", nullable: false),
                     Stock = table.Column<int>(type: "int", nullable: false),
+                    StockMinimo = table.Column<int>(type: "int", nullable: true),
                     CostoPromedioUnidad = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
                     Activo = table.Column<bool>(type: "bit", nullable: false),
                     Id_Categoria = table.Column<int>(type: "int", nullable: true)
@@ -304,7 +305,8 @@ namespace PropamaPOS.Migrations
                     Subtotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     IVA = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Total = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Nota = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Nota = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Estado = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -335,6 +337,8 @@ namespace PropamaPOS.Migrations
                     NombreConsumidor = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Subtotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Descuentos = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    IVA = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    AjusteRedondeo = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Total = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     MetodoPago = table.Column<int>(type: "int", nullable: false),
                     MontoRecibido = table.Column<decimal>(type: "decimal(18,2)", nullable: false),

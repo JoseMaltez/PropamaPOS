@@ -180,10 +180,20 @@ namespace PropamaPOS.Controllers
             foreach (var l in lineas)
             {
                 if (l.CantidadPresentaciones <= 0)
+                {
                     ModelState.AddModelError("", $"La cantidad del producto no puede ser cero o negativa.");
+                    ViewBag.PreviousLineas = lineas;
+                    await CargarViewBagsCrear();
+                    return View();
+                }
 
                 if (l.Descuento < 0)
+                {
                     ModelState.AddModelError("", $"El descuento del producto no puede ser negativo.");
+                    ViewBag.PreviousLineas = lineas;
+                    await CargarViewBagsCrear();
+                    return View();
+                }
             }
 
             if (facturarCon == "CF")
@@ -289,19 +299,101 @@ namespace PropamaPOS.Controllers
                 }
 
 
+                //var insuficientes = new List<string>();
+                //foreach (var linea in lineas)
+                //{
+                //    if (linea.Id_ItemPresentacion == null) continue;
+                //    var pres = await _context.ItemPresentaciones
+                //        .Include(p => p.Item)
+                //        .FirstOrDefaultAsync(p => p.Id_ItemPresentacion == linea.Id_ItemPresentacion.Value);
+                //    if (pres == null) continue;
+                //    if (pres.Item.IsServicio) continue;
+                //    int unidadesNecesarias = linea.CantidadPresentaciones * pres.Cantidad;
+                //    if (pres.Item.Stock < unidadesNecesarias)
+                //    {
+                //        insuficientes.Add($"{pres.Item.Nombre} — falta {unidadesNecesarias - pres.Item.Stock} unidad(es)");
+                //    }
+                //}
+
+
                 var insuficientes = new List<string>();
+
+                // Validar productos
+                var pedidoPorItem = new Dictionary<int, int>();
                 foreach (var linea in lineas)
                 {
                     if (linea.Id_ItemPresentacion == null) continue;
                     var pres = await _context.ItemPresentaciones
-                        .Include(p => p.Item)
-                        .FirstOrDefaultAsync(p => p.Id_ItemPresentacion == linea.Id_ItemPresentacion.Value);
+                                        .Include(p => p.Item)
+                                        .FirstOrDefaultAsync(p => p.Id_ItemPresentacion == linea.Id_ItemPresentacion.Value);
                     if (pres == null) continue;
-                    if (pres.Item.IsServicio) continue; // servicio no consume stock
-                    int unidadesNecesarias = linea.CantidadPresentaciones * pres.Cantidad;
-                    if (pres.Item.Stock < unidadesNecesarias)
+
+                    if (pres.Item.IsServicio) continue; 
+
+                    int unidades = linea.CantidadPresentaciones * pres.Cantidad;
+                    if (pedidoPorItem.ContainsKey(pres.Item.Id_Item))
+                        pedidoPorItem[pres.Item.Id_Item] += unidades;
+                    else
+                        pedidoPorItem[pres.Item.Id_Item] = unidades;
+                }
+
+                
+                if (pedidoPorItem.Any())
+                {
+                    var itemsInvolucrados = await _context.Items
+                        .Where(i => pedidoPorItem.Keys.Contains(i.Id_Item))
+                        .ToListAsync();
+
+                    foreach (var item in itemsInvolucrados)
                     {
-                        insuficientes.Add($"{pres.Item.Nombre} — falta {unidadesNecesarias - pres.Item.Stock} unidad(es)");
+                        int solicitado = pedidoPorItem[item.Id_Item];
+                        if (item.Stock < solicitado)
+                        {
+                            insuficientes.Add($"{item.Nombre} — falta {solicitado - item.Stock} unidad(es)");
+                        }
+                    }
+                }
+
+                // 2) sumar consumo por cada insumo
+                var consumoPorInsumo = new Dictionary<int, int>(); 
+                foreach (var linea in lineas)
+                {
+                    if (linea.Id_ItemPresentacion == null) continue;
+                    var pres = await _context.ItemPresentaciones
+                                        .Include(p => p.Item)
+                                        .FirstOrDefaultAsync(p => p.Id_ItemPresentacion == linea.Id_ItemPresentacion.Value);
+                    if (pres == null) continue;
+                    if (!pres.Item.IsServicio) continue;
+
+                    // obtener componentes del servicio
+                    var componentes = await _context.ServicioComponentes
+                                                .Where(sc => sc.Id_Servicio == pres.Item.Id_Item)
+                                                .ToListAsync();
+
+                    int unidadesServicio = linea.CantidadPresentaciones * pres.Cantidad; 
+                    foreach (var comp in componentes)
+                    {
+                        var totalConsumido = (int)Math.Ceiling(comp.CantidadPorServicio * unidadesServicio);
+                        if (consumoPorInsumo.ContainsKey(comp.Id_Item))
+                            consumoPorInsumo[comp.Id_Item] += totalConsumido;
+                        else
+                            consumoPorInsumo[comp.Id_Item] = totalConsumido;
+                    }
+                }
+
+                if (consumoPorInsumo.Any())
+                {
+                    var insumos = await _context.Items
+                        .Where(i => consumoPorInsumo.Keys.Contains(i.Id_Item))
+                        .ToListAsync();
+
+                    foreach (var insumo in insumos)
+                    {
+                        int requerido = consumoPorInsumo[insumo.Id_Item];
+                        if (insumo.Stock < requerido)
+                        {
+                            insuficientes.Add($"{insumo.Nombre} (insumo de servicio) — falta {requerido - insumo.Stock} unidad(es)");
+                        }
                     }
                 }
 
@@ -452,13 +544,12 @@ namespace PropamaPOS.Controllers
             {
                 await trx.RollbackAsync();
 
-                // Agregar mensaje de error visible en pantalla
                 ModelState.AddModelError("", $"Ocurrió un error interno: {ex.Message}");
 
-                // También guardar en TempData por si se redibuja sin el summary
+                // guardar en TempData
                 TempData["ErrorMessage"] = "Error al registrar la venta: " + ex.Message;
 
-                // Log rápido en consola (útil en desarrollo)
+
                 Console.WriteLine("ERROR EN VENTA: " + ex.ToString());
 
                 ViewBag.PreviousLineas = lineas;

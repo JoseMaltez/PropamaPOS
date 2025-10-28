@@ -12,8 +12,8 @@ using PropamaPOS.Data;
 namespace PropamaPOS.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251024012758_StockMinimoItem")]
-    partial class StockMinimoItem
+    [Migration("20251027222241_InitialCrate")]
+    partial class InitialCrate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -177,6 +177,9 @@ namespace PropamaPOS.Migrations
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("datetime2");

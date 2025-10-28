@@ -26,7 +26,7 @@
                 <div id="formErrors"></div>
                 @if (!ViewData.ModelState.IsValid)
                 {
-                    <div asp-validation-summary="All" class="alert alert-danger"></div>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
                 }
                 <div class="row mb-3">
                     <div class="col-md-4">
@@ -284,23 +284,47 @@
             const unidadesPorPresentacion = parseInt(opt.dataset.unidades || '1');
             const stock = parseInt(opt.dataset.stock || '0');
 
-            // unidades necesarias en unidades (no presentaciones)
+            // unidades necesarias en unidades
             const unidadesNecesarias = cantidadPres * unidadesPorPresentacion;
 
             // si no es servicio, verificar stock
             const itemObj = items.find(i => i.id_Item === parseInt(itemId));
             const esServicio = itemObj ? itemObj.isServicio : false;
-            if (!esServicio && unidadesNecesarias > stock) {
-                // Mostrar mensaje inline
-                const alerta = document.getElementById('stockAlert');
-                if (alerta) alerta.remove();
-                const div = document.createElement('div');
-                div.id = 'stockAlert';
-                div.className = 'alert alert-danger mt-2';
-                div.innerText = `No hay stock suficiente para ${itemObj ? itemObj.nombre : 'este artículo'}. Stock disponible: ${stock} unidad(es). Intentas vender: ${unidadesNecesarias}.`;
-                document.querySelector('#tablaLineas').before(div);
-                return;
-            } else {
+
+            // Si no es servicio, verificar stock considerando líneas ya añadidas
+            if (!esServicio) {
+                // sumar las unidades ya pedidas para este mismo item (en lineas)
+                const itemIdNum = parseInt(itemId);
+                const yaPedidas = lineas
+                    .filter(l => l.id_Item === itemIdNum && !l.esServicio)
+                    .reduce((acc, l) => {
+                        // l.cantidadPresentaciones multiplicado por las unidades por presentacion
+                        // necesitaremos la 'unidades por presentacion' de cada línea almacenada.
+                        // Si en tus objetos linea no guardas unidadesPorPresentacion, guarda p.cantidad al crear la línea.
+                        // En tu implementación actual guardaste: cantidadPresentaciones y presentacion, precio, esServicio...
+                        // Para ser robusto, asumo que cada 'linea' contiene 'unidadesPorPresentacion' al crearla.
+                        return acc + ( (l.unidadesPorPresentacion || 1) * (l.cantidadPresentaciones || 0) );
+                    }, 0);
+
+                const totalRequerido = yaPedidas + unidadesNecesarias;
+
+                if (totalRequerido > stock) {
+                    const alerta = document.getElementById('stockAlert');
+                    if (alerta) alerta.remove();
+                    const div = document.createElement('div');
+                    div.id = 'stockAlert';
+                    div.className = 'alert alert-danger mt-2';
+                    div.innerText = `No hay stock suficiente para ${itemObj ? itemObj.nombre : 'este artículo'}. Stock disponible: ${stock} unidad(es). Intentas vender en total: ${totalRequerido}. (Ya agregados: ${yaPedidas}, intentas añadir: ${unidadesNecesarias})`;
+                    document.querySelector('#tablaLineas').before(div);
+                    return;
+                } else {
+                    // remover mensaje de stock si existe
+                    const alertaExist = document.getElementById('stockAlert');
+                    if (alertaExist) alertaExist.remove();
+                }
+            }
+
+             else {
                 // remover mensaje de stock si existe
                 const alertaExist = document.getElementById('stockAlert');
                 if (alertaExist) alertaExist.remove();
@@ -315,6 +339,7 @@
                 nombre: itemObj.nombre,
                 presentacion: unidadTxt,
                 cantidadPresentaciones: cantidadPres,
+                unidadesPorPresentacion: unidadesPorPresentacion,
                 precio: precio,
                 descuento: descuento,
                 subtotal: subtotal,

@@ -22,10 +22,13 @@ insert into Categorias (Nombre, Descripcion) values
 ('Tecnología y Accesorios','Productos referentes a tecnología y electronicos'),
 ('Materiales de manualidades','Productos utilizados en la creación de manualidades, dibujo y pintura')
 
+insert into Proveedores (Nombre, Telefono, Correo, Direccion, Activo) values ('Tulan', '70656000', 'tulan@gmail.com', '6ta Avenida, Zona 1', 1)
+
 select * from Roles
 select * from Usuarios
 select * from Empleados
 select * from UnidadesMedida
 select * from Categorias
+select * from Proveedores
 
 
