@@ -11,7 +11,7 @@ using System.Globalization;
 
 namespace PropamaPOS.Controllers
 {
-    [Authorize(Roles = "Admin")] // cambiar si quieres que empleados también accedan
+    [Authorize(Roles = "Admin")] 
     public class ReportesController : Controller
     {
         private readonly AppDbContext _context;
@@ -352,6 +352,176 @@ namespace PropamaPOS.Controllers
 
             return File(pdfBytes, "application/pdf", $"Reporte_Ventas_{DateTime.UtcNow:yyyyMMdd}.pdf");
         }
+
+        // GET: Reportes/IndexInventario?categoriaId=1&bajoStock=true&minStock=5
+        public async Task<IActionResult> IndexInventario(int? categoriaId, bool? bajoStock, int? minStock, string q = null)
+        {
+            // Base: solo items activos (importante)
+            var query = _context.Items
+                .Where(i => i.Activo && !i.IsServicio) // excluir inactivos y servicios
+                .Include(i => i.Categoria)
+                .Include(i => i.Presentaciones.Where(p => p.Activo))
+                    .ThenInclude(p => p.UnidadMedida)
+                .AsQueryable();
+
+            if (categoriaId.HasValue)
+                query = query.Where(i => i.Id_Categoria == categoriaId.Value);
+
+            if (bajoStock.HasValue && bajoStock.Value)
+            {
+                if (minStock.HasValue)
+                    query = query.Where(i => i.Stock <= minStock.Value);
+                else
+                    query = query.Where(i => i.Stock <= (i.StockMinimo ?? 0));
+            }
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                q = q.Trim();
+                query = query.Where(i => i.Nombre.Contains(q) || i.Codigo.Contains(q));
+            }
+
+            var items = await query.OrderBy(i => i.Nombre).ToListAsync();
+
+            ViewBag.Categorias = await _context.Categorias.OrderBy(c => c.Nombre).ToListAsync();
+            ViewBag.CurrentCategoria = categoriaId;
+            ViewBag.CurrentBajoStock = bajoStock;
+            ViewBag.CurrentMinStock = minStock;
+            ViewBag.CurrentQ = q;
+
+            return View("Inventario", items);
+        }
+
+        // GET: Reportes/DownloadInventarioPdf?categoriaId=1&bajoStock=true&minStock=5
+        public async Task<IActionResult> DownloadInventarioPdf(int? categoriaId, bool? bajoStock, int? minStock, string q = null)
+        {
+            var query = _context.Items
+                .Where(i => i.Activo && !i.IsServicio)
+                .Include(i => i.Categoria)
+                .Include(i => i.Presentaciones.Where(p => p.Activo))
+                    .ThenInclude(p => p.UnidadMedida)
+                .AsQueryable();
+
+            if (categoriaId.HasValue)
+                query = query.Where(i => i.Id_Categoria == categoriaId.Value);
+
+            if (bajoStock.HasValue && bajoStock.Value)
+            {
+                if (minStock.HasValue)
+                    query = query.Where(i => i.Stock <= minStock.Value);
+                else
+                    query = query.Where(i => i.Stock <= (i.StockMinimo ?? 0));
+            }
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                q = q.Trim();
+                query = query.Where(i => i.Nombre.Contains(q) || i.Codigo.Contains(q));
+            }
+
+            var items = await query.OrderBy(i => i.Nombre).ToListAsync();
+
+            QuestPDF.Settings.License = LicenseType.Community;
+
+            string nombreNegocio = "Librería y Papelería Propama";
+            string nitNegocio = "6613799";
+            string direccionNegocio = "2da. Calle 5-41, Zona 1, Mazatenango, Suchitepéquez";
+
+            var pdfBytes = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Margin(25);
+                    page.Size(PageSizes.A4);
+                    page.DefaultTextStyle(x => x.FontSize(9));
+
+                    // Header
+                    page.Header().Column(header =>
+                    {
+                        header.Item().AlignCenter().Text(nombreNegocio).FontSize(14).Bold();
+                        header.Item().AlignCenter().Text($"NIT: {nitNegocio}").FontSize(9);
+                        header.Item().AlignCenter().Text(direccionNegocio).FontSize(9);
+                        header.Item().PaddingVertical(6).LineHorizontal(1);
+                        header.Item().Text("Reporte de Inventario").FontSize(12).Bold().AlignCenter();
+                        string filtros = (bajoStock == true) ? "Filtro: Bajo stock" : "Filtro: Todos";
+                        header.Item().AlignCenter().Text(filtros).FontSize(9);
+                    });
+
+                    page.Content().PaddingVertical(6).Column(content =>
+                    {
+                        content.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.RelativeColumn(3); // Producto
+                                columns.RelativeColumn(2); // Categoria
+                                columns.RelativeColumn(1); // Stock
+                                columns.RelativeColumn(1); // Stock Min
+                                columns.RelativeColumn(2); // Costo prom/unidad
+                                columns.RelativeColumn(2); // Precio venta
+                                columns.RelativeColumn(2); // Valor inventario
+                                columns.RelativeColumn(2); // Utilidad potencial
+                            });
+
+                            // Header fila
+                            table.Header(headerRow =>
+                            {
+                                headerRow.Cell().Element(CellStyle).Text("Producto").Bold();
+                                headerRow.Cell().Element(CellStyle).Text("Categoría").Bold();
+                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Stock").Bold();
+                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Stock Min").Bold();
+                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Costo (Q)").Bold();
+                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Precio (Q)").Bold();
+                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Valor Inv. (Q)").Bold();
+                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Utilidad Pot. (Q)").Bold();
+                            });
+
+                            decimal totalValorInv = 0m;
+                            decimal totalUtilidadPot = 0m;
+
+                            foreach (var it in items)
+                            {
+                                
+                                decimal costoProm = it.CostoPromedioUnidad;
+                                var presRef = it.Presentaciones?.FirstOrDefault();
+                                decimal precioVentaRef = presRef?.PrecioVenta ?? 0m;
+
+                                decimal valorInv = Math.Round(it.Stock * costoProm, 2);
+                                decimal utilidadPot = Math.Round((precioVentaRef - costoProm) * it.Stock, 2);
+
+                                totalValorInv += valorInv;
+                                totalUtilidadPot += utilidadPot;
+
+                                table.Cell().Element(CellStyle).Text(it.Nombre);
+                                table.Cell().Element(CellStyle).Text(it.Categoria?.Nombre ?? "-");
+                                table.Cell().Element(CellStyle).AlignRight().Text(it.Stock.ToString());
+                                table.Cell().Element(CellStyle).AlignRight().Text((it.StockMinimo ?? 0).ToString());
+                                table.Cell().Element(CellStyle).AlignRight().Text($"Q{costoProm:F2}");
+                                table.Cell().Element(CellStyle).AlignRight().Text($"Q{precioVentaRef:F2}");
+                                table.Cell().Element(CellStyle).AlignRight().Text($"Q{valorInv:F2}");
+                                table.Cell().Element(CellStyle).AlignRight().Text($"Q{utilidadPot:F2}");
+                            }
+
+                            // Totales
+                            table.Footer(footer =>
+                            {
+                                footer.Cell().ColumnSpan(6).Element(CellStyle).AlignRight().Text("Totales:");
+                                footer.Cell().Element(CellStyle).AlignRight().Text($"Q{totalValorInv:F2}");
+                                footer.Cell().Element(CellStyle).AlignRight().Text($"Q{totalUtilidadPot:F2}");
+                            });
+
+                            // estilo de celda
+                            IContainer CellStyle(IContainer c2) => c2.Padding(4).BorderBottom(1).BorderColor(Colors.Grey.Lighten3);
+                        });
+                    });
+
+                    page.Footer().AlignCenter().Text($"Generado: {DateTime.Now.ToString("g", CultureInfo.InvariantCulture)}").FontSize(8);
+                });
+            }).GeneratePdf();
+
+            return File(pdfBytes, "application/pdf", $"Reporte_Inventario_{DateTime.UtcNow:yyyyMMdd}.pdf");
+        }
+
 
     }
 }

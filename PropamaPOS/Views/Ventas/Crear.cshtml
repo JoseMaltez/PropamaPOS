@@ -298,11 +298,6 @@
                 const yaPedidas = lineas
                     .filter(l => l.id_Item === itemIdNum && !l.esServicio)
                     .reduce((acc, l) => {
-                        // l.cantidadPresentaciones multiplicado por las unidades por presentacion
-                        // necesitaremos la 'unidades por presentacion' de cada línea almacenada.
-                        // Si en tus objetos linea no guardas unidadesPorPresentacion, guarda p.cantidad al crear la línea.
-                        // En tu implementación actual guardaste: cantidadPresentaciones y presentacion, precio, esServicio...
-                        // Para ser robusto, asumo que cada 'linea' contiene 'unidadesPorPresentacion' al crearla.
                         return acc + ( (l.unidadesPorPresentacion || 1) * (l.cantidadPresentaciones || 0) );
                     }, 0);
 
@@ -360,8 +355,8 @@
             const ivaRate = parseFloat('@(Configuration.GetValue<decimal?>("Tax:IVA")?.ToString(CultureInfo.InvariantCulture) ?? "0.12")') || 0.12;
 
             lineas.forEach((l, idx) => {
-                const precioConIva = +(l.precio * (1 + ivaRate)); 
-                const subtotalConIva = +(precioConIva * l.cantidadPresentaciones - l.descuento);
+                const precioConIva = +(l.precio * (1 + ivaRate)).toFixed(2);
+                const subtotalConIva = +(precioConIva * l.cantidadPresentaciones - l.descuento).toFixed(2);
 
                 subtotal += l.precio * l.cantidadPresentaciones;
                 descuentos += l.descuento;
