@@ -8,7 +8,7 @@ using PropamaPOS.Models.ViewModels;
 
 namespace PropamaPOS.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Empleado")]
     public class ClienteController : Controller
     {
         private readonly AppDbContext _context;
@@ -92,6 +92,7 @@ namespace PropamaPOS.Controllers
         }
 
         // GET: Cliente/Editar/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Editar(int id)
         {
             var cliente = await _context.Clientes.FindAsync(id);
@@ -117,6 +118,7 @@ namespace PropamaPOS.Controllers
         // POST: Cliente/Editar/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Editar(int id, ClienteViewModel model)
         {
             if (id != model.Id_Cliente) return NotFound();

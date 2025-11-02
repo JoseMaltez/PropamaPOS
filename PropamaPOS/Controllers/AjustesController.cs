@@ -24,6 +24,7 @@ namespace PropamaPOS.Controllers
         {
             var ajustes = await _context.Set<AjusteInventario>()
                 .Include(a => a.Empleado)
+                .Include(a => a.Detalles)
                 .OrderByDescending(a => a.Fecha)
                 .ToListAsync();
 

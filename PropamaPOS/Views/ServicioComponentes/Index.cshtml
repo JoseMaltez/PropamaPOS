@@ -1,20 +1,31 @@
 ﻿@model IEnumerable<PropamaPOS.Models.ServicioComponente>
+@using System.Security.Claims
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
 @{
     ViewData["Title"] = "Componentes de Servicios";
+    var user = HttpContextAccessor.HttpContext?.User;
+    bool isAdmin = user?.IsInRole("Admin") ?? false;
+    bool isEmpleado = user?.IsInRole("Empleado") ?? false;
 }
+@await Html.PartialAsync("_AlertsPartial")
 <h3>Insumos de Servicios</h3>
-
-<p>
-    <a asp-action="Crear" class="btn btn-primary">Agregar componente</a>
-</p>
-
+ @if(isAdmin)
+ {
+    <p>
+        <a asp-action="Crear" class="btn btn-primary">Agregar componente</a>
+    </p>
+ }
 <table class="table table-striped">
     <thead>
         <tr>
             <th>Servicio</th>
             <th>Insumo</th>
             <th>Cantidad por servicio</th>
-            <th></th>
+            @if (isAdmin)
+            {
+                <th>Acciones</th>
+            }
         </tr>
     </thead>
     <tbody>
@@ -24,10 +35,13 @@
                 <td>@sc.Servicio?.Nombre</td>
                 <td>@sc.ItemConsumido?.Nombre</td>
                 <td>@sc.CantidadPorServicio</td>
-                <td>
+                @if (isAdmin)
+                {
+                    <td>
                     <a asp-action="Editar" asp-route-id="@sc.Id_ServicioComponente" class="btn btn-sm btn-secondary">Editar</a>
                     <a asp-action="Eliminar" asp-route-id="@sc.Id_ServicioComponente" class="btn btn-sm btn-danger">Eliminar</a>
-                </td>
+                    </td>
+                }
             </tr>
         }
     </tbody>

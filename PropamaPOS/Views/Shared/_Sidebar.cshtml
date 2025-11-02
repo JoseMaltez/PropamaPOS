@@ -1,5 +1,4 @@
-﻿@* Views/Shared/_Sidebar.cshtml *@
-@using System.Security.Claims
+﻿@using System.Security.Claims
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 
 @{
@@ -49,9 +48,16 @@
                             <i class="bi bi-tags"></i>
                             <span>Categorías</span>
                         </a>
-                        <a class="nav-link ms-3" asp-controller="ServicioComponentes" asp-action="Index">
-                            <i class="bi bi-diagram-3"></i>
-                            <span>Insumos de Servicios</span>
+                        <a class="nav-link ms-3" asp-controller="Item" asp-action="Index">
+                            <i class="bi bi-box-seam"></i>
+                            <span>Productos / Servicios</span>
+                        </a>
+                    }
+                    @if (isEmpleado)
+                    {
+                        <a class="nav-link ms-3" asp-controller="Item" asp-action="VerInventario">
+                            <i class="bi bi-box-seam"></i>
+                            <span>Productos y Servicios</span>
                         </a>
                     }
                     @if (isAdmin || isEmpleado)
@@ -60,9 +66,9 @@
                             <i class="bi bi-people"></i>
                             <span>Clientes</span>
                         </a>
-                        <a class="nav-link ms-3" asp-controller="Item" asp-action="Index">
-                            <i class="bi bi-box-seam"></i>
-                            <span>Productos / Servicios</span>
+                        <a class="nav-link ms-3" asp-controller="ServicioComponentes" asp-action="Index">
+                            <i class="bi bi-diagram-3"></i>
+                            <span>Insumos de Servicios</span>
                         </a>
                     }
                 </div>
@@ -97,16 +103,17 @@
                 </div>
             </div>
 
-            <!-- Reportes -->
-            <div class="menu-section mt-2">
-                <a class="nav-link" data-bs-toggle="collapse" href="#mReportes" role="button" aria-expanded="false">
+            @if (isAdmin)
+            {
+                <!-- Reportes -->
+                <div class="menu-section mt-2">
+                    <a class="nav-link" data-bs-toggle="collapse" href="#mReportes" role="button" aria-expanded="false">
                     <i class="bi bi-bar-chart-fill"></i>
                     <span>Reportes</span>
                     <i class="bi bi-caret-right-fill float-end"></i>
                 </a>
                 <div class="collapse" id="mReportes">
-                    @if (isAdmin)
-                    {
+                    
                         <a class="nav-link ms-3" asp-controller="Reportes" asp-action="Index">
                             <i class="bi bi-journal-text"></i>
                             <span>Compras</span>
@@ -119,9 +126,10 @@
                             <i class="bi bi-box-seam"></i>
                             <span>Inventario</span>
                         </a>
-                    }
+                    
                 </div>
             </div>
+            }
         </nav>
     </aside>
 }

@@ -1,8 +1,11 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@using System.Security.Claims
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
 @{
     ViewData["Title"] = "Acceso Denegado";
+    var user = HttpContextAccessor.HttpContext?.User;
+    bool isAdmin = user?.IsInRole("Admin") ?? false;
+    bool isEmpleado = user?.IsInRole("Empleado") ?? false;
 }
 
 <div class="container mt-5">
@@ -11,7 +14,14 @@
             <div class="alert alert-danger shadow-lg p-4 text-center">
                 <h3 class="mb-3">🚫 Acceso Denegado</h3>
                 <p>No tienes permisos para acceder a esta página.</p>
-                <a asp-action="Login" asp-controller="Account" class="btn btn-primary mt-3">Volver al login</a>
+                @if (isAdmin)
+                {
+                    <a asp-action="Dashboard" asp-controller="Admin" class="btn btn-primary mt-3">Volver a Inicio</a>
+                }
+                @if (isEmpleado)
+                {
+                    <a asp-action="Dashboard" asp-controller="Empleado" class="btn btn-primary mt-3">Volver a Inicio</a>
+                }
             </div>
         </div>
     </div>

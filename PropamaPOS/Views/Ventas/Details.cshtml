@@ -32,7 +32,7 @@
                     <h5>Información General</h5>
                     <p><strong>Fecha:</strong> @Model.Fecha.ToString("dd/MM/yyyy HH:mm")</p>
                     <p><strong>Método de pago:</strong> @Model.MetodoPago</p>
-                    <p><strong>Empleado:</strong> @(Model.Empleado != null ? Model.Empleado.Nombre : "No registrado")</p>
+                    <p><strong>Empleado:</strong> @(Model.Empleado != null ? Model.Empleado.Nombre + " " + Model.Empleado.Apellido : "No registrado")</p>
                 </div>
             </div>
 

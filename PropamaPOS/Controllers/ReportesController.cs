@@ -356,7 +356,6 @@ namespace PropamaPOS.Controllers
         // GET: Reportes/IndexInventario?categoriaId=1&bajoStock=true&minStock=5
         public async Task<IActionResult> IndexInventario(int? categoriaId, bool? bajoStock, int? minStock, string q = null)
         {
-            // Base: solo items activos (importante)
             var query = _context.Items
                 .Where(i => i.Activo && !i.IsServicio) // excluir inactivos y servicios
                 .Include(i => i.Categoria)

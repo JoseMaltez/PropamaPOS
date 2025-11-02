@@ -20,7 +20,6 @@ namespace PropamaPOS.Controllers
         }
 
         // GET: Admin/Dashboard
-        // GET: Admin/Dashboard
         public async Task<IActionResult> Dashboard()
         {
             var totalEmpleados = await _context.Empleados.CountAsync();

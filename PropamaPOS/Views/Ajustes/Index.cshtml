@@ -26,18 +26,28 @@
         <tbody>
             @foreach (var a in Model)
             {
+                string tipoColorClass = a.Tipo switch
+                {
+                    PropamaPOS.Models.TipoMovimientoAjuste.Entrada => "text-success fw-semibold",
+                    PropamaPOS.Models.TipoMovimientoAjuste.Salida => "text-danger fw-semibold",
+                    _ => "text-secondary"
+                };
+
                 <tr>
-                    <td>@a.Fecha.ToLocalTime().ToString("g")</td>
-                    <td>@a.Tipo</td>
+                    <td>@a.Fecha.ToString("g")</td>
+                    <td class="@tipoColorClass">@a.Tipo</td>
                     <td>@a.Motivo</td>
                     <td>@(a.Empleado != null ? a.Empleado.Nombre + " " + a.Empleado.Apellido : a.CreadoPor)</td>
                     <td>@(a.Detalles?.Count ?? 0)</td>
                     <td>
-                        <a asp-action="Details" asp-route-id="@a.Id_Ajuste" class="btn btn-sm btn-outline-secondary">Ver</a>
+                        <a asp-action="Details" asp-route-id="@a.Id_Ajuste" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-eye"></i> Ver
+                        </a>
                     </td>
                 </tr>
             }
         </tbody>
+
     </table>
 </div>
 

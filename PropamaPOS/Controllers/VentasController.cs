@@ -637,7 +637,7 @@ namespace PropamaPOS.Controllers
                             {
                                 col.Item().Text($"Factura: {venta.NumeroVenta}").Bold();
                                 col.Item().Text($"Fecha: {venta.Fecha:dd/MM/yyyy HH:mm}");
-                                col.Item().Text($"Empleado: {(venta.Empleado != null ? venta.Empleado.Nombre : "No registrado")}");
+                                col.Item().Text($"Empleado: {(venta.Empleado != null ? venta.Empleado.Nombre + " " + venta.Empleado.Apellido : "No registrado")}");
                             });
                             row.RelativeItem().Column(col =>
                             {

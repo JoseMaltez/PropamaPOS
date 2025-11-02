@@ -9,13 +9,19 @@ using PropamaPOS.Models.ViewModels;
 
 namespace PropamaPOS.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Empleado")]
     public class ItemController : Controller
     {
         private readonly AppDbContext _context;
-        public ItemController(AppDbContext context) => _context = context;
+        private readonly IConfiguration _config;
+        public ItemController(AppDbContext context, IConfiguration config) 
+        { 
+            _context = context;
+            _config = config;
+        }
 
         // Generar código único
+        [Authorize(Roles = "Admin")]
         private async Task<string> GenerarCodigoUnicoAsync()
         {
             var random = new Random();
@@ -32,6 +38,7 @@ namespace PropamaPOS.Controllers
 
 
         // GET: Item
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
             var items = await _context.Items
@@ -44,6 +51,7 @@ namespace PropamaPOS.Controllers
         }
 
         // GET: Item/Crear
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Crear()
         {
             ViewBag.Unidades = await _context.UnidadesMedida.ToListAsync();
@@ -52,6 +60,7 @@ namespace PropamaPOS.Controllers
         }
 
         // POST: Item/Crear
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Crear(ItemViewModel model)
@@ -155,6 +164,7 @@ namespace PropamaPOS.Controllers
         }
 
         // GET: Item/Editar/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Editar(int id)
         {
             var item = await _context.Items
@@ -191,6 +201,7 @@ namespace PropamaPOS.Controllers
         }
 
         // POST: Item/Editar/5
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Editar(int id, ItemViewModel model)
@@ -358,6 +369,7 @@ namespace PropamaPOS.Controllers
         }
 
         // GET: Item/Eliminar/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Eliminar(int id)
         {
             var item = await _context.Items.FindAsync(id);
@@ -365,7 +377,8 @@ namespace PropamaPOS.Controllers
             return View(item);
         }
 
-        // POST: Item/Eliminar/5  -> Convertir a soft delete
+        // POST: Item/Eliminar/5 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ActionName("Eliminar")]
         [ValidateAntiForgeryToken]
@@ -389,5 +402,69 @@ namespace PropamaPOS.Controllers
             }
             return RedirectToAction(nameof(Index));
         }
+
+        // GET: Item/VerInventario
+        [Authorize(Roles = "Admin,Empleado")]
+        public async Task<IActionResult> VerInventario(string q, int? categoriaId, int page = 1)
+        {
+            const int PageSize = 30;
+            decimal IVA = _config.GetValue<decimal?>("Tax:IVA") ?? 0.12m;
+
+            var query = _context.Items
+                .Include(i => i.Categoria)
+                .Include(i => i.Presentaciones.Where(p => p.Activo))
+                    .ThenInclude(p => p.UnidadMedida)
+                .Where(i => i.Activo)
+                .AsQueryable();
+
+            // --- Filtro por búsqueda general (nombre o código) ---
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                q = q.Trim().ToLower();
+                query = query.Where(i =>
+                    i.Nombre.ToLower().Contains(q) ||
+                    (i.Codigo != null && i.Codigo.ToLower().Contains(q))
+                );
+            }
+
+            // --- Filtro por categoría ---
+            if (categoriaId.HasValue && categoriaId.Value > 0)
+            {
+                query = query.Where(i => i.Id_Categoria == categoriaId.Value);
+            }
+
+            // --- Orden por nombre ---
+            query = query.OrderBy(i => i.Nombre);
+
+            // --- Paginación ---
+            var total = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(total / (double)PageSize);
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            var items = await query
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
+                .ToListAsync();
+
+            // --- Obtener lista de categorías para el filtro ---
+            var categorias = await _context.Categorias
+                .OrderBy(c => c.Nombre)
+                .ToListAsync();
+
+            // --- Pasar datos a la vista ---
+            ViewBag.Categorias = categorias;
+            ViewBag.CurrentCategoria = categoriaId;
+            ViewBag.CurrentQuery = q;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = total;
+            ViewBag.PageSize = PageSize;
+            ViewBag.IVA = IVA;
+
+            return View("VerInventario", items);
+        }
+
+
     }
 }

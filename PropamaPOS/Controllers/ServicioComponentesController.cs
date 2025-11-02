@@ -6,7 +6,7 @@ using PropamaPOS.Models;
 
 namespace PropamaPOS.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Empleado")]
     public class ServicioComponentesController : Controller
     {
         private readonly AppDbContext _context;
@@ -24,6 +24,7 @@ namespace PropamaPOS.Controllers
         }
 
         // GET: ServicioComponentes/Crear
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Crear(int? servicioId)
         {
             ViewBag.Servicios = await _context.Items.Where(i => i.Activo && i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
@@ -36,6 +37,7 @@ namespace PropamaPOS.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Crear(ServicioComponente model)
         {
             if (!ModelState.IsValid)
@@ -85,6 +87,7 @@ namespace PropamaPOS.Controllers
 
 
         // GET: ServicioComponentes/Editar/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Editar(int id)
         {
             var sc = await _context.ServicioComponentes.FindAsync(id);
@@ -97,6 +100,7 @@ namespace PropamaPOS.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Editar(int id, ServicioComponente model)
         {
             if (id != model.Id_ServicioComponente) return NotFound();
@@ -114,6 +118,7 @@ namespace PropamaPOS.Controllers
         }
 
         // GET: ServicioComponentes/Eliminar/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Eliminar(int id)
         {
             var sc = await _context.ServicioComponentes
@@ -124,8 +129,10 @@ namespace PropamaPOS.Controllers
             return View(sc);
         }
 
-        [HttpPost, ActionName("Eliminar")]
+        [HttpPost]
+        [ActionName("Eliminar")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> EliminarConfirmado(int id)
         {
             var sc = await _context.ServicioComponentes.FindAsync(id);
