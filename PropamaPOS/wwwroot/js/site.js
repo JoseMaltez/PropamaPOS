@@ -68,31 +68,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // animación 
     function applySidebarState(collapsed, instant = false) {
-        sidebar.style.transition = instant ? "none" : "width 0.3s ease";
-        document.body.style.transition = instant ? "none" : "margin-left 0.3s ease";
+        const transition = instant ? "none" : "width 0.35s cubic-bezier(0.4, 0, 0.2, 1)";
+        const contentTransition = instant ? "none" : "margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1)";
+        const sidebarHeader = sidebar.querySelector(".sidebar-header");
+
+        sidebar.style.transition = transition;
+        document.querySelector(".main-column").style.transition = contentTransition;
 
         if (collapsed) {
-            sidebar.classList.add('collapsed');
-            document.body.classList.add('sidebar-collapsed');
+            sidebar.classList.add("collapsed");
+            document.body.classList.add("sidebar-collapsed");
             btn.innerHTML = '<i class="bi bi-chevron-right"></i>';
 
-            // Cerrar submenús
-            const openMenus = sidebar.querySelectorAll('.collapse.show');
-            openMenus.forEach(menu => {
+            // Cerrar submenús abiertos
+            sidebar.querySelectorAll(".collapse.show").forEach(menu => {
                 const bsCollapse = bootstrap.Collapse.getOrCreateInstance(menu);
                 bsCollapse.hide();
             });
         } else {
-            sidebar.classList.remove('collapsed');
-            void sidebar.offsetWidth;
-            sidebar.style.transition = "width 0.3s ease";
-            document.body.classList.remove('sidebar-collapsed');
-            btn.innerHTML = '<i class="bi bi-chevron-left"></i>';
+            requestAnimationFrame(() => {
+                sidebar.classList.remove("collapsed");
+                document.body.classList.remove("sidebar-collapsed");
+                btn.innerHTML = '<i class="bi bi-chevron-left"></i>';
+            });
         }
 
-        // Guardar estado
-        localStorage.setItem('propama_sidebar_collapsed', collapsed);
+        localStorage.setItem("propama_sidebar_collapsed", collapsed);
     }
+
+
+
 
     // Manejo de categorías
     const categoryLinks = sidebar.querySelectorAll('[data-bs-toggle="collapse"]');

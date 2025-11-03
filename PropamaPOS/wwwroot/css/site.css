@@ -35,14 +35,14 @@ body {
     width: 240px;
     min-width: 240px;
     height: 100vh;
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    overflow-y: auto; 
+    position: fixed;
+    top: 0;
+    left: 0;
+    overflow-y: auto;
     background-color: #f8f9fa;
     overflow-x: hidden;
-    transition: width 0.3s ease;
-    z-index: 1030; 
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1030;
 }
 
 
@@ -72,8 +72,6 @@ body {
     .propama-sidebar.collapsed {
         width: 60px;
         min-width: 60px;
-        overflow-x: hidden;
-        transition: width 0.3s ease; 
     }
 
         .propama-sidebar.collapsed .nav-link span {
@@ -109,6 +107,10 @@ main {
    /* margin-left: 60px;*/
 /*}*/
 
+.main-column {
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 body:not(.sidebar-collapsed) .main-column {
     margin-left: 240px;
 }
@@ -142,7 +144,7 @@ body.sidebar-collapsed .main-column {
         }
 }
 
-/* centrar botón toggle */
+/* Sidebar header y botón toggle */
 .propama-sidebar .sidebar-header {
     height: 56px;
     display: flex;
@@ -151,33 +153,40 @@ body.sidebar-collapsed .main-column {
     padding: 0 0.75rem;
     position: relative;
     border-bottom: 1px solid #dee2e6;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-    /* toggle expandido */
-    .propama-sidebar .sidebar-header .toggle-btn {
-        border-radius: 50%;
-        width: 28px;
-        height: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        top: 0;
-        right: 0;
-        transform: none;
-    }
-
-/* colapsado  */
-.propama-sidebar.collapsed .sidebar-header {
+/* Botón toggle con animación suave */
+.propama-sidebar .toggle-btn {
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
     justify-content: center;
-    padding: 0;
+    position: relative;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-    /* Centrar en modo colapsado */
-    .propama-sidebar.collapsed .sidebar-header .toggle-btn {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        right: auto;
-    }
+/* Texto "Menú" también transiciona en opacidad */
+.propama-sidebar .sidebar-header strong {
+    transition: opacity 0.3s ease;
+}
+
+/* Estado expandido */
+.propama-sidebar:not(.collapsed) .toggle-btn {
+    transform: translateX(0);
+}
+
+.propama-sidebar:not(.collapsed) .sidebar-header strong {
+    opacity: 1;
+}
+
+/* Estado colapsado */
+.propama-sidebar.collapsed .toggle-btn {
+    transform: translateX(-10px);
+}
+
+.propama-sidebar.collapsed .sidebar-header strong {
+    opacity: 0;
+}
