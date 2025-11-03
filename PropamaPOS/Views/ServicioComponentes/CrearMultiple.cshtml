@@ -1,0 +1,93 @@
+﻿@model PropamaPOS.Models.ViewModels.ServicioComponentesCrearViewModel
+@{
+    ViewData["Title"] = "Agregar insumos al servicio";
+    var servicios = ViewBag.Servicios as List<PropamaPOS.Models.Item>;
+    var items = ViewBag.Items as List<PropamaPOS.Models.Item>;
+}
+
+<h3>Agregar insumos a Servicio</h3>
+
+<form asp-action="CrearMultiple" method="post">
+    <div class="mb-3">
+        <label>Servicio</label>
+        <select asp-for="Id_Servicio" class="form-control">
+            <option value="">-- Seleccione --</option>
+            @foreach(var s in servicios)
+            {
+                <option value="@s.Id_Item" selected="@(Model.Id_Servicio == s.Id_Item)">
+                    @s.Nombre
+                </option>
+            }
+        </select>
+        <span asp-validation-for="Id_Servicio" class="text-danger"></span>
+    </div>
+
+    <table class="table" id="componentesTable">
+        <thead>
+            <tr><th>Insumo</th><th>Cantidad por servicio</th><th></th></tr>
+        </thead>
+        <tbody>
+            @for (int i=0; i < Model.Lineas.Count; i++)
+            {
+                <tr>
+                    <td>
+                        <select name="Lineas[@i].Id_Item" class="form-control">
+                            <option value="">-- Seleccione --</option>
+                            @foreach(var it in items)
+                            {
+                                <option value="@it.Id_Item" selected="@(Model.Lineas[i].Id_Item == it.Id_Item)">
+                                    @it.Nombre
+                                </option>
+                            }
+                        </select>
+                    </td>
+                    <td>
+                        <input name="Lineas[@i].CantidadPorServicio" class="form-control" value="@Model.Lineas[i].CantidadPorServicio" />
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-danger remove-row">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="button" id="addRow" class="btn btn-primary">Agregar insumo</button>
+    <button type="submit" class="btn btn-success">Guardar todos</button>
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</form>
+
+@section Scripts {
+<script>
+    (function(){
+        function newRowHtml(index) {
+            return `<tr>
+                <td>
+                    <select name="Lineas[${index}].Id_Item" class="form-control">
+                        <option value="">-- Seleccione --</option>
+                        @foreach(var it in items) {
+                            @: <option value="@it.Id_Item">@it.Nombre</option>
+                        }
+                    </select>
+                </td>
+                <td><input name="Lineas[${index}].CantidadPorServicio" class="form-control" value="1" /></td>
+                <td><button type="button" class="btn btn-sm btn-danger remove-row">Eliminar</button></td>
+            </tr>`;
+        }
+
+        let table = document.getElementById('componentesTable').getElementsByTagName('tbody')[0];
+        let index = @Model.Lineas.Count;
+
+        document.getElementById('addRow').addEventListener('click', function(){
+            table.insertAdjacentHTML('beforeend', newRowHtml(index));
+            index++;
+        });
+
+        document.addEventListener('click', function(e){
+            if (e.target && e.target.classList.contains('remove-row')) {
+                e.target.closest('tr').remove();
+            }
+        });
+    })();
+</script>
+}

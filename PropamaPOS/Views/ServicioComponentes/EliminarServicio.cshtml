@@ -1,0 +1,31 @@
+﻿@model PropamaPOS.Models.Item
+@{
+    ViewData["Title"] = "Eliminar componentes del servicio";
+}
+
+<h3>Eliminar componentes del servicio</h3>
+
+<div class="alert alert-warning">
+    <p><strong>¿Seguro que deseas eliminar todos los componentes de este servicio?</strong></p>
+    <p>Esta acción eliminará todos los insumos asociados al servicio <b>@Model.Nombre</b> y no se puede deshacer.</p>
+</div>
+
+@if (Model.ServicioComponentes != null && Model.ServicioComponentes.Any())
+{
+    <ul>
+        @foreach (var sc in Model.ServicioComponentes)
+        {
+            <li>@sc.ItemConsumido?.Nombre - @sc.CantidadPorServicio</li>
+        }
+    </ul>
+}
+else
+{
+    <p class="text-muted fst-italic">Este servicio no tiene insumos asociados.</p>
+}
+
+<form asp-action="EliminarServicio" method="post">
+    <input type="hidden" name="id" value="@Model.Id_Item" />
+    <button type="submit" class="btn btn-danger">Eliminar todos</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>

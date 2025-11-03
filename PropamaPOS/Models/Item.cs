@@ -31,6 +31,8 @@ namespace PropamaPOS.Models
         public bool Activo { get; set; } = true;
 
         public ICollection<ItemPresentacion> Presentaciones { get; set; } = new List<ItemPresentacion>();
+        public ICollection<ServicioComponente>? ServicioComponentes { get; set; }
+
 
         public int? Id_Categoria { get; set; }
         public Categoria? Categoria { get; set; }

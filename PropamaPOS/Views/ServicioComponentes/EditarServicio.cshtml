@@ -1,0 +1,66 @@
+﻿@model List<PropamaPOS.Models.ServicioComponente>
+@{
+    ViewData["Title"] = "Editar insumos del servicio";
+    var items = ViewBag.Items as List<PropamaPOS.Models.Item>;
+    var servicioNombre = ViewBag.ServicioNombre as string;
+    var servicioId = (int)ViewBag.ServicioId;
+}
+
+<h3>Editar insumos para: <strong>@servicioNombre</strong></h3>
+
+<form asp-action="EditarServicio" method="post">
+    <input type="hidden" name="id" value="@servicioId" />
+
+    <table class="table" id="componentesTable">
+        <thead>
+            <tr><th>Insumo</th><th>Cantidad por servicio</th><th></th></tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Count; i++)
+            {
+                <tr>
+                    <td>
+                        <select name="[@i].Id_Item" class="form-control">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var it in items)
+                            {
+                                <option value="@it.Id_Item" selected="@(Model[i].Id_Item == it.Id_Item)">
+                                    @it.Nombre
+                                </option>
+                            }
+                        </select>
+                    </td>
+                    <td>
+                        <input name="[@i].CantidadPorServicio" value="@Model[i].CantidadPorServicio" class="form-control" />
+                    </td>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-row">Eliminar</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="button" id="addRow" class="btn btn-primary">Agregar insumo</button>
+    <button type="submit" class="btn btn-success">Guardar cambios</button>
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</form>
+
+@section Scripts {
+<script>
+    (function(){
+        let index = @Model.Count;
+        const itemsHtml = `@foreach(var it in items){<option value="@it.Id_Item">@it.Nombre</option>}`;
+        document.getElementById('addRow').addEventListener('click', function(){
+            const row = `<tr>
+                <td><select name="[${index}].Id_Item" class="form-control"><option value="">-- Seleccione --</option>${itemsHtml}</select></td>
+                <td><input name="[${index}].CantidadPorServicio" class="form-control" value="1" /></td>
+                <td><button type="button" class="btn btn-sm btn-danger remove-row">Eliminar</button></td>
+            </tr>`;
+            document.querySelector('#componentesTable tbody').insertAdjacentHTML('beforeend', row);
+            index++;
+        });
+        document.addEventListener('click', e => {
+            if (e.target.classList.contains('remove-row')) e.target.closest('tr').remove();
+        });
+    })();
+</script>
+}

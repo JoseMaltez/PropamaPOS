@@ -470,7 +470,7 @@ namespace PropamaPOS.Controllers
                 .Where(i => i.Activo)
                 .AsQueryable();
 
-            // --- Filtro por búsqueda general (nombre o código) ---
+            //Filtro por búsqueda general
             if (!string.IsNullOrWhiteSpace(q))
             {
                 q = q.Trim().ToLower();
@@ -480,22 +480,22 @@ namespace PropamaPOS.Controllers
                 );
             }
 
-            // --- Filtro por categoría ---
+            //Filtro por categoría
             if (categoriaId.HasValue && categoriaId.Value > 0)
             {
                 query = query.Where(i => i.Id_Categoria == categoriaId.Value);
             }
 
-            // --- Filtro por bajo stock ---
+            //Filtro por bajo stock
             if (bajoStock.HasValue && bajoStock.Value)
             {
                 query = query.Where(i => !i.IsServicio && i.Stock <= (i.StockMinimo ?? 0));
             }
 
-            // --- Orden por nombre ---
+            //Orden por nombre
             query = query.OrderBy(i => i.Nombre);
 
-            // --- Paginación ---
+            //Paginación
             var total = await query.CountAsync();
             var totalPages = (int)Math.Ceiling(total / (double)PageSize);
             if (page < 1) page = 1;
@@ -506,12 +506,12 @@ namespace PropamaPOS.Controllers
                 .Take(PageSize)
                 .ToListAsync();
 
-            // --- Obtener lista de categorías para el filtro ---
+            //Obtener lista de categorías para el filtro 
             var categorias = await _context.Categorias
                 .OrderBy(c => c.Nombre)
                 .ToListAsync();
 
-            // --- Pasar datos a la vista ---
+            //Pasar datos a la vista
             ViewBag.Categorias = categorias;
             ViewBag.CurrentCategoria = categoriaId;
             ViewBag.CurrentQuery = q;

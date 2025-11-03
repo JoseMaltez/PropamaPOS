@@ -215,9 +215,10 @@ namespace PropamaPOS.Data
             // ServicioComponentes: relacionar servicio y item consumido
             modelBuilder.Entity<ServicioComponente>()
                 .HasOne(sc => sc.Servicio)
-                .WithMany() // no agregamos navegación inversa en Item por ahora
+                .WithMany(s => s.ServicioComponentes)
                 .HasForeignKey(sc => sc.Id_Servicio)
                 .OnDelete(DeleteBehavior.Restrict);
+
 
             modelBuilder.Entity<ServicioComponente>()
                 .HasOne(sc => sc.ItemConsumido)

@@ -15,135 +15,183 @@ namespace PropamaPOS.Controllers
         // GET: ServicioComponentes
         public async Task<IActionResult> Index()
         {
-            var list = await _context.ServicioComponentes
-                .Include(s => s.Servicio)
-                .Include(s => s.ItemConsumido)
-                .OrderBy(sc => sc.Id_Servicio)
+            // Agrupar por servicio
+            var servicios = await _context.Items
+                .Where(i => i.Activo && i.IsServicio)
+                .Include(i => i.ServicioComponentes!)
+                    .ThenInclude(sc => sc.ItemConsumido)
+                .OrderBy(i => i.Nombre)
                 .ToListAsync();
-            return View(list);
+
+            return View(servicios);
         }
 
-        // GET: ServicioComponentes/Crear
+        // GET: ServicioComponentes/CrearMultiple
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Crear(int? servicioId)
+        public async Task<IActionResult> CrearMultiple(int? servicioId)
         {
             ViewBag.Servicios = await _context.Items.Where(i => i.Activo && i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
             ViewBag.Items = await _context.Items.Where(i => i.Activo && !i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
 
-            var model = new ServicioComponente();
+            var model = new PropamaPOS.Models.ViewModels.ServicioComponentesCrearViewModel();
             if (servicioId.HasValue) model.Id_Servicio = servicioId.Value;
+            // Inicializa con una línea vacía para que la UI muestre una fila
+            model.Lineas.Add(new PropamaPOS.Models.ViewModels.ServicioComponenteLineaViewModel());
             return View(model);
         }
 
+        // POST: ServicioComponentes/CrearMultiple
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Crear(ServicioComponente model)
+        public async Task<IActionResult> CrearMultiple(PropamaPOS.Models.ViewModels.ServicioComponentesCrearViewModel model)
         {
+            ViewBag.Servicios = await _context.Items.Where(i => i.Activo && i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
+            ViewBag.Items = await _context.Items.Where(i => i.Activo && !i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
+
             if (!ModelState.IsValid)
             {
-                foreach (var kv in ModelState)
-                {
-                    foreach (var err in kv.Value.Errors)
-                    {
-                        Console.WriteLine($"Error en {kv.Key}: {err.ErrorMessage}");
-                    }
-                }
-
-                ViewBag.Servicios = await _context.Items.Where(i => i.Activo && i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
-                ViewBag.Items = await _context.Items.Where(i => i.Activo && !i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
-                TempData["ErrorMessage"] = "Faltan datos o hay un error en el formulario.";
+                TempData["ErrorMessage"] = "Faltan datos o hay errores en el formulario.";
                 return View(model);
             }
 
+            // Validar servicio existe y es servicio
+            var servicio = await _context.Items.FirstOrDefaultAsync(i => i.Id_Item == model.Id_Servicio && i.IsServicio);
+            if (servicio == null)
+            {
+                ModelState.AddModelError("", "Servicio no válido.");
+                return View(model);
+            }
+
+            using var trx = await _context.Database.BeginTransactionAsync();
             try
             {
-                var servicio = await _context.Items.FirstOrDefaultAsync(i => i.Id_Item == model.Id_Servicio && i.IsServicio);
-                var insumo = await _context.Items.FirstOrDefaultAsync(i => i.Id_Item == model.Id_Item && !i.IsServicio);
-
-                if (servicio == null || insumo == null)
+                foreach (var linea in model.Lineas)
                 {
-                    TempData["ErrorMessage"] = "El servicio o el insumo seleccionado no existen o no son válidos.";
-                    ViewBag.Servicios = await _context.Items.Where(i => i.Activo && i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
-                    ViewBag.Items = await _context.Items.Where(i => i.Activo && !i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
-                    return View(model);
+                    if (linea == null) continue;
+
+                    var insumo = await _context.Items.FirstOrDefaultAsync(i => i.Id_Item == linea.Id_Item && !i.IsServicio);
+                    if (insumo == null)
+                    {
+                        await trx.RollbackAsync();
+                        ModelState.AddModelError("", $"Insumo inválido (Id {linea.Id_Item}).");
+                        return View(model);
+                    }
+
+                    var sc = new ServicioComponente
+                    {
+                        Id_Servicio = model.Id_Servicio,
+                        Id_Item = linea.Id_Item,
+                        CantidadPorServicio = linea.CantidadPorServicio
+                    };
+                    _context.ServicioComponentes.Add(sc);
                 }
 
-                _context.ServicioComponentes.Add(model);
                 await _context.SaveChangesAsync();
+                await trx.CommitAsync();
 
-                TempData["SuccessMessage"] = "Componente agregado correctamente.";
+                TempData["SuccessMessage"] = "Componentes agregados correctamente.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al guardar componente: {ex.Message}");
-                TempData["ErrorMessage"] = "Ocurrió un error al guardar el componente.";
-                ViewBag.Servicios = await _context.Items.Where(i => i.Activo && i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
-                ViewBag.Items = await _context.Items.Where(i => i.Activo && !i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
+                await trx.RollbackAsync();
+                TempData["ErrorMessage"] = $"Error al guardar: {ex.Message}";
                 return View(model);
             }
         }
 
-
-        // GET: ServicioComponentes/Editar/5
+        // GET: ServicioComponentes/EditarServicio/5
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Editar(int id)
+        public async Task<IActionResult> EditarServicio(int id)
         {
-            var sc = await _context.ServicioComponentes.FindAsync(id);
-            if (sc == null) return NotFound();
+            var servicio = await _context.Items.FirstOrDefaultAsync(i => i.Id_Item == id && i.IsServicio);
+            if (servicio == null) return NotFound();
 
-            ViewBag.Servicios = await _context.Items.Where(i => i.Activo && i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
+            var componentes = await _context.ServicioComponentes
+                .Include(sc => sc.ItemConsumido)
+                .Where(sc => sc.Id_Servicio == id)
+                .OrderBy(sc => sc.ItemConsumido.Nombre)
+                .ToListAsync();
+
             ViewBag.Items = await _context.Items.Where(i => i.Activo && !i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
-            return View(sc);
+            ViewBag.ServicioNombre = servicio.Nombre;
+            ViewBag.ServicioId = servicio.Id_Item;
+
+            return View(componentes);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Editar(int id, ServicioComponente model)
+        public async Task<IActionResult> EditarServicio(int id, List<ServicioComponente> componentes)
         {
-            if (id != model.Id_ServicioComponente) return NotFound();
-            if (!ModelState.IsValid)
+            var servicio = await _context.Items.FirstOrDefaultAsync(i => i.Id_Item == id && i.IsServicio);
+            if (servicio == null) return NotFound();
+
+            using var trx = await _context.Database.BeginTransactionAsync();
+            try
             {
-                ViewBag.Servicios = await _context.Items.Where(i => i.Activo && i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
-                ViewBag.Items = await _context.Items.Where(i => i.Activo && !i.IsServicio).OrderBy(i => i.Nombre).ToListAsync();
-                return View(model);
-            }
+                // eliminar todos los componentes existentes del servicio
+                var existentes = _context.ServicioComponentes.Where(sc => sc.Id_Servicio == id);
+                _context.ServicioComponentes.RemoveRange(existentes);
 
-            _context.Update(model);
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Componente actualizado.";
-            return RedirectToAction(nameof(Index));
-        }
+                // volver a insertar los que vienen del formulario
+                foreach (var comp in componentes)
+                {
+                    if (comp.Id_Item <= 0 || comp.CantidadPorServicio <= 0) continue;
+                    comp.Id_Servicio = id;
+                    _context.ServicioComponentes.Add(comp);
+                }
 
-        // GET: ServicioComponentes/Eliminar/5
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Eliminar(int id)
-        {
-            var sc = await _context.ServicioComponentes
-                .Include(s => s.Servicio)
-                .Include(s => s.ItemConsumido)
-                .FirstOrDefaultAsync(s => s.Id_ServicioComponente == id);
-            if (sc == null) return NotFound();
-            return View(sc);
-        }
-
-        [HttpPost]
-        [ActionName("Eliminar")]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> EliminarConfirmado(int id)
-        {
-            var sc = await _context.ServicioComponentes.FindAsync(id);
-            if (sc != null)
-            {
-                _context.ServicioComponentes.Remove(sc);
                 await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Componente eliminado.";
+                await trx.CommitAsync();
+
+                TempData["SuccessMessage"] = "Componentes del servicio actualizados correctamente.";
+                return RedirectToAction(nameof(Index));
             }
+            catch (Exception ex)
+            {
+                await trx.RollbackAsync();
+                TempData["ErrorMessage"] = $"Error al guardar: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // GET: ServicioComponentes/EliminarServicio/5
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EliminarServicio(int id)
+        {
+            var servicio = await _context.Items
+                .Include(s => s.ServicioComponentes!)
+                    .ThenInclude(sc => sc.ItemConsumido)
+                .FirstOrDefaultAsync(s => s.Id_Item == id && s.IsServicio);
+
+            if (servicio == null) return NotFound();
+            return View(servicio);
+        }
+
+        // POST: ServicioComponentes/EliminarServicio/5
+        [HttpPost]
+        [ActionName("EliminarServicio")]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EliminarServicioConfirmado(int id)
+        {
+            var servicio = await _context.Items
+                .Include(s => s.ServicioComponentes)
+                .FirstOrDefaultAsync(s => s.Id_Item == id && s.IsServicio);
+
+            if (servicio != null)
+            {
+                _context.ServicioComponentes.RemoveRange(servicio.ServicioComponentes!);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Componentes del servicio '{servicio.Nombre}' eliminados.";
+            }
+
             return RedirectToAction(nameof(Index));
         }
+
 
         [HttpGet]
         public async Task<IActionResult> CheckStock(int idServicio, int cantidad)
