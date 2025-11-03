@@ -11,85 +11,77 @@
     <link rel="stylesheet" href="~/PropamaPOS.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-0">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Propama</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-
-                    <!--Iniciar o cerrar sesion-->
-                    <ul class="navbar-nav ms-auto">
-                        @if (User.Identity.IsAuthenticated)
-                        {
-                            <li class="nav-item">
-                                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-link nav-link" style="color: inherit; text-decoration: none;">
-                                        Cerrar sesión
-                                    </button>
-                                </form>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Iniciar sesión</a>
-                            </li>
-                        }
-                    </ul>
-
-                </div>
-            </div>
-        </nav>
-    </header>
-    @* <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div> *@
-
-    <div class="d-flex">
-        <!-- Sidebar (partial) -->
+    <div class="app-root d-flex">
+        <!-- Sidebar -->
         @if (User.Identity?.IsAuthenticated ?? false)
         {
             <partial name="_Sidebar" />
         }
 
-        <!-- Main content area -->
-        <main class="flex-grow-1 p-3">
-            @RenderBody()
-        </main>
-    </div>
+        <!-- Columna derecha -->
+        <div class="main-column d-flex flex-column flex-grow-1">
+            <!-- Navbar -->
+            <header>
+                <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-0">
+                    <div class="container-fluid">
+                        <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Propama</a>
+                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - PropamaPOS - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
+                        <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                            <ul class="navbar-nav flex-grow-1">
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                                </li>
+                            </ul>
+
+                            <!-- Sesión -->
+                            <ul class="navbar-nav ms-auto">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <li class="nav-item">
+                                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-link nav-link" style="color: inherit; text-decoration: none;">
+                                                Cerrar sesión
+                                            </button>
+                                        </form>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Iniciar sesión</a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+            </header>
+
+            <!-- Contenido -->
+            <main class="main-content flex-grow-1 p-3">
+                @RenderBody()
+            </main>
+
+            <!-- Footer -->
+            <footer class="footer border-top text-muted">
+                <div class="container">
+                    &copy; 2025 - PropamaPOS - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                </div>
+            </footer>
+        </div> <!-- /.main-column -->
+    </div> <!-- /.app-root -->
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
-
-    @* <script>
-        setTimeout(() => {
-            document.querySelectorAll('.alert').forEach(a => {
-                const bsAlert = bootstrap.Alert.getOrCreateInstance(a);
-                bsAlert.close();
-            });
-        }, 10000);
-    </script> *@
-
 </body>
 </html>
+

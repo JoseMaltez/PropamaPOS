@@ -40,9 +40,31 @@ button.accept-policy {
 }
 
 .footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  white-space: nowrap;
-  line-height: 60px;
+    position: relative;
+    width: 100%;
+    line-height: 60px;
 }
+
+/* Layout de columnas */
+.app-root {
+    display: flex;
+    min-height: 100vh;
+}
+
+.main-column {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1 1 auto;
+    overflow: auto;
+}
+
+/* Sidebar de altura completa */
+/*.propama-sidebar {
+    height: 100vh;
+    position: relative;
+}*/

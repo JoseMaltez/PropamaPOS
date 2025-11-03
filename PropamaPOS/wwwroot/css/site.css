@@ -18,7 +18,7 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+ /* margin-bottom: 60px; */
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -34,14 +34,17 @@ body {
 .propama-sidebar {
     width: 240px;
     min-width: 240px;
-    height: calc(100vh - 56px);
-    position: sticky;
-    top: 56px;
-    overflow-y: auto;
+    height: 100vh;
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    overflow-y: auto; 
     background-color: #f8f9fa;
     overflow-x: hidden;
     transition: width 0.3s ease;
+    z-index: 1030; 
 }
+
 
     .propama-sidebar .nav-link {
         display: flex;
@@ -102,7 +105,15 @@ main {
     transition: margin-left .25s ease;
 }
 
-body.sidebar-collapsed main {
+/*body.sidebar-collapsed main {*/
+   /* margin-left: 60px;*/
+/*}*/
+
+body:not(.sidebar-collapsed) .main-column {
+    margin-left: 240px;
+}
+
+body.sidebar-collapsed .main-column {
     margin-left: 60px;
 }
 
