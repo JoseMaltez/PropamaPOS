@@ -4,6 +4,7 @@
     var categorias = ViewBag.Categorias as List<PropamaPOS.Models.Categoria> ?? new();
     var currentCategoria = ViewBag.CurrentCategoria as int?;
     var currentQuery = ViewBag.CurrentQuery as string;
+    var currentBajoStock = ViewBag.CurrentBajoStock as bool?;
     var currentPage = ViewBag.CurrentPage ?? 1;
     var totalPages = ViewBag.TotalPages ?? 1;
     var totalItems = ViewBag.TotalItems ?? 0;
@@ -27,14 +28,25 @@
                         <option value="">-- Todas las categorías --</option>
                         @foreach (var c in categorias)
                         {
-                            <option value="@c.Id_Categoria" selected="@(currentCategoria.HasValue && currentCategoria.Value == c.Id_Categoria ? "selected" : null)">
-                                @c.Nombre
-                            </option>
+                            if (currentCategoria == c.Id_Categoria)
+                            {
+                                <option value="@c.Id_Categoria" selected>@c.Nombre</option>
+                            }
+                            else
+                            {
+                                <option value="@c.Id_Categoria">@c.Nombre</option>
+                            }
                         }
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <button class="btn btn-primary w-100" type="submit"><i class="bi bi-search"></i> Buscar</button>
+                <div class="col-md-3 d-flex align-items-center">
+                    <div class="form-check mt-2">
+                        <input type="checkbox" class="form-check-input" id="bajoStock" name="bajoStock" value="true" @(currentBajoStock == true ? "checked" : null) />
+                        <label class="form-check-label" for="bajoStock">Solo bajo stock</label>
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-primary w-100" type="submit"><i class="bi bi-search"></i></button>
                 </div>
             </form>
 
@@ -62,11 +74,23 @@
                         {
                             @foreach (var i in Model)
                             {
-                                <tr>
+                                var esServicio = i.IsServicio;
+                                var bajo = !esServicio && i.Stock <= (i.StockMinimo ?? 0);
+                                var rowClass = bajo ? "table-warning" : "";
+                                <tr class="@rowClass">
                                     <td>@i.Nombre</td>
                                     <td>@i.Codigo</td>
                                     <td>@i.Categoria?.Nombre</td>
-                                    <td class="text-center">@i.Stock</td>
+                                    <td class="text-center">
+                                        @if (esServicio)
+                                        {
+                                            <span class="text-muted">N/A</span>
+                                        }
+                                        else
+                                        {
+                                            <strong>@i.Stock</strong>
+                                        }
+                                    </td>
                                     <td class="text-center">@(i.StockMinimo ?? 0)</td>
                                     <td>
                                         @foreach (var p in i.Presentaciones.Where(pp => pp.Activo))
@@ -101,7 +125,7 @@
                         @if (currentPage > 1)
                         {
                             <li class="page-item">
-                                <a class="page-link" href="?page=@(currentPage - 1)&q=@currentQuery&categoriaId=@currentCategoria">Anterior</a>
+                                <a class="page-link" href="?page=@(currentPage - 1)&q=@currentQuery&categoriaId=@currentCategoria&bajoStock=@currentBajoStock">Anterior</a>
                             </li>
                         }
 
@@ -110,7 +134,7 @@
                             if (i >= (int)currentPage - 2 && i <= (int)currentPage + 2)
                             {
                                 <li class="page-item @(i == (int)currentPage ? "active" : "")">
-                                    <a class="page-link" href="?page=@i&q=@currentQuery&categoriaId=@currentCategoria">@i</a>
+                                    <a class="page-link" href="?page=@i&q=@currentQuery&categoriaId=@currentCategoria&bajoStock=@currentBajoStock">@i</a>
                                 </li>
                             }
                         }
@@ -118,7 +142,7 @@
                         @if (currentPage < totalPages)
                         {
                             <li class="page-item">
-                                <a class="page-link" href="?page=@(currentPage + 1)&q=@currentQuery&categoriaId=@currentCategoria">Siguiente</a>
+                                <a class="page-link" href="?page=@(currentPage + 1)&q=@currentQuery&categoriaId=@currentCategoria&bajoStock=@currentBajoStock">Siguiente</a>
                             </li>
                         }
                     </ul>

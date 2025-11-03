@@ -1,46 +1,107 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-<!-- Views/Empleado/Dashboard.cshtml -->
-@{
+﻿@{
     ViewData["Title"] = "Dashboard Empleado";
 }
 
 <div class="container mt-4">
-    <h2 class="mb-4">Panel de Empleado</h2>
+    <h2 class="mb-4"><i class="bi bi-person-badge"></i> Panel del Empleado</h2>
 
-    <div class="row">
-        <!--Ventas-->
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
+    <!-- KPIs principales -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card text-center border-0 shadow-sm h-100">
                 <div class="card-body">
-                    <h5 class="card-title">💰 Ventas</h5>
-                    <p class="card-text">Realizar ventas</p>
-                    <a asp-action="Ventas" class="btn btn-success">Nueva Venta</a>
+                    <i class="bi bi-receipt fs-1 text-primary"></i>
+                    <h4>@ViewBag.VentasHoy</h4>
+                    <p class="text-muted mb-0">Ventas de hoy</p>
                 </div>
             </div>
         </div>
-
-        <!--Inventario-->
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
+        <div class="col-md-3">
+            <div class="card text-center border-0 shadow-sm h-100">
                 <div class="card-body">
-                    <h5 class="card-title">📦 Inventario</h5>
-                    <p class="card-text">Consultar inventario</p>
-                    <a asp-action="Inventario" class="btn btn-warning">Ver Inventario</a>
+                    <i class="bi bi-cash-stack fs-1 text-success"></i>
+                    <h4>Q@(ViewBag.MontoHoy.ToString("F2"))</h4>
+                    <p class="text-muted mb-0">Monto vendido</p>
                 </div>
             </div>
         </div>
-
-        <!--Clientes-->
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
+        <div class="col-md-3">
+            <div class="card text-center border-0 shadow-sm h-100">
                 <div class="card-body">
-                    <h5 class="card-title">👥 Clientes</h5>
-                    <p class="card-text">Gestionar clientes</p>
-                    <a asp-action="Clientes" class="btn btn-info">Ver Clientes</a>
+                    <i class="bi bi-exclamation-triangle fs-1 text-danger"></i>
+                    <h4>@ViewBag.BajoStock</h4>
+                    <p class="text-muted mb-0">Productos bajo stock</p>
+                    <a asp-controller="Item" asp-action="VerInventario" asp-route-bajoStock="true" class="btn btn-outline-danger btn-sm mt-2">
+                        Ver productos bajo stock
+                    </a>
                 </div>
             </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <i class="bi bi-calendar-check fs-1 text-info"></i>
+                    <h4>@DateTime.Now.ToString("dd/MM/yyyy")</h4>
+                    <p class="text-muted mb-0">Fecha de hoy</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accesos rápidos -->
+    <h5 class="mb-3 text-secondary">Accesos rápidos</h5>
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <a asp-controller="Ventas" asp-action="Crear" class="btn btn-outline-success w-100 py-3 shadow-sm">
+                <i class="bi bi-cart-plus fs-5 me-1"></i> Nueva Venta
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a asp-controller="Item" asp-action="VerInventario" class="btn btn-outline-warning w-100 py-3 shadow-sm">
+                <i class="bi bi-box-seam fs-5 me-1"></i> Consultar Inventario
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a asp-controller="Cliente" asp-action="Crear" class="btn btn-outline-info w-100 py-3 shadow-sm">
+                <i class="bi bi-person-add fs-5 me-1"></i> Nuevo Cliente
+            </a>
+        </div>
+    </div>
+
+    <!-- Últimas ventas -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-clock-history"></i> Últimas Ventas</h5>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ViewBag.UltimasVentas != null && ((IEnumerable<dynamic>)ViewBag.UltimasVentas).Any())
+                    {
+                        foreach (var v in ViewBag.UltimasVentas)
+                        {
+                            <tr>
+                                <td>@v.Fecha.ToString("g")</td>
+                                <td>@(v.Cliente?.Nombre ?? "Consumidor Final")</td>
+                                <td>Q@(v.Total.ToString("F2"))</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-3">No hay ventas registradas recientemente.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

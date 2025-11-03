@@ -27,7 +27,17 @@ namespace PropamaPOS.Controllers
             var totalClientes = await _context.Clientes.CountAsync();
             var totalItems = await _context.Items.CountAsync();
             var comprasPendientes = await _context.Compras.CountAsync(c => c.Estado == CompraEstado.Pendiente);
-            var ventasHoy = await _context.Ventas.CountAsync(v => v.Fecha.Date == DateTime.UtcNow.Date);
+            var ventasHoy = await _context.Ventas.CountAsync(v => v.Fecha.Date == DateTime.Now.Date);
+
+            var bajoStock = await _context.Items
+                .Where(i => i.Activo && !i.IsServicio)
+                .CountAsync(i => i.Stock <= (i.StockMinimo ?? 0));
+
+            var ultimasVentas = await _context.Ventas
+                .Include(v => v.Cliente)
+                .OrderByDescending(v => v.Fecha)
+                .Take(5)
+                .ToListAsync();
 
             ViewBag.TotalEmpleados = totalEmpleados;
             ViewBag.TotalProveedores = totalProveedores;
@@ -35,6 +45,8 @@ namespace PropamaPOS.Controllers
             ViewBag.TotalItems = totalItems;
             ViewBag.ComprasPendientes = comprasPendientes;
             ViewBag.VentasHoy = ventasHoy;
+            ViewBag.BajoStock = bajoStock;
+            ViewBag.UltimasVentas = ultimasVentas;
 
             return View();
         }

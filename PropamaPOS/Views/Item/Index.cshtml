@@ -1,97 +1,171 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model IEnumerable<PropamaPOS.Models.Item>
+﻿@model IEnumerable<PropamaPOS.Models.Item>
 @{
-    ViewData["Title"] = "Productos";
+    ViewData["Title"] = "Gestión de Productos y Servicios";
+    var categorias = ViewBag.Categorias as List<PropamaPOS.Models.Categoria> ?? new();
+    var currentCategoria = ViewBag.CurrentCategoria as int?;
+    var currentQuery = ViewBag.CurrentQuery as string;
+    var bajoStock = ViewBag.CurrentBajoStock as bool?;
+    var currentPage = ViewBag.CurrentPage ?? 1;
+    var totalPages = ViewBag.TotalPages ?? 1;
+    var totalItems = ViewBag.TotalItems ?? 0;
+    var iva = ViewBag.IVA as decimal? ?? 0.12m;
 }
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2><i class="bi bi-box-seam"></i> Gestión de Productos y Servicios</h2>
-        <a asp-action="Crear" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Crear Producto o Servicio</a>
+        <a asp-action="Crear" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Crear nuevo</a>
     </div>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-    }
+    <!-- Filtros -->
+    <form method="get" class="card shadow-sm mb-4 p-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Buscar por nombre o código</label>
+                <input type="text" name="q" value="@currentQuery" class="form-control" placeholder="Buscar..." />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Categoría</label>
+                <select name="categoriaId" class="form-select">
+                    <option value="">-- Todas --</option>
+                    @foreach (var c in categorias)
+                    {
+                        <option value="@c.Id_Categoria" selected="@(currentCategoria == c.Id_Categoria ? "selected" : null)">
+                            @c.Nombre
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div class="form-check mt-4">
+                    <input type="checkbox" class="form-check-input" id="chkBajoStock" name="bajoStock" value="true" @(bajoStock == true ? "checked" : null) />
+                    <label class="form-check-label" for="chkBajoStock">Solo bajo stock</label>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Buscar</button>
+            </div>
+        </div>
+    </form>
 
-    <div class="card shadow">
+    <!-- Tabla -->
+    <div class="card shadow-sm">
         <div class="card-body">
             @if (!Model.Any())
             {
-                <div class="text-center py-4">
-                    <h5 class="text-muted">No hay productos o servicios registrados</h5>
-                    <a asp-action="Crear" class="btn btn-primary mt-2">Crear Producto o Servicio</a>
-                </div>
+                <div class="text-center py-4 text-muted">No se encontraron productos con los filtros aplicados.</div>
             }
             else
             {
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover">
+                    <table class="table table-hover align-middle">
                         <thead class="table-dark">
                             <tr>
                                 <th>ID</th>
                                 <th>Nombre</th>
                                 <th>Código</th>
                                 <th>Categoría</th>
-                                <th>Presentaciones / Precio (Q)</th>
+                                <th>Presentaciones</th>
                                 <th>Stock</th>
                                 <th>Stock Mínimo</th>
+                                <th>Tipo</th>
                                 <th>Estado</th>
-                                <th></th>
+                                <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var item in Model)
+                            @foreach (var i in Model)
                             {
-                                <tr>
-                                    <td>@item.Id_Item</td>
-                                    <td>@item.Nombre</td>
-                                    <td>@item.Codigo</td>
-                                    <td>@item.Categoria?.Nombre</td>
+                                <tr class="@(i.Stock <= (i.StockMinimo ?? 0) && !i.IsServicio ? "table-warning" : "")">
+                                    <td>@i.Id_Item</td>
+                                    <td>@i.Nombre</td>
+                                    <td>@i.Codigo</td>
+                                    <td>@i.Categoria?.Nombre</td>
                                     <td>
-                                        @foreach (var p in item.Presentaciones)
+                                        @foreach (var p in i.Presentaciones.Where(pp => pp.Activo))
                                         {
-                                            <div>
-                                                @($"{p.UnidadMedida?.Nombre} ({p.Cantidad}) — Q{p.PrecioVenta:0.00}")
+                                            var sinIva = p.PrecioVenta;
+                                            var conIva = Math.Round(sinIva * (1 + iva), 2);
+                                            <div class="mb-1">
+                                                <strong>@p.Cantidad @p.UnidadMedida?.Nombre</strong><br />
+                                                <small class="text-muted">
+                                                    Sin IVA: @($"Q{sinIva:F2}")<br />
+                                                    Con IVA: <span class="text-success fw-bold">@($"Q{conIva:F2}")</span>
+                                                </small>
                                             </div>
+                                            <hr class="my-1" />
                                         }
                                     </td>
                                     <td>
-                                        @if (item.IsServicio)
+                                        @if (i.IsServicio)
                                         {
                                             <em>N/A</em>
                                         }
                                         else
                                         {
-                                            @item.Stock
+                                            <span class="fw-bold">@i.Stock</span>
                                         }
                                     </td>
-                                    <td>@(item.StockMinimo.HasValue? item.StockMinimo.Value.ToString() : "N/A")</td>
+                                    <td>@(i.StockMinimo.HasValue? i.StockMinimo.Value.ToString() : "N/A")</td>
                                     <td>
-                                        @if (item.IsServicio)
+                                        @if (i.IsServicio)
                                         {
                                             <span class="badge bg-info">Servicio</span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-@(item.Activo ? "success" : "danger")">
-                                                @(item.Activo ? "Activo" : "Inactivo")
-                                            </span>
+                                            <span class="badge bg-secondary">Producto</span>
                                         }
                                     </td>
                                     <td>
-                                        <div class="btn-group" role="group">
-                                            <a asp-action="Editar" asp-route-id="@item.Id_Item" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> Editar</a>
-                                            <a asp-action="Eliminar" asp-route-id="@item.Id_Item" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Eliminar</a>
+                                        <span class="badge bg-@(i.Activo ? "success" : "danger")">
+                                            @(i.Activo ? "Activo" : "Inactivo")
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group">
+                                            <a asp-action="Editar" asp-route-id="@i.Id_Item" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-pencil"></i> Editar
+                                            </a>
+                                            <a asp-action="Eliminar" asp-route-id="@i.Id_Item" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i> Eliminar
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Paginación -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <small>Mostrando página @currentPage de @totalPages — Total: @totalItems productos</small>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+                            @if (currentPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=@(currentPage - 1)&q=@currentQuery&categoriaId=@currentCategoria&bajoStock=@bajoStock">Anterior</a>
+                                </li>
+                            }
+                            @for (int i = 1; i <= (int)totalPages; i++)
+                            {
+                                if (i >= (int)currentPage - 2 && i <= (int)currentPage + 2)
+                                {
+                                    <li class="page-item @(i == (int)currentPage ? "active" : "")">
+                                        <a class="page-link" href="?page=@i&q=@currentQuery&categoriaId=@currentCategoria&bajoStock=@bajoStock">@i</a>
+                                    </li>
+                                }
+                            }
+                            @if (currentPage < totalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=@(currentPage + 1)&q=@currentQuery&categoriaId=@currentCategoria&bajoStock=@bajoStock">Siguiente</a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
                 </div>
             }
         </div>

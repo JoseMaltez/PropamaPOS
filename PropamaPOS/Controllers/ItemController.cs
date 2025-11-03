@@ -39,16 +39,70 @@ namespace PropamaPOS.Controllers
 
         // GET: Item
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string q, int? categoriaId, bool? bajoStock, int page = 1)
         {
-            var items = await _context.Items
+            const int PageSize = 30;
+            const decimal IVA = 0.12m;
+
+            var query = _context.Items
                 .Where(i => i.Activo)
                 .Include(i => i.Categoria)
                 .Include(i => i.Presentaciones.Where(p => p.Activo))
                     .ThenInclude(p => p.UnidadMedida)
+                .AsQueryable();
+
+            // Filtro por texto (nombre o código)
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var search = q.Trim().ToLower();
+                query = query.Where(i =>
+                    i.Nombre.ToLower().Contains(search) ||
+                    (i.Codigo != null && i.Codigo.ToLower().Contains(search))
+                );
+            }
+
+            // Filtro por categoría
+            if (categoriaId.HasValue && categoriaId.Value > 0)
+            {
+                query = query.Where(i => i.Id_Categoria == categoriaId.Value);
+            }
+
+            // Filtro por bajo stock
+            if (bajoStock.HasValue && bajoStock.Value)
+            {
+                query = query.Where(i => !i.IsServicio && i.Stock <= (i.StockMinimo ?? 0));
+            }
+
+            // Paginación
+            var total = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(total / (double)PageSize);
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            var items = await query
+                .OrderBy(i => i.Nombre)
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
                 .ToListAsync();
+
+            var categorias = await _context.Categorias
+                .OrderBy(c => c.Nombre)
+                .ToListAsync();
+
+            // ViewBag
+            ViewBag.Categorias = categorias;
+            ViewBag.CurrentCategoria = categoriaId;
+            ViewBag.CurrentQuery = q;
+            ViewBag.CurrentBajoStock = bajoStock;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = total;
+            ViewBag.PageSize = PageSize;
+            ViewBag.IVA = IVA;
+
             return View(items);
         }
+
 
         // GET: Item/Crear
         [Authorize(Roles = "Admin")]
@@ -404,8 +458,7 @@ namespace PropamaPOS.Controllers
         }
 
         // GET: Item/VerInventario
-        [Authorize(Roles = "Admin,Empleado")]
-        public async Task<IActionResult> VerInventario(string q, int? categoriaId, int page = 1)
+        public async Task<IActionResult> VerInventario(string q, int? categoriaId, bool? bajoStock, int page = 1)
         {
             const int PageSize = 30;
             decimal IVA = _config.GetValue<decimal?>("Tax:IVA") ?? 0.12m;
@@ -433,6 +486,12 @@ namespace PropamaPOS.Controllers
                 query = query.Where(i => i.Id_Categoria == categoriaId.Value);
             }
 
+            // --- Filtro por bajo stock ---
+            if (bajoStock.HasValue && bajoStock.Value)
+            {
+                query = query.Where(i => !i.IsServicio && i.Stock <= (i.StockMinimo ?? 0));
+            }
+
             // --- Orden por nombre ---
             query = query.OrderBy(i => i.Nombre);
 
@@ -456,6 +515,7 @@ namespace PropamaPOS.Controllers
             ViewBag.Categorias = categorias;
             ViewBag.CurrentCategoria = categoriaId;
             ViewBag.CurrentQuery = q;
+            ViewBag.CurrentBajoStock = bajoStock;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.TotalItems = total;
@@ -464,6 +524,7 @@ namespace PropamaPOS.Controllers
 
             return View("VerInventario", items);
         }
+
 
 
     }

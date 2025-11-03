@@ -25,8 +25,6 @@ namespace PropamaPOS.Controllers
             {
                 return RedirectToAction("Dashboard", "Empleado");
             }
-
-            // Si no está autenticado, mostrar la vista predeterminada
             return View();
         }
 
