@@ -33,102 +33,47 @@ body {
 /* Sidebar */
 .propama-sidebar {
     width: 240px;
-    min-width: 240px;
     height: 100vh;
     position: fixed;
     top: 0;
     left: 0;
     overflow-y: auto;
     background-color: #f8f9fa;
-    overflow-x: hidden;
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-right: 1px solid #dee2e6;
     z-index: 1030;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-
-    .propama-sidebar .nav-link {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: .55rem .75rem;
-        color: #2c3e50;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        transition: all 0.2s ease;
+    /* Cuando está oculta */
+    .propama-sidebar.hidden {
+        transform: translateX(-100%);
     }
 
-        .propama-sidebar .nav-link i {
-            flex-shrink: 0;
-            width: 20px;
-            text-align: center;
-        }
-
-        .propama-sidebar .nav-link:hover {
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-    /* Estado colapsado */
-    .propama-sidebar.collapsed {
-        width: 60px;
-        min-width: 60px;
-    }
-
-        .propama-sidebar.collapsed .nav-link span {
-            display: none;
-        }
-
-        /* Oculta las flechas cuando está colapsada */
-        .propama-sidebar.collapsed .bi-caret-right-fill,
-        .propama-sidebar.collapsed .bi-caret-down-fill {
-            display: none !important;
-        }
-
-        .propama-sidebar.collapsed .nav-link i {
-            margin-right: 0 !important;
-            text-align: center;
-        }
-
-        .propama-sidebar.collapsed .sidebar-header strong {
-            display: none;
-        }
-
-        .propama-sidebar.collapsed #sidebarCollapseBtn {
-            position: absolute;
-            right: 5px;
-        }
 
 
-main {
+/*main {
     transition: margin-left .25s ease;
-}
+}*/
 
 /*body.sidebar-collapsed main {*/
    /* margin-left: 60px;*/
 /*}*/
 
 .main-column {
-    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-grow: 1;
+    min-height: 100vh;
+    transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-body:not(.sidebar-collapsed) .main-column {
+/* Cuando la sidebar está visible */
+body:not(.sidebar-hidden) .main-column {
     margin-left: 240px;
 }
 
-body.sidebar-collapsed .main-column {
-    margin-left: 60px;
+/* Cuando la sidebar está oculta */
+body.sidebar-hidden .main-column {
+    margin-left: 0;
 }
-
-.propama-sidebar .toggle-btn {
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-
 
 @media (max-width: 767px) {
     .propama-sidebar {
@@ -144,49 +89,36 @@ body.sidebar-collapsed .main-column {
         }
 }
 
-/* Sidebar header y botón toggle */
-.propama-sidebar .sidebar-header {
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 0.75rem;
-    position: relative;
-    border-bottom: 1px solid #dee2e6;
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+.propama-sidebar .nav-link {
+    color: #212529 !important;
+    font-weight: 500;
 }
 
-/* Botón toggle con animación suave */
-.propama-sidebar .toggle-btn {
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+.propama-sidebar .nav-link:hover,
+.propama-sidebar .nav-link:focus 
+{
+    color: #0d6efd !important;
+    background-color: #e9ecef;
+    border-radius: 6px;
 }
 
-/* Texto "Menú" también transiciona en opacidad */
-.propama-sidebar .sidebar-header strong {
-    transition: opacity 0.3s ease;
+.menu-section .nav-link[data-bs-toggle="collapse"] .bi-caret-right-fill {
+    transition: transform 0.25s ease;
 }
 
-/* Estado expandido */
-.propama-sidebar:not(.collapsed) .toggle-btn {
-    transform: translateX(0);
+.menu-section .nav-link[aria-expanded="true"] .bi-caret-right-fill {
+    transform: rotate(90deg);
 }
 
-.propama-sidebar:not(.collapsed) .sidebar-header strong {
-    opacity: 1;
+body:not(.sidebar-hidden):not(:has(#appSidebar)) .main-column {
+    margin-left: 0 !important;
 }
 
-/* Estado colapsado */
-.propama-sidebar.collapsed .toggle-btn {
-    transform: translateX(-10px);
+body.preload {
+    visibility: hidden;
 }
 
-.propama-sidebar.collapsed .sidebar-header strong {
-    opacity: 0;
+
+body.preload * {
+    transition: none !important;
 }

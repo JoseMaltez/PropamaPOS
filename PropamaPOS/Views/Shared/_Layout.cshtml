@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/PropamaPOS.styles.css" asp-append-version="true" />
 </head>
-<body>
+<body class="preload">
     <div class="app-root d-flex">
         <!-- Sidebar -->
         @if (User.Identity?.IsAuthenticated ?? false)
@@ -24,6 +24,12 @@
             <header>
                 <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-0">
                     <div class="container-fluid">
+                        @if (User.Identity?.IsAuthenticated ?? false)
+                        {
+                            <button id="sidebarToggleBtn" class="btn btn-outline-secondary me-2" type="button" aria-label="Toggle sidebar">
+                                <i class="bi bi-list fs-4"></i>
+                            </button>
+                        }
                         <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Propama</a>
                         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
                                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
