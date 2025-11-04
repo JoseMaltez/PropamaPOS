@@ -23,7 +23,7 @@ namespace PropamaPOS.Controllers
         public async Task<IActionResult> Dashboard()
         {
             var totalEmpleados = await _context.Empleados.CountAsync();
-            var totalProveedores = await _context.Proveedores.CountAsync();
+            var totalProveedores = await _context.Proveedores.Where(p => p.Activo).CountAsync();
             var totalClientes = await _context.Clientes.CountAsync();
             var totalItems = await _context.Items.CountAsync();
             var comprasPendientes = await _context.Compras.CountAsync(c => c.Estado == CompraEstado.Pendiente);
@@ -57,10 +57,13 @@ namespace PropamaPOS.Controllers
         {
             var empleados = await _context.Empleados
                 .Include(e => e.Usuario)
-                .ThenInclude(u => u.Rol)
+                    .ThenInclude(u => u.Rol)
+                .Where(e => e.Activo)
                 .ToListAsync();
+
             return View(empleados);
         }
+
 
         // GET: Admin/CrearEmpleado
         public async Task<IActionResult> CrearEmpleado()
@@ -267,16 +270,21 @@ namespace PropamaPOS.Controllers
 
             if (empleado != null)
             {
-                _context.Empleados.Remove(empleado);
-                if (empleado.Usuario != null)
-                    _context.Usuarios.Remove(empleado.Usuario);
+                empleado.Activo = false;
 
+                _context.Empleados.Update(empleado);
                 await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = "Empleado eliminado exitosamente.";
             }
+            else
+            {
+                TempData["ErrorMessage"] = "No se encontró el empleado especificado.";
+            }
+
             return RedirectToAction(nameof(Empleados));
         }
+
 
         private bool EmpleadoExists(int id)
         {

@@ -46,6 +46,13 @@ namespace PropamaPOS.Controllers
                 return View();
             }
 
+            // Verificar si tiene empleado asociado y si está activo
+            if (usuario.Empleado == null || !usuario.Empleado.Activo)
+            {
+                ViewBag.Error = "Usuario y/o contraseña incorrectos";
+                return View();
+            }
+
             // Verificar contraseña usando BCrypt
             if (string.IsNullOrEmpty(usuario.PasswordHash) ||
                 !BCrypt.Net.BCrypt.Verify(password, usuario.PasswordHash))
@@ -133,6 +140,14 @@ namespace PropamaPOS.Controllers
                 TempData["Message"] = "Si el correo existe, recibirás un enlace de recuperación.";
                 return RedirectToAction("ForgotPassword");
             }
+
+            // Verificar si el empleado está activo
+            if (!empleado.Activo)
+            {
+                TempData["Message"] = "Si el correo existe, recibirás un enlace de recuperación.";
+                return RedirectToAction("ForgotPassword");
+            }
+
 
             var usuario = empleado.Usuario;
 
@@ -232,6 +247,15 @@ namespace PropamaPOS.Controllers
                 ModelState.AddModelError("", "Por favor solicite un nuevo correo para reiniciar su contraseña");
                 return View(model);
             }
+
+            // Verificar si el empleado del usuario sigue activo
+            var empleado = await _context.Empleados.FirstOrDefaultAsync(e => e.Id_Usuario == resetToken.Id_Usuario);
+            if (empleado == null || !empleado.Activo)
+            {
+                ModelState.AddModelError("", "El usuario asociado está inactivo. No se puede restablecer la contraseña.");
+                return View(model);
+            }
+
 
             // Generar nuevo hash
             resetToken.Usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password);

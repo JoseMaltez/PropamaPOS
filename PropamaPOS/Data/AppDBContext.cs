@@ -55,9 +55,9 @@ namespace PropamaPOS.Data
                 .HasIndex(e => e.Correo)
                 .IsUnique();
 
-            modelBuilder.Entity<Proveedor>()
-                .HasIndex(p => p.Correo)
-                .IsUnique();
+            //modelBuilder.Entity<Proveedor>()
+            //    .HasIndex(p => p.Correo)
+            //    .IsUnique();
 
             modelBuilder.Entity<Cliente>()
                  .HasIndex(c => c.NIT)

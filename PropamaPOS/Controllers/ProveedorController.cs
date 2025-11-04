@@ -20,9 +20,12 @@ namespace PropamaPOS.Controllers
         // GET: Proveedor
         public async Task<IActionResult> Index()
         {
-            var proveedores = await _context.Proveedores.ToListAsync();
+            var proveedores = await _context.Proveedores
+                .Where(p => p.Activo)
+                .ToListAsync();
             return View(proveedores);
         }
+
 
         // GET: Proveedor/Crear
         public IActionResult Crear()
@@ -37,11 +40,11 @@ namespace PropamaPOS.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _context.Proveedores.AnyAsync(p => p.Correo == model.Correo))
-                {
-                    ModelState.AddModelError("Correo", "Este correo ya está registrado.");
-                    return View(model);
-                }
+                //if (await _context.Proveedores.Where(p => p.Activo).AnyAsync(p => p.Correo == model.Correo))
+                //{
+                //    ModelState.AddModelError("Correo", "Este correo ya está registrado.");
+                //    return View(model);
+                //}
 
                 var proveedor = new Proveedor
                 {
@@ -106,11 +109,11 @@ namespace PropamaPOS.Controllers
                         return NotFound();
                     }
 
-                    if (await _context.Proveedores.AnyAsync(p => p.Correo == model.Correo && p.Id_Proveedor != id))
-                    {
-                        ModelState.AddModelError("Correo", "Este correo ya está registrado.");
-                        return View(model);
-                    }
+                    //if (await _context.Proveedores.AnyAsync(p => p.Correo == model.Correo && p.Id_Proveedor != id))
+                    //{
+                    //    ModelState.AddModelError("Correo", "Este correo ya está registrado.");
+                    //    return View(model);
+                    //}
 
                     proveedor.Nombre = model.Nombre;
                     proveedor.Telefono = model.Telefono;
@@ -154,7 +157,7 @@ namespace PropamaPOS.Controllers
         }
 
         // POST: Proveedor/Eliminar/5
-        [HttpPost] 
+        [HttpPost]
         [ActionName("Eliminar")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EliminarConfirmado(int id)
@@ -163,7 +166,8 @@ namespace PropamaPOS.Controllers
 
             if (proveedor != null)
             {
-                _context.Proveedores.Remove(proveedor);
+                proveedor.Activo = false;
+                _context.Update(proveedor);
                 await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = "Proveedor eliminado exitosamente.";

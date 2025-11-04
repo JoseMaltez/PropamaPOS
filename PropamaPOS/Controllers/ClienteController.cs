@@ -78,7 +78,7 @@ namespace PropamaPOS.Controllers
                     Apellido = model.Apellido,
                     NIT = model.NIT,
                     Direccion = model.Direccion,
-                    Activo = model.Activo
+                    Activo = true
                 };
 
                 _context.Clientes.Add(cliente);
@@ -130,7 +130,7 @@ namespace PropamaPOS.Controllers
                     var cliente = await _context.Clientes.FindAsync(id);
                     if (cliente == null) return NotFound();
 
-                    // Validar NIT único (excluir el registro actual)
+                    // Validar NIT único
                     if (await _context.Clientes.AnyAsync(c => c.NIT == model.NIT && c.Id_Cliente != id))
                     {
                         ModelState.AddModelError("NIT", "Este NIT ya está registrado por otro cliente.");
@@ -141,7 +141,7 @@ namespace PropamaPOS.Controllers
                     cliente.Apellido = model.Apellido;
                     cliente.NIT = model.NIT;
                     cliente.Direccion = model.Direccion;
-                    cliente.Activo = model.Activo;
+                    cliente.Activo = true;
 
                     _context.Update(cliente);
                     await _context.SaveChangesAsync();
