@@ -12,16 +12,17 @@ namespace PropamaPOS.Controllers
         {
             if (string.IsNullOrEmpty(password))
                 return Content("No hay contraseña en el url");
-            
-            using (var hmac = new HMACSHA256())
-            {
-                string salt = Convert.ToBase64String(hmac.Key);
-                var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-                string passwordHash = Convert.ToBase64String(hash);
 
-                string resultado = $"Password: {password}\nSalt: {salt}\nHash: {passwordHash}";
-                return Content(resultado);
-            }
+            var hash = BCrypt.Net.BCrypt.HashPassword(password);
+            string resultado = $"Password: {password}\nBCryptHash: {hash}";
+            return Content(resultado);
+        }
+
+        [AllowAnonymous]
+        public IActionResult ProbarHash(string password, string hash)
+        {
+            bool valido = BCrypt.Net.BCrypt.Verify(password, hash);
+            return Content(valido ? "✔️ Correcto" : "❌ Incorrecto");
         }
     }
 }

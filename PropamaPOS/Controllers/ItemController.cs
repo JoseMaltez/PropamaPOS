@@ -42,7 +42,7 @@ namespace PropamaPOS.Controllers
         public async Task<IActionResult> Index(string q, int? categoriaId, bool? bajoStock, int page = 1)
         {
             const int PageSize = 30;
-            const decimal IVA = 0.12m;
+            decimal IVA = _config.GetValue<decimal?>("Tax:IVA") ?? 0.12m;
 
             var query = _context.Items
                 .Where(i => i.Activo)

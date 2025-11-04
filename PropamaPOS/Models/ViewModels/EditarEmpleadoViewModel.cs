@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using PropamaPOS.Models.Validations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PropamaPOS.Models.ViewModels
 {
@@ -34,7 +35,7 @@ namespace PropamaPOS.Models.ViewModels
         public string NombreUsuario { get; set; }
 
         [DataType(DataType.Password)]
-        [MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres")]
+        [PasswordStrength]
         public string? Password { get; set; }
 
         [DataType(DataType.Password)]

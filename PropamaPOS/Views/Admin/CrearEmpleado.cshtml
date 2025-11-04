@@ -1,7 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model PropamaPOS.Models.ViewModels.CrearEmpleadoViewModel
+﻿@model PropamaPOS.Models.ViewModels.CrearEmpleadoViewModel
 @{
     ViewData["Title"] = "Crear Empleado";
 }
@@ -36,21 +33,33 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Password" class="form-label">Contraseña</label>
-                                <div class="input-group mb-3">
-                                    <input asp-for="Password" type="password" class="form-control" 
-                                    placeholder="Ingrese la contraseña"/>
+                                <div class="input-group mb-2">
+                                    <input asp-for="Password" type="password" class="form-control" id="passwordInput"
+                                           placeholder="Ingrese la contraseña" />
                                     <button type="button" class="btn btn-outline-secondary toggle-password">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                 </div>
                                 <span asp-validation-for="Password" class="text-danger"></span>
+
+                                <!-- Lista de requisitos -->
+                                <div class="mt-2" id="passwordRequirements">
+                                    <small class="text-muted">La contraseña debe tener al menos:</small>
+                                    <ul class="list-unstyled ms-3 mt-1">
+                                        <li id="req-length"><i class="bi bi-x-circle text-danger me-1"></i>8 caracteres</li>
+                                        <li id="req-upper"><i class="bi bi-x-circle text-danger me-1"></i>1 mayúscula (A–Z)</li>
+                                        <li id="req-lower"><i class="bi bi-x-circle text-danger me-1"></i>1 minúscula (a–z)</li>
+                                        <li id="req-number"><i class="bi bi-x-circle text-danger me-1"></i>1 número (0–9)</li>
+                                        <li id="req-special"><i class="bi bi-x-circle text-danger me-1"></i>1 carácter especial (&#64;&#35;&#36;&#37;&#94;&amp;&#42;&#33;&#63;)</li>
+                                    </ul>
+                                </div>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label asp-for="ConfirmPassword" class="form-label">Confirmar Contraseña</label>
                                 <div class="input-group mb-3">
-                                    <input asp-for="ConfirmPassword" type="password" class="form-control" 
-                                    placeholder="Repita la contraseña"/>
+                                    <input asp-for="ConfirmPassword" type="password" class="form-control"
+                                           placeholder="Repita la contraseña" />
                                     <button type="button" class="btn btn-outline-secondary toggle-password">
                                         <i class="bi bi-eye"></i>
                                     </button>
@@ -113,4 +122,51 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const passwordInput = document.getElementById("passwordInput");
+
+            const reqLength = document.getElementById("req-length");
+            const reqUpper = document.getElementById("req-upper");
+            const reqLower = document.getElementById("req-lower");
+            const reqNumber = document.getElementById("req-number");
+            const reqSpecial = document.getElementById("req-special");
+
+            passwordInput.addEventListener("input", function () {
+                // Mostrar/ocultar lista solo cuando se escribe algo
+                if (passwordInput.value.length > 0) {
+                    passwordRequirements.classList.remove("d-none");
+                } else {
+                    passwordRequirements.classList.add("d-none");
+                }
+
+
+                const value = passwordInput.value;
+
+                const hasLength = value.length >= 8;
+                const hasUpper = /[A-Z]/.test(value);
+                const hasLower = /[a-z]/.test(value);
+                const hasNumber = /\d/.test(value);
+                const hasSpecial = /[^A-Za-z0-9]/.test(value);
+
+                updateItem(reqLength, hasLength);
+                updateItem(reqUpper, hasUpper);
+                updateItem(reqLower, hasLower);
+                updateItem(reqNumber, hasNumber);
+                updateItem(reqSpecial, hasSpecial);
+            });
+
+            function updateItem(element, condition) {
+                const icon = element.querySelector("i");
+                if (condition) {
+                    icon.classList.remove("bi-x-circle", "text-danger");
+                    icon.classList.add("bi-check-circle", "text-success");
+                } else {
+                    icon.classList.remove("bi-check-circle", "text-success");
+                    icon.classList.add("bi-x-circle", "text-danger");
+                }
+            }
+        });
+    </script>
 }

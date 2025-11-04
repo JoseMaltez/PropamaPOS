@@ -11,9 +11,8 @@ namespace PropamaPOS.Models
         [MaxLength(50)]
         public string NombreUsuario { get; set; }
         [Required]
-        public string ContraHash { get; set; }
-        [Required]
-        public string ContraSalt { get; set; }
+        public string PasswordHash { get; set; } = string.Empty;
+
         [Required]
         public int Id_Rol { get; set; }
 

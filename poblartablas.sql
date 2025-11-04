@@ -3,8 +3,8 @@ INSERT INTO Roles (Nombre, Descripcion) VALUES
 ('Empleado', 'Empleado con permisos limitados');
 
 
-INSERT INTO Usuarios(NombreUsuario, ContraHash, ContraSalt, Id_Rol) VALUES 
-('jmaltez', 'PtqkopJqDeynTJQM2gOSRorOTWdDskcNTfTfKBlx2eM=','Q8bhbqFQUl/hKExCVzF0wdDU/fV+6JVdrx8Mbql8YzYMq3KdhDguys/6nb7N1I8dpIbnl4/maXEniKvglVhbxw==',1)
+INSERT INTO Usuarios(NombreUsuario, PasswordHash, Id_Rol) VALUES 
+('jmaltez', '$2a$11$raztPBPlUdSw3niSgDmV3u4NnjXCRuDWEX8ufJsnXWX1b0xC26pfK',1)
 
 insert into Empleados (Nombre, Apellido, Correo, Telefono, FechaContratacion, Activo, Id_Usuario) values
 ('Jose','Maltez','josemaltezv@gmail.com','59512640',GETDATE(),1,1)

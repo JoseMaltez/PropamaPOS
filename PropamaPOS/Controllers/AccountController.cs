@@ -39,25 +39,21 @@ namespace PropamaPOS.Controllers
                 .Include(u => u.Empleado)
                 .FirstOrDefault(u => u.NombreUsuario == nombreUsuario);
 
+            // Buscar usuario
             if (usuario == null)
             {
                 ViewBag.Error = "Usuario y/o contraseña incorrectos";
                 return View();
             }
 
-            // Verificar contraseña usando Hash + Salt
-            using (var hmac = new HMACSHA256(Convert.FromBase64String(usuario.ContraSalt)))
+            // Verificar contraseña usando BCrypt
+            if (string.IsNullOrEmpty(usuario.PasswordHash) ||
+                !BCrypt.Net.BCrypt.Verify(password, usuario.PasswordHash))
             {
-                var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-                var storedHash = Convert.FromBase64String(usuario.ContraHash);
-
-                if (!computedHash.SequenceEqual(storedHash))
-                {
-                    ViewBag.Error = "Usuario y/o contraseña incorrectos";
-                    return View();
-                }
-
+                ViewBag.Error = "Usuario y/o contraseña incorrectos";
+                return View();
             }
+
 
             //Crear Claims para la cookie
             var claims = new List<Claim>
@@ -206,12 +202,9 @@ namespace PropamaPOS.Controllers
                 return View(model);
             }
 
-            // Generar nuevo salt y hash
-            using (var hmac = new HMACSHA256())
-            {
-                resetToken.Usuario.ContraSalt = Convert.ToBase64String(hmac.Key);
-                resetToken.Usuario.ContraHash = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(model.NewPassword)));
-            }
+            // Generar nuevo hash
+            resetToken.Usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password);
+
 
             // Eliminar token usado
             _context.PasswordResetTokens.Remove(resetToken);

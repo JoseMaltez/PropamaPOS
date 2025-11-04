@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using PropamaPOS.Models.Validations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PropamaPOS.Models.ViewModels
 {
@@ -9,12 +10,13 @@ namespace PropamaPOS.Models.ViewModels
 
         [Required(ErrorMessage = "La nueva contraseña es obligatoria")]
         [DataType(DataType.Password)]
-        [MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres")]
-        public string NewPassword { get; set; }
+        [PasswordStrength]
+        public string? Password { get; set; }
+
 
         [Required(ErrorMessage = "La confirmación es obligatoria")]
         [DataType(DataType.Password)]
-        [Compare("NewPassword", ErrorMessage = "Las contraseñas no coinciden")]
+        [Compare("Password", ErrorMessage = "Las contraseñas no coinciden")]
         public string ConfirmPassword { get; set; }
     }
 }

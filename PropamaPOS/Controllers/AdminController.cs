@@ -91,36 +91,33 @@ namespace PropamaPOS.Controllers
                     return View(model);
                 }
 
-                using (var hmac = new HMACSHA256())
+                var usuario = new Usuario
                 {
-                    var usuario = new Usuario
-                    {
-                        NombreUsuario = model.NombreUsuario,
-                        ContraSalt = Convert.ToBase64String(hmac.Key),
-                        ContraHash = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(model.Password))),
-                        Id_Rol = model.Id_Rol
-                    };
+                    NombreUsuario = model.NombreUsuario,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
+                    Id_Rol = model.Id_Rol
+                };
 
-                    _context.Usuarios.Add(usuario);
-                    await _context.SaveChangesAsync();
 
-                    var empleado = new Empleado
-                    {
-                        Nombre = model.Nombre,
-                        Apellido = model.Apellido,
-                        Correo = model.Correo,
-                        Telefono = model.Telefono,
-                        FechaContratacion = model.FechaContratacion,
-                        Activo = true,
-                        Id_Usuario = usuario.Id_Usuario
-                    };
+                _context.Usuarios.Add(usuario);
+                await _context.SaveChangesAsync();
 
-                    _context.Empleados.Add(empleado);
-                    await _context.SaveChangesAsync();
+                var empleado = new Empleado
+                {
+                    Nombre = model.Nombre,
+                    Apellido = model.Apellido,
+                    Correo = model.Correo,
+                    Telefono = model.Telefono,
+                    FechaContratacion = model.FechaContratacion,
+                    Activo = true,
+                    Id_Usuario = usuario.Id_Usuario
+                };
 
-                    TempData["SuccessMessage"] = "Empleado creado exitosamente.";
-                    return RedirectToAction(nameof(Empleados));
-                }
+                _context.Empleados.Add(empleado);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Empleado creado exitosamente.";
+                return RedirectToAction(nameof(Empleados));
             }
 
             ViewBag.Roles = await _context.Roles.ToListAsync();
@@ -216,11 +213,7 @@ namespace PropamaPOS.Controllers
 
                     if (!string.IsNullOrEmpty(model.Password))
                     {
-                        using (var hmac = new HMACSHA256())
-                        {
-                            empleado.Usuario.ContraSalt = Convert.ToBase64String(hmac.Key);
-                            empleado.Usuario.ContraHash = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(model.Password)));
-                        }
+                        empleado.Usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password);
                     }
 
                     _context.Update(empleado);

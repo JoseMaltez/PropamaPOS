@@ -12,8 +12,8 @@ using PropamaPOS.Data;
 namespace PropamaPOS.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251027222241_InitialCrate")]
-    partial class InitialCrate
+    [Migration("20251103224610_initialCrate")]
+    partial class initialCrate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -594,14 +594,6 @@ namespace PropamaPOS.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id_Usuario"));
 
-                    b.Property<string>("ContraHash")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ContraSalt")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("Id_Rol")
                         .HasColumnType("int");
 
@@ -609,6 +601,10 @@ namespace PropamaPOS.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id_Usuario");
 
@@ -902,7 +898,7 @@ namespace PropamaPOS.Migrations
                         .IsRequired();
 
                     b.HasOne("PropamaPOS.Models.Item", "Servicio")
-                        .WithMany()
+                        .WithMany("ServicioComponentes")
                         .HasForeignKey("Id_Servicio")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -984,6 +980,8 @@ namespace PropamaPOS.Migrations
             modelBuilder.Entity("PropamaPOS.Models.Item", b =>
                 {
                     b.Navigation("Presentaciones");
+
+                    b.Navigation("ServicioComponentes");
                 });
 
             modelBuilder.Entity("PropamaPOS.Models.Usuario", b =>
