@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using PropamaPOS.Data;
 using PropamaPOS.Models;
 using PropamaPOS.Models.ViewModels;
-using Microsoft.Extensions.Configuration;
+using QuestPDF.Fluent;
+using PropamaPOS.Services;
 
 namespace PropamaPOS.Controllers
 {
@@ -13,12 +15,15 @@ namespace PropamaPOS.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IConfiguration _config;
+        private readonly EmailServiceClient _emailClient;
 
-        public ComprasController(AppDbContext context, IConfiguration config)
+        public ComprasController(AppDbContext context, IConfiguration config, EmailServiceClient emailClient)
         {
             _context = context;
             _config = config;
+            _emailClient = emailClient;
         }
+
 
         // GET: Compras
         public async Task<IActionResult> Index()
@@ -205,7 +210,15 @@ namespace PropamaPOS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarcarPendiente(int id)
         {
-            var compra = await _context.Compras.FindAsync(id);
+            var compra = await _context.Compras
+                .Include(c => c.Proveedor)
+                .Include(c => c.Detalles)
+                    .ThenInclude(d => d.Presentacion)
+                        .ThenInclude(p => p.UnidadMedida)
+                .Include(c => c.Detalles)
+                    .ThenInclude(d => d.Item)
+                .FirstOrDefaultAsync(c => c.Id_Compra == id);
+
             if (compra == null) return NotFound();
 
             if (compra.Estado != CompraEstado.Borrador)
@@ -218,9 +231,141 @@ namespace PropamaPOS.Controllers
             _context.Compras.Update(compra);
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = $"Compra {compra.NumeroCompra} marcada como Pendiente.";
+            try
+            {
+                if (!string.IsNullOrEmpty(compra.Proveedor?.Correo))
+                {
+                    string nombreNegocio = "Librería y Papelería Propama";
+                    string nombreProveedor = compra.Proveedor.Nombre ?? "Proveedor";
+                    string correoProveedor = compra.Proveedor.Correo;
+                    string fechaCompra = compra.Fecha.ToString("dd/MM/yyyy HH:mm");
+
+                    // Construir tabla HTML con detalles
+                    string tablaDetalles = "<table style='border-collapse:collapse;width:100%;border:1px solid #ddd;'>"
+                                         + "<thead><tr style='background-color:#f2f2f2;text-align:left;'>"
+                                         + "<th style='padding:8px;border:1px solid #ddd;'>Producto</th>"
+                                         + "<th style='padding:8px;border:1px solid #ddd;'>Presentación</th>"
+                                         + "<th style='padding:8px;border:1px solid #ddd;'>Cantidad</th>"
+                                         + "<th style='padding:8px;border:1px solid #ddd;'>Costo (Q)</th>"
+                                         + "<th style='padding:8px;border:1px solid #ddd;'>Subtotal (Q)</th>"
+                                         + "</tr></thead><tbody>";
+
+                    foreach (var det in compra.Detalles)
+                    {
+                        tablaDetalles += $"<tr>"
+                            + $"<td style='padding:8px;border:1px solid #ddd;'>{det.Item?.Nombre ?? "-"}</td>"
+                            + $"<td style='padding:8px;border:1px solid #ddd;'>{det.Presentacion?.UnidadMedida?.Nombre ?? "-"}</td>"
+                            + $"<td style='padding:8px;border:1px solid #ddd;text-align:right;'>{det.CantidadPresentaciones}</td>"
+                            + $"<td style='padding:8px;border:1px solid #ddd;text-align:right;'>Q{det.PrecioCostoPorPresentacion:F2}</td>"
+                            + $"<td style='padding:8px;border:1px solid #ddd;text-align:right;'>Q{det.Subtotal:F2}</td>"
+                            + $"</tr>";
+                    }
+
+                    tablaDetalles += "</tbody></table>";
+
+                    // Construir cuerpo del correo
+                    var subject = $"Orden de Compra {compra.NumeroCompra} - Confirmación";
+
+                    var body = $@"
+                    <table width='100%' cellpadding='0' cellspacing='0' style='background-color:#f5f7fa;padding:30px 0;font-family:Arial,Helvetica,sans-serif;'>
+                      <tr>
+                        <td align='center'>
+                          <table width='700' cellpadding='0' cellspacing='0' style='background-color:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 0 10px rgba(0,0,0,0.05);'>
+                            <tr>
+                              <td style='background-color:#0066cc;color:white;text-align:center;padding:20px;font-size:22px;font-weight:bold;'>
+                                Librería y Papelería Propama
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style='padding:30px;font-size:15px;color:#333333;'>
+                                <p><strong>{nombreProveedor}</strong>,</p>
+                                <p>Reciba un cordial saludo. Desde <strong>{nombreNegocio}</strong> le informamos que hemos generado una nueva <strong>Orden de Compra</strong> con el fin de solicitar el suministro de los siguientes productos:</p>
+
+                                <p>
+                                  <strong>Número de Orden:</strong> {compra.NumeroCompra}<br/>
+                                  <strong>Fecha de Emisión:</strong> {fechaCompra}<br/>
+                                  <strong>Total:</strong> Q{compra.Total:F2}<br/>
+                                  <strong>Estado:</strong> {compra.Estado}
+                                </p>
+
+                                <h3 style='margin-top:25px;border-bottom:2px solid #0066cc;padding-bottom:5px;'>Detalle de Productos Solicitados</h3>
+
+                                <table width='100%' cellpadding='0' cellspacing='0' style='border-collapse:collapse;width:100%;margin-top:10px;'>
+                                  <thead>
+                                    <tr style='background-color:#f0f4ff;color:#333;border-bottom:2px solid #ddd;'>
+                                      <th style='padding:10px;border:1px solid #ddd;text-align:left;'>Producto</th>
+                                      <th style='padding:10px;border:1px solid #ddd;text-align:left;'>Presentación</th>
+                                      <th style='padding:10px;border:1px solid #ddd;text-align:right;'>Cantidad</th>
+                                      <th style='padding:10px;border:1px solid #ddd;text-align:right;'>Costo (Q)</th>
+                                      <th style='padding:10px;border:1px solid #ddd;text-align:right;'>Subtotal (Q)</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>";
+
+                                        foreach (var det in compra.Detalles)
+                                        {
+                                            body += $@"
+                                    <tr>
+                                      <td style='padding:8px;border:1px solid #ddd;'>{det.Item?.Nombre ?? "-"}</td>
+                                      <td style='padding:8px;border:1px solid #ddd;'>{det.Presentacion?.UnidadMedida?.Nombre ?? "-"}</td>
+                                      <td style='padding:8px;border:1px solid #ddd;text-align:right;'>{det.CantidadPresentaciones}</td>
+                                      <td style='padding:8px;border:1px solid #ddd;text-align:right;'>Q{det.PrecioCostoPorPresentacion:F2}</td>
+                                      <td style='padding:8px;border:1px solid #ddd;text-align:right;'>Q{det.Subtotal:F2}</td>
+                                    </tr>";
+                                        }
+
+                                        body += $@"
+                                  </tbody>
+                                </table>
+
+                                <p style='text-align:right;margin-top:20px;'>
+                                  <strong>Subtotal:</strong> Q{compra.Subtotal:F2}<br/>
+                                  <strong>IVA:</strong> Q{compra.IVA:F2}<br/>
+                                  <strong>Total:</strong> Q{compra.Total:F2}
+                                </p>";
+
+                                        if (!string.IsNullOrWhiteSpace(compra.Nota))
+                                            body += $"<p><strong>Nota adicional:</strong> {compra.Nota}</p>";
+
+                                        body += @"
+                                <p style='margin-top:25px;'>Agradecemos su pronta atención a este pedido y quedamos atentos a la confirmación del despacho o entrega correspondiente.</p>
+                                <p style='margin-top:25px;'>Atentamente,<br/><strong>Librería y Papelería Propama</strong></p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style='background-color:#f0f0f0;text-align:center;padding:15px;font-size:12px;color:#555555;'>
+                                Este es un correo automático, por favor no responder.<br/>
+                                &copy; " + DateTime.Now.Year + @" Librería y Papelería Propama
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>";
+
+
+                    // Enviar correo
+                    var (success, message) = await _emailClient.SendAsync(correoProveedor, subject, body);
+
+                    if (success)
+                        TempData["SuccessMessage"] = $"Compra {compra.NumeroCompra} marcada como Pendiente y correo enviado al proveedor.";
+                    else
+                        TempData["ErrorMessage"] = $"Compra marcada como Pendiente, pero no se pudo enviar el correo: {message}";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Compra marcada como Pendiente, pero el proveedor no tiene correo registrado.";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Compra marcada como Pendiente, pero ocurrió un error al enviar el correo: {ex.Message}";
+            }
+
             return RedirectToAction(nameof(Index));
         }
+
+
 
         // POST: Compras/Cancelar/5
         [HttpPost]
@@ -513,6 +658,127 @@ namespace PropamaPOS.Controllers
                 await CargarViewBags();
                 return View("Crear", model);
             }
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> DownloadPdf(int id)
+        {
+            decimal ivaRate = _config.GetValue<decimal?>("Tax:IVA") ?? 0.12m;
+
+            var compra = await _context.Compras
+                .Include(c => c.Proveedor)
+                .Include(c => c.Detalles)
+                    .ThenInclude(d => d.Presentacion)
+                        .ThenInclude(p => p.UnidadMedida)
+                .Include(c => c.Detalles)
+                    .ThenInclude(d => d.Item)
+                .FirstOrDefaultAsync(c => c.Id_Compra == id);
+
+            if (compra == null) return NotFound();
+
+            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
+            // Datos del negocio
+            string nombreNegocio = "Librería y Papelería Propama";
+            string nitNegocio = "6613799";
+            string direccionNegocio = "2da. Calle 5-41, Zona 1, Mazatenango, Suchitepéquez";
+
+            // Datos del proveedor
+            string nombreProveedor = compra.Proveedor?.Nombre ?? "Proveedor no registrado";
+
+            var pdfBytes = QuestPDF.Fluent.Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Margin(40);
+                    page.DefaultTextStyle(x => x.FontSize(11));
+                    page.Size(QuestPDF.Helpers.PageSizes.A4);
+
+                    // Encabezado
+                    page.Header().Column(header =>
+                    {
+                        header.Item().Text(nombreNegocio).FontSize(18).Bold().AlignCenter();
+                        header.Item().Text($"NIT Emisor: {nitNegocio}").AlignCenter();
+                        header.Item().Text($"Dirección Emisor: {direccionNegocio}").AlignCenter();
+                        header.Item().PaddingVertical(5).LineHorizontal(1);
+
+                        header.Item().Row(row =>
+                        {
+                            row.RelativeItem().Column(col =>
+                            {
+                                col.Item().Text($"Orden de Compra: {compra.NumeroCompra}").Bold();
+                                col.Item().Text($"Fecha: {compra.Fecha:dd/MM/yyyy HH:mm}");
+                                col.Item().Text($"Estado: {compra.Estado}");
+                                col.Item().Text($"Creado por: {compra.CreadoPor}");
+                            });
+
+                            row.RelativeItem().Column(col =>
+                            {
+                                col.Item().Text($"Proveedor: {nombreProveedor}");
+                            });
+                        });
+                    });
+
+                    // Contenido principal
+                    page.Content().Column(col =>
+                    {
+                        col.Item().PaddingVertical(10).Text("Detalle de Productos").FontSize(13).Bold();
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(c =>
+                            {
+                                c.RelativeColumn(3); // Producto
+                                c.RelativeColumn(2); // Presentación
+                                c.RelativeColumn(1); // Cantidad
+                                c.RelativeColumn(1.5f); // Precio costo
+                                c.RelativeColumn(1.2f); // Subtotal
+                            });
+
+                            // Encabezado
+                            table.Header(h =>
+                            {
+                                h.Cell().Background("#eeeeee").Padding(5).Text("Producto").Bold();
+                                h.Cell().Background("#eeeeee").Padding(5).Text("Presentación").Bold();
+                                h.Cell().Background("#eeeeee").Padding(5).AlignRight().Text("Cant.").Bold();
+                                h.Cell().Background("#eeeeee").Padding(5).AlignRight().Text("Costo (Q)").Bold();
+                                h.Cell().Background("#eeeeee").Padding(5).AlignRight().Text("Subtotal (Q)").Bold();
+                            });
+
+                            foreach (var det in compra.Detalles)
+                            {
+                                table.Cell().Padding(4).Text(det.Item?.Nombre ?? "-");
+                                table.Cell().Padding(4).Text(det.Presentacion?.UnidadMedida?.Nombre ?? "-");
+                                table.Cell().Padding(4).AlignRight().Text(det.CantidadPresentaciones.ToString());
+                                table.Cell().Padding(4).AlignRight().Text($"Q{det.PrecioCostoPorPresentacion:F2}");
+                                table.Cell().Padding(4).AlignRight().Text($"Q{det.Subtotal:F2}");
+                            }
+                        });
+
+                        // Totales
+                        col.Item().PaddingTop(10).AlignRight().Column(total =>
+                        {
+                            total.Item().Text($"Subtotal: Q{compra.Subtotal:F2}");
+                            total.Item().Text($"IVA: Q{compra.IVA:F2}");
+                            total.Item().Text($"Total: Q{compra.Total:F2}").Bold().FontSize(13);
+                        });
+
+                        if (!string.IsNullOrWhiteSpace(compra.Nota))
+                        {
+                            col.Item().PaddingTop(10).Text($"Nota: {compra.Nota}");
+                        }
+                    });
+
+                    // Pie de página
+                    page.Footer().Column(footer =>
+                    {
+                        footer.Item().PaddingVertical(5).LineHorizontal(1);
+                        footer.Item().AlignCenter().Text("Documento generado por PropamaPOS").FontSize(10).Italic();
+                    });
+                });
+            }).GeneratePdf();
+
+            return File(pdfBytes, "application/pdf", $"Compra_{compra.NumeroCompra}.pdf");
         }
 
     }

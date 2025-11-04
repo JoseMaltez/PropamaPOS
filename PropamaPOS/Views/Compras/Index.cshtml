@@ -29,7 +29,7 @@
                     {
                         <tr>
                             <td>@c.NumeroCompra</td>
-                            <td>@c.Fecha.ToLocalTime().ToString("g")</td>
+                            <td>@c.Fecha.ToString("g")</td>
                             <td>@(c.Proveedor != null ? c.Proveedor.Nombre : "-")</td>
                             <td>@c.Total.ToString("F2")</td>
                             <td>
@@ -42,9 +42,6 @@
                         </td>
                         <td>
                             <div class="btn-group" role="group">
-                                <a asp-action="Details" asp-route-id="@c.Id_Compra" class="btn btn-sm btn-outline-secondary" title="Ver detalle">
-                                    <i class="bi bi-eye"></i> Ver
-                                </a>
 
 
                                 @if (c.Estado == PropamaPOS.Models.CompraEstado.Borrador)
@@ -69,6 +66,9 @@
                                     }
                                     else if (c.Estado == PropamaPOS.Models.CompraEstado.Pendiente)
                                     {
+                                        <a asp-action="Details" asp-route-id="@c.Id_Compra" class="btn btn-sm btn-outline-secondary" title="Ver detalle">
+                                            <i class="bi bi-eye"></i> Ver
+                                        </a>
                                         <form asp-action="MarcarRecibida" method="post" class="d-inline">
                                             <input type="hidden" name="id" value="@c.Id_Compra" />
                                             <button type="submit" class="btn btn-sm btn-outline-success" title="Marcar como recibida">
@@ -85,6 +85,9 @@
                                     }
                                     else
                                     {
+                                        <a asp-action="Details" asp-route-id="@c.Id_Compra" class="btn btn-sm btn-outline-secondary" title="Ver detalle">
+                                            <i class="bi bi-eye"></i> Ver
+                                        </a>                                        
                                     }
                                 </div>
                             </td>

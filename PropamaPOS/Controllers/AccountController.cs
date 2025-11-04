@@ -139,27 +139,57 @@ namespace PropamaPOS.Controllers
             // Generar token aleatorio
             var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
 
+            // Crear token con estado activo
             var resetToken = new PasswordResetToken
             {
                 Id_Usuario = usuario.Id_Usuario,
                 Token = token,
-                Expiracion = DateTime.UtcNow.AddHours(1)
+                Expiracion = DateTime.Now.AddHours(1),
+                EsValido = true
             };
 
-            //Insertar token la base de datos
+            // Insertar token a la base de datos
             _context.PasswordResetTokens.Add(resetToken);
             await _context.SaveChangesAsync();
 
-            //Crear url con token (metodo, controlador, parametros, esquema)
+            // Crear URL con token
             var resetLink = Url.Action("ResetPassword", "Account", new { token = token }, Request.Scheme);
-            var subject = "Restablecimiento de contraseña";
+            var subject = "Restablecimiento de contraseña - Librería y Papelería Propama";
+
             var body = $@"
-            <p>Hola,</p>
-            <p>Solicitaste restablecer tu contraseña. Haz clic en el siguiente enlace o cópialo en tu navegador:</p>
-            <p><a href=""{resetLink}"">{resetLink}</a></p>
-            <p><strong>Importante:</strong> este enlace expira en 1 hora.</p>
-            <p>Si no fuiste tú, puedes ignorar este mensaje.</p>
-            <p>Este es un correo automático, por favor no responder.</p>";
+            <table width='100%' cellpadding='0' cellspacing='0' style='background-color:#f5f7fa;padding:30px 0;font-family:Arial,Helvetica,sans-serif;'>
+              <tr>
+                <td align='center'>
+                  <table width='600' cellpadding='0' cellspacing='0' style='background-color:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 0 10px rgba(0,0,0,0.05);'>
+                    <tr>
+                      <td style='background-color:#0066cc;color:white;text-align:center;padding:20px;font-size:22px;font-weight:bold;'>
+                        Librería y Papelería Propama
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style='padding:30px;font-size:15px;color:#333333;'>
+                        <p>Hola,</p>
+                        <p>Solicitaste restablecer tu contraseña. Haz clic en el siguiente botón o copia el enlace en tu navegador:</p>
+                        <p style='text-align:center;margin:30px 0;'>
+                          <a href='{resetLink}' style='background-color:#0066cc;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:5px;font-weight:bold;'>Restablecer contraseña</a>
+                        </p>
+                        <p>Si el botón no funciona, copia y pega el siguiente enlace:</p>
+                        <p style='word-break:break-all;color:#0066cc;'>{resetLink}</p>
+                        <p><strong>Importante:</strong> este enlace expira en 1 hora.</p>
+                        <p>Si no fuiste tú quien solicitó este cambio, puedes ignorar este mensaje.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style='background-color:#f0f0f0;text-align:center;padding:15px;font-size:12px;color:#555555;'>
+                        Este es un correo automático, por favor no responder.<br/>
+                        &copy; {DateTime.Now.Year} Librería y Papelería Propama
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>";
+
 
             var (success, message) = await _emailClient.SendAsync(empleado.Correo, subject, body);
 
@@ -168,8 +198,6 @@ namespace PropamaPOS.Controllers
                 : $"{message}";
 
             return RedirectToAction("ForgotPassword");
-
-
         }
 
         // Mostrar formulario para ingresar nueva contraseña
@@ -193,7 +221,10 @@ namespace PropamaPOS.Controllers
 
             var resetToken = await _context.PasswordResetTokens
                 .Include(t => t.Usuario)
-                .FirstOrDefaultAsync(t => t.Token == model.Token && t.Expiracion > DateTime.UtcNow);
+                .FirstOrDefaultAsync(t =>
+                    t.Token == model.Token &&
+                    t.Expiracion > DateTime.Now &&
+                    t.EsValido);
 
             if (resetToken == null)
             {
@@ -205,13 +236,21 @@ namespace PropamaPOS.Controllers
             // Generar nuevo hash
             resetToken.Usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password);
 
+            // Invalidar todos los tokens activos del usuario
+            var tokensDelUsuario = await _context.PasswordResetTokens
+                .Where(t => t.Id_Usuario == resetToken.Id_Usuario && t.EsValido)
+                .ToListAsync();
 
-            // Eliminar token usado
-            _context.PasswordResetTokens.Remove(resetToken);
+            foreach (var t in tokensDelUsuario)
+            {
+                t.EsValido = false;
+            }
+
             await _context.SaveChangesAsync();
 
             TempData["Message"] = "Contraseña restablecida correctamente.";
             return RedirectToAction("Login");
         }
+
     }
 }

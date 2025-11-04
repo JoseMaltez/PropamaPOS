@@ -14,11 +14,12 @@ namespace PropamaPOS.Models
         [Required]
         public DateTime Expiracion { get; set; }
 
-
         [Required]
         public int Id_Usuario { get; set; }
 
         [ForeignKey("Id_Usuario")]
         public Usuario Usuario { get; set; }
+
+        public bool EsValido { get; set; } = true;
     }
 }
