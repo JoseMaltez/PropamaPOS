@@ -22,7 +22,9 @@ namespace PropamaPOS.Controllers
         // GET: Cliente
         public async Task<IActionResult> Index(string q, int page = 1)
         {
-            var query = _context.Clientes.AsQueryable();
+            var query = _context.Clientes
+                        .Where(c => c.Activo)
+                        .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(q))
             {
@@ -160,6 +162,38 @@ namespace PropamaPOS.Controllers
 
             return View(model);
         }
+
+        // GET: Cliente/Eliminar/5
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.Id_Cliente == id);
+            if (cliente == null) return NotFound();
+
+            return View(cliente);
+        }
+
+        // POST: Cliente/Eliminar/5
+        [HttpPost]
+        [ActionName("Eliminar")]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EliminarConfirmado(int id)
+        {
+            var cliente = await _context.Clientes.FindAsync(id);
+
+            if (cliente != null)
+            {
+                cliente.Activo = false;
+                _context.Update(cliente);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Cliente desactivado exitosamente.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
 
         private bool ClienteExists(int id)
         {

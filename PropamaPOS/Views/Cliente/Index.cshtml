@@ -90,8 +90,12 @@
                                         <td>
                                             <div class="btn-group" role="group">
                                                 <a asp-action="Editar" asp-route-id="@cliente.Id_Cliente"
-                                                class="btn btn-sm btn-outline-primary" title="Editar">
+                                                   class="btn btn-sm btn-outline-primary" title="Editar">
                                                     <i class="bi bi-pencil"></i> Editar
+                                                </a>
+                                                <a asp-action="Eliminar" asp-route-id="@cliente.Id_Cliente"
+                                                   class="btn btn-sm btn-outline-danger" title="Desactivar">
+                                                    <i class="bi bi-person-x"></i> Eliminar
                                                 </a>
                                             </div>
                                         </td>

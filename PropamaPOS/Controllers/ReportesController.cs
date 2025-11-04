@@ -46,7 +46,7 @@ namespace PropamaPOS.Controllers
 
             var compras = await query.OrderByDescending(c => c.Fecha).ToListAsync();
 
-            ViewBag.Proveedores = await _context.Proveedores.Where(p => p.Activo).OrderBy(p => p.Nombre).ToListAsync();
+            ViewBag.Proveedores = await _context.Proveedores.OrderBy(p => p.Nombre).ToListAsync();
             ViewBag.CurrentProveedor = id_Proveedor;
             ViewBag.CurrentDesde = desde?.ToString("yyyy-MM-dd");
             ViewBag.CurrentHasta = hasta?.ToString("yyyy-MM-dd");
@@ -202,7 +202,7 @@ namespace PropamaPOS.Controllers
 
             var ventas = await query.OrderByDescending(v => v.Fecha).ToListAsync();
 
-            ViewBag.Clientes = await _context.Clientes.Where(c => c.Activo).OrderBy(c => c.Nombre).ToListAsync();
+            ViewBag.Clientes = await _context.Clientes.OrderBy(c => c.Nombre).ToListAsync();
             ViewBag.CurrentCliente = clienteId;
             ViewBag.CurrentDesde = desde?.ToString("yyyy-MM-dd");
             ViewBag.CurrentHasta = hasta?.ToString("yyyy-MM-dd");
@@ -357,7 +357,7 @@ namespace PropamaPOS.Controllers
         public async Task<IActionResult> IndexInventario(int? categoriaId, bool? bajoStock, int? minStock, string q = null)
         {
             var query = _context.Items
-                .Where(i => i.Activo && !i.IsServicio) // excluir inactivos y servicios
+                .Where(i => i.Activo && !i.IsServicio)
                 .Include(i => i.Categoria)
                 .Include(i => i.Presentaciones.Where(p => p.Activo))
                     .ThenInclude(p => p.UnidadMedida)

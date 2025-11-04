@@ -1,0 +1,62 @@
+﻿@model PropamaPOS.Models.Cliente
+@{
+    ViewData["Title"] = "Eliminar Cliente";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4 text-danger">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Eliminar Cliente
+                    </h3>
+
+                    <div class="alert alert-danger" role="alert">
+                        <h5 class="alert-heading">¿Está seguro que desea desactivar este cliente?</h5>
+                        <p class="mb-0">El cliente no será eliminado permanentemente, solo quedará inactivo y no aparecerá en el listado.</p>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">Información del Cliente</h6>
+                            <dl class="row">
+                                <dt class="col-sm-4">ID:</dt>
+                                <dd class="col-sm-8">@Model.Id_Cliente</dd>
+
+                                <dt class="col-sm-4">Nombre:</dt>
+                                <dd class="col-sm-8">@Model.Nombre @Model.Apellido</dd>
+
+                                <dt class="col-sm-4">NIT:</dt>
+                                <dd class="col-sm-8">@Model.NIT</dd>
+
+                                <dt class="col-sm-4">Dirección:</dt>
+                                <dd class="col-sm-8">@Model.Direccion</dd>
+
+                                <dt class="col-sm-4">Estado:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge bg-@(Model.Activo ? "success" : "danger")">
+                                        @(Model.Activo ? "Activo" : "Inactivo")
+                                    </span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <form asp-action="Eliminar" method="post">
+                        <input type="hidden" asp-for="Id_Cliente" />
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary me-md-2">
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger"
+                                    onclick="return confirm('¿Está seguro que desea desactivar este cliente?')">
+                                <i class="bi bi-person-x"></i> Desactivar Cliente
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
