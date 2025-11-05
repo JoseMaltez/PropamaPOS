@@ -22,37 +22,46 @@ namespace PropamaPOS.Controllers
         // GET: Cliente
         public async Task<IActionResult> Index(string q, int page = 1)
         {
-            var query = _context.Clientes
-                        .Where(c => c.Activo)
-                        .AsQueryable();
+            const int PageSize = 30;
 
+            var query = _context.Clientes
+                .Where(c => c.Activo)
+                .AsQueryable();
+
+            // Filtros de búsqueda
             if (!string.IsNullOrWhiteSpace(q))
             {
-                q = q.Trim();
+                q = q.Trim().ToLower();
                 query = query.Where(c =>
-                    c.NIT.Contains(q) ||
-                    c.Nombre.Contains(q) ||
-                    (c.Apellido != null && c.Apellido.Contains(q))
+                    c.NIT.ToLower().Contains(q) ||
+                    c.Nombre.ToLower().Contains(q) ||
+                    (c.Apellido != null && c.Apellido.ToLower().Contains(q)) ||
+                    c.Direccion.ToLower().Contains(q)
                 );
             }
 
+            // Paginación
             var total = await query.CountAsync();
             var totalPages = (int)Math.Ceiling(total / (double)PageSize);
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
 
             var clientes = await query
-                .OrderBy(c => c.Id_Cliente)
+                .OrderBy(c => c.Nombre)
                 .Skip((page - 1) * PageSize)
                 .Take(PageSize)
                 .ToListAsync();
 
+            // ViewBags
             ViewBag.CurrentQuery = q;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
-            ViewBag.PageSize = PageSize;
             ViewBag.TotalItems = total;
+            ViewBag.PageSize = PageSize;
 
             return View(clientes);
         }
+
 
         // GET: Cliente/Crear
         public IActionResult Crear()

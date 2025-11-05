@@ -9,9 +9,6 @@ namespace PropamaPOS.Models
     {
         Entrada = 1,
         Salida = 2,
-        Correccion = 3,
-        Donacion = 4,
-        Robo = 5
     }
 
     public class AjusteInventario

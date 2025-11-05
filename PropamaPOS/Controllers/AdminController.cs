@@ -53,16 +53,63 @@ namespace PropamaPOS.Controllers
 
 
         // GET: Admin/Empleados
-        public async Task<IActionResult> Empleados()
+        public async Task<IActionResult> Empleados(string q, int? rolId, DateTime? desde, DateTime? hasta, int page = 1)
         {
-            var empleados = await _context.Empleados
+            const int PageSize = 30;
+
+            var query = _context.Empleados
                 .Include(e => e.Usuario)
                     .ThenInclude(u => u.Rol)
-                .Where(e => e.Activo)
+                .Where(e => e.Activo) // Solo empleados activos
+                .AsQueryable();
+
+            // Filtro de búsqueda general
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                q = q.Trim().ToLower();
+                query = query.Where(e =>
+                    e.Nombre.ToLower().Contains(q) ||
+                    e.Apellido.ToLower().Contains(q) ||
+                    e.Correo.ToLower().Contains(q) ||
+                    e.Telefono.Contains(q) ||
+                    e.Usuario.NombreUsuario.ToLower().Contains(q)
+                );
+            }
+
+            // Filtro por rol
+            if (rolId.HasValue)
+                query = query.Where(e => e.Usuario.Id_Rol == rolId.Value);
+
+            // Filtro por rango de fechas de contratación
+            if (desde.HasValue)
+                query = query.Where(e => e.FechaContratacion >= desde.Value);
+
+            if (hasta.HasValue)
+                query = query.Where(e => e.FechaContratacion <= hasta.Value);
+
+            // Paginación
+            var total = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(total / (double)PageSize);
+
+            var empleados = await query
+                .OrderBy(e => e.Id_Empleado)
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
                 .ToListAsync();
+
+            ViewBag.CurrentQuery = q;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.RolId = rolId;
+            ViewBag.Desde = desde?.ToString("yyyy-MM-dd");
+            ViewBag.Hasta = hasta?.ToString("yyyy-MM-dd");
+            ViewBag.Roles = await _context.Roles.ToListAsync();
+            ViewBag.TotalItems = total;
 
             return View(empleados);
         }
+
+
 
 
         // GET: Admin/CrearEmpleado

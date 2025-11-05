@@ -29,35 +29,55 @@
             <div class="mb-3">
                 <h5 class="mb-3 text-primary"><i class="bi bi-funnel"></i> Filtros de búsqueda</h5>
 
-                <form method="get" class="row g-3 align-items-end">
+                <form method="get" class="card p-3 shadow-sm">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold"># Factura</label>
+                            <input type="text" name="numero" value="@ViewBag.CurrentNumero" class="form-control" placeholder="Ej: FAC-000001" />
+                        </div>
 
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold">Número de factura</label>
-                        <input type="text" name="numero" value="@ViewBag.CurrentNumero" class="form-control" placeholder="Ej: FAC-000001" />
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Cliente o NIT</label>
+                            <input type="text" name="cliente" value="@ViewBag.CurrentCliente" class="form-control" placeholder="Ej: Juan Pérez o 12345678" />
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Empleado</label>
+                            <input type="text" name="empleado" value="@ViewBag.CurrentEmpleado" class="form-control" placeholder="Nombre del empleado" />
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">Método de pago</label>
+                            <select name="metodoPago" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="0" selected="@(ViewBag.CurrentMetodoPago != null && (MetodoPagoVenta)ViewBag.CurrentMetodoPago == MetodoPagoVenta.Efectivo)">Efectivo</option>
+                                <option value="1" selected="@(ViewBag.CurrentMetodoPago != null && (MetodoPagoVenta)ViewBag.CurrentMetodoPago == MetodoPagoVenta.Tarjeta)">Tarjeta</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Cliente o NIT</label>
-                        <input type="text" name="cliente" value="@ViewBag.CurrentCliente" class="form-control" placeholder="Ej: Juan Pérez o 12345678" />
-                    </div>
+                    <div class="row g-3 align-items-end mt-2">
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">Desde</label>
+                            <input type="date" name="fechaDesde" value="@ViewBag.CurrentFechaDesde" class="form-control" />
+                        </div>
 
-                    <div class="col-md-2">
-                        <label class="form-label fw-semibold">Desde</label>
-                        <input type="date" name="fechaDesde" value="@ViewBag.CurrentFechaDesde" class="form-control" />
-                    </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">Hasta</label>
+                            <input type="date" name="fechaHasta" value="@ViewBag.CurrentFechaHasta" class="form-control" />
+                        </div>
 
-                    <div class="col-md-2">
-                        <label class="form-label fw-semibold">Hasta</label>
-                        <input type="date" name="fechaHasta" value="@ViewBag.CurrentFechaHasta" class="form-control" />
+                        <div class="col-md-8 d-flex justify-content-end gap-2">
+                            <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Buscar</button>
+                            <a class="btn btn-outline-secondary" href="@Url.Action("Index", "Ventas")">
+                                <i class="bi bi-x-lg"></i> Limpiar
+                            </a>
+                        </div>
                     </div>
-
-                    <div class="col-md-1 d-flex">
-                        <button class="btn btn-primary me-2 flex-fill" type="submit"><i class="bi bi-search"></i></button>
-                        <a class="btn btn-outline-secondary flex-fill" href="@Url.Action("Index", "Ventas")"><i class="bi bi-x-lg"></i></a>
-                    </div>
-
                 </form>
             </div>
+
+
 
 
 
@@ -69,8 +89,10 @@
                             <th># Factura</th>
                             <th>Fecha</th>
                             <th>Cliente</th>
-                            <th>Total (Q)</th>
-                            <th>Registrada por</th>
+                            <th>Empleado</th>
+                            <th>Método de Pago</th>
+                            <th>Líneas</th>
+                            <th>Total</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -81,8 +103,14 @@
                                 <td>@v.NumeroVenta</td>
                                 <td>@v.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td>@(v.Cliente != null ? $"{v.Cliente.Nombre} {v.Cliente.Apellido}" : v.NombreConsumidor)</td>
-                                <td>@v.Total.ToString("F2")</td>
-                                <td>@v.CreadoPor</td>
+                                <td>@(v.Empleado != null ? $"{v.Empleado.Nombre} {v.Empleado.Apellido}" : v.CreadoPor)</td>
+                                <td>
+                                    <span class="badge bg-@(v.MetodoPago == PropamaPOS.Models.MetodoPagoVenta.Efectivo ? "success" : "info")">
+                                        @v.MetodoPago
+                                    </span>
+                                </td>
+                                <td>@(v.Detalles?.Count ?? 0)</td>
+                                <td class="fw-bold">Q@(v.Total.ToString("F2"))</td>
                                 <td>
                                     <a asp-action="Details" asp-route-id="@v.Id_Venta" class="btn btn-outline-primary btn-sm">
                                         <i class="bi bi-eye"></i> Ver
@@ -92,6 +120,7 @@
                         }
                     </tbody>
                 </table>
+
             </div>
 
             <!-- PAGINACIÓN -->

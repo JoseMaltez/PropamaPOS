@@ -20,13 +20,62 @@ namespace PropamaPOS.Controllers
         }
 
         // GET: Ajustes
-        public async Task<IActionResult> Index()
+        [Authorize(Roles = "Admin,Empleado")]
+        public async Task<IActionResult> Index(DateTime? desde, DateTime? hasta, TipoMovimientoAjuste? tipo, string empleado, int page = 1)
         {
-            var ajustes = await _context.Set<AjusteInventario>()
+            const int PageSize = 30;
+
+            var query = _context.AjustesInventario
                 .Include(a => a.Empleado)
                 .Include(a => a.Detalles)
-                .OrderByDescending(a => a.Fecha)
+                .AsQueryable();
+
+            // Filtro por rango de fechas
+            if (desde.HasValue)
+                query = query.Where(a => a.Fecha >= desde.Value);
+            if (hasta.HasValue)
+                query = query.Where(a => a.Fecha <= hasta.Value);
+
+            // Filtro por tipo
+            if (tipo.HasValue)
+                query = query.Where(a => a.Tipo == tipo.Value);
+
+            // Filtro por empleado (texto libre)
+            if (!string.IsNullOrWhiteSpace(empleado))
+            {
+                var emp = empleado.Trim().ToLower();
+                query = query.Where(a =>
+                    (a.Empleado != null && (
+                        a.Empleado.Nombre.ToLower().Contains(emp) ||
+                        (a.Empleado.Apellido != null && a.Empleado.Apellido.ToLower().Contains(emp))
+                    )) ||
+                    (a.CreadoPor != null && a.CreadoPor.ToLower().Contains(emp))
+                );
+            }
+
+            // Orden descendente por fecha
+            query = query.OrderByDescending(a => a.Fecha);
+
+            // Total y paginación
+            var total = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(total / (double)PageSize);
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            var ajustes = await query
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
                 .ToListAsync();
+
+            // ViewBags
+            ViewBag.Desde = desde?.ToString("yyyy-MM-dd");
+            ViewBag.Hasta = hasta?.ToString("yyyy-MM-dd");
+            ViewBag.CurrentTipo = tipo;
+            ViewBag.CurrentEmpleado = empleado;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = total;
+            ViewBag.PageSize = PageSize;
 
             return View(ajustes);
         }

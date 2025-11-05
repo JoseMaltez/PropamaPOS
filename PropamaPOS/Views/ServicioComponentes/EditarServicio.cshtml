@@ -1,65 +1,96 @@
 ﻿@model List<PropamaPOS.Models.ServicioComponente>
 @{
-    ViewData["Title"] = "Editar insumos del servicio";
+    ViewData["Title"] = "Editar Insumos del Servicio";
     var items = ViewBag.Items as List<PropamaPOS.Models.Item>;
     var servicioNombre = ViewBag.ServicioNombre as string;
     var servicioId = (int)ViewBag.ServicioId;
 }
 
-<h3>Editar insumos para: <strong>@servicioNombre</strong></h3>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">
+                        <i class="bi bi-pencil-square"></i> Editar Insumos del Servicio
+                    </h3>
+                    <h5 class="text-center text-muted mb-4">Servicio: <strong>@servicioNombre</strong></h5>
 
-<form asp-action="EditarServicio" method="post">
-    <input type="hidden" name="id" value="@servicioId" />
+                    <form asp-action="EditarServicio" method="post">
+                        <input type="hidden" name="id" value="@servicioId" />
 
-    <table class="table" id="componentesTable">
-        <thead>
-            <tr><th>Insumo</th><th>Cantidad por servicio</th><th></th></tr>
-        </thead>
-        <tbody>
-            @for (int i = 0; i < Model.Count; i++)
-            {
-                <tr>
-                    <td>
-                        <select name="[@i].Id_Item" class="form-control">
-                            <option value="">-- Seleccione --</option>
-                            @foreach (var it in items)
-                            {
-                                <option value="@it.Id_Item" selected="@(Model[i].Id_Item == it.Id_Item)">
-                                    @it.Nombre
-                                </option>
-                            }
-                        </select>
-                    </td>
-                    <td>
-                        <input name="[@i].CantidadPorServicio" value="@Model[i].CantidadPorServicio" class="form-control" />
-                    </td>
-                    <td><button type="button" class="btn btn-sm btn-danger remove-row">Eliminar</button></td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                        <table class="table table-bordered align-middle" id="componentesTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Insumo</th>
+                                    <th style="width: 200px;">Cantidad por Servicio</th>
+                                    <th style="width: 100px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.Count; i++)
+                                {
+                                    <tr>
+                                        <td>
+                                            <select name="[@i].Id_Item" class="form-select">
+                                                <option value="">-- Seleccione --</option>
+                                                @foreach (var it in items)
+                                                {
+                                                    <option value="@it.Id_Item" selected="@(Model[i].Id_Item == it.Id_Item)">
+                                                        @it.Nombre
+                                                    </option>
+                                                }
+                                            </select>
+                                        </td>
+                                        <td><input name="[@i].CantidadPorServicio" class="form-control" type="number" min="0.01" step="0.01" value="@Model[i].CantidadPorServicio" /></td>
+                                        <td><button type="button" class="btn btn-sm btn-outline-danger remove-row"><i class="bi bi-trash"></i></button></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
 
-    <button type="button" id="addRow" class="btn btn-primary">Agregar insumo</button>
-    <button type="submit" class="btn btn-success">Guardar cambios</button>
-    <a asp-action="Index" class="btn btn-secondary">Volver</a>
-</form>
+                        <div class="d-flex justify-content-between">
+                            <button type="button" id="addRow" class="btn btn-outline-secondary">
+                                <i class="bi bi-plus-circle"></i> Agregar insumo
+                            </button>
+                            <div>
+                                <a asp-action="Index" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left"></i> Volver
+                                </a>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-save"></i> Guardar cambios
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
-<script>
-    (function(){
-        let index = @Model.Count;
-        const itemsHtml = `@foreach(var it in items){<option value="@it.Id_Item">@it.Nombre</option>}`;
-        document.getElementById('addRow').addEventListener('click', function(){
-            const row = `<tr>
-                <td><select name="[${index}].Id_Item" class="form-control"><option value="">-- Seleccione --</option>${itemsHtml}</select></td>
-                <td><input name="[${index}].CantidadPorServicio" class="form-control" value="1" /></td>
-                <td><button type="button" class="btn btn-sm btn-danger remove-row">Eliminar</button></td>
+    <script>
+        (function () {
+            let index = @Model.Count;
+            const itemsHtml = `@foreach (var it in items){
+            <option value="@it.Id_Item">@it.Nombre</option>
+        }
+`;
+
+        document.getElementById('addRow').addEventListener('click', function () {
+            const row = `
+            <tr>
+                <td><select name="[${index}].Id_Item" class="form-select"><option value="">-- Seleccione --</option>${itemsHtml}</select></td>
+                <td><input name="[${index}].CantidadPorServicio" class="form-control" type="number" min="0.01" step="0.01" value="1" /></td>
+                <td><button type="button" class="btn btn-sm btn-outline-danger remove-row"><i class="bi bi-trash"></i></button></td>
             </tr>`;
             document.querySelector('#componentesTable tbody').insertAdjacentHTML('beforeend', row);
             index++;
         });
+
         document.addEventListener('click', e => {
-            if (e.target.classList.contains('remove-row')) e.target.closest('tr').remove();
+            if (e.target.closest('.remove-row')) e.target.closest('tr').remove();
         });
     })();
 </script>

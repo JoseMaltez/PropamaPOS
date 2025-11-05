@@ -26,15 +26,82 @@ namespace PropamaPOS.Controllers
 
 
         // GET: Compras
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+        string numero, string proveedor, string empleado,
+        CompraEstado? estado, DateTime? desde, DateTime? hasta, int page = 1)
         {
-            var compras = await _context.Compras
+            const int PageSize = 30;
+
+            var query = _context.Compras
                 .Include(c => c.Proveedor)
+                .Include(c => c.Empleado)
+                .Include(c => c.Detalles)
+                .AsQueryable();
+
+            // Filtro por número de compra
+            if (!string.IsNullOrWhiteSpace(numero))
+            {
+                numero = numero.Trim().ToLower();
+                query = query.Where(c => c.NumeroCompra.ToLower().Contains(numero));
+            }
+
+            // Filtro por nombre del proveedor
+            if (!string.IsNullOrWhiteSpace(proveedor))
+            {
+                proveedor = proveedor.Trim().ToLower();
+                query = query.Where(c => c.Proveedor != null && c.Proveedor.Nombre.ToLower().Contains(proveedor));
+            }
+
+            // Filtro por nombre o apellido del empleado
+            if (!string.IsNullOrWhiteSpace(empleado))
+            {
+                empleado = empleado.Trim().ToLower();
+                query = query.Where(c =>
+                    (c.Empleado != null && (
+                        c.Empleado.Nombre.ToLower().Contains(empleado) ||
+                        (c.Empleado.Apellido != null && c.Empleado.Apellido.ToLower().Contains(empleado)))
+                    ) ||
+                    (!string.IsNullOrEmpty(c.CreadoPor) && c.CreadoPor.ToLower().Contains(empleado))
+                );
+            }
+
+            // Filtro por estado
+            if (estado.HasValue)
+                query = query.Where(c => c.Estado == estado.Value);
+
+            // Filtro por fechas
+            if (desde.HasValue)
+                query = query.Where(c => c.Fecha >= desde.Value);
+            if (hasta.HasValue)
+                query = query.Where(c => c.Fecha <= hasta.Value);
+
+            // Paginación
+            var total = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(total / (double)PageSize);
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            var compras = await query
                 .OrderByDescending(c => c.Fecha)
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
                 .ToListAsync();
+
+            // ViewBags
+            ViewBag.Numero = numero;
+            ViewBag.Proveedor = proveedor;
+            ViewBag.Empleado = empleado;
+            ViewBag.CurrentEstado = estado;
+            ViewBag.Desde = desde?.ToString("yyyy-MM-dd");
+            ViewBag.Hasta = hasta?.ToString("yyyy-MM-dd");
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = total;
 
             return View(compras);
         }
+
+
 
         // GET: Compras/Details/5
         public async Task<IActionResult> Details(int id)

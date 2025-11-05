@@ -23,11 +23,20 @@ namespace PropamaPOS.Controllers
             _config = config;
         }
 
-        // GET: Reportes/Index?Id_Proveedor=1&desde=2025-01-01&hasta=2025-01-31
-        public async Task<IActionResult> Index(int? id_Proveedor, DateTime? desde, DateTime? hasta)
+        // GET: Reportes/Index
+        public async Task<IActionResult> Index(
+        string proveedor = null,
+        DateTime? desde = null,
+        DateTime? hasta = null,
+        string numero = null,
+        string empleado = null,
+        int page = 1)
         {
+            const int PageSize = 30;
+
             var query = _context.Compras
                 .Include(c => c.Proveedor)
+                .Include(c => c.Empleado)
                 .Include(c => c.Detalles)
                     .ThenInclude(d => d.Presentacion)
                         .ThenInclude(p => p.UnidadMedida)
@@ -35,8 +44,18 @@ namespace PropamaPOS.Controllers
                     .ThenInclude(d => d.Item)
                 .AsQueryable();
 
-            if (id_Proveedor.HasValue)
-                query = query.Where(c => c.Id_Proveedor == id_Proveedor.Value);
+            // 🔹 Solo mostrar las compras con estado "Recibida"
+            query = query.Where(c => c.Estado == CompraEstado.Recibida);
+
+            // --- Filtros ---
+            if (!string.IsNullOrWhiteSpace(proveedor))
+            {
+                proveedor = proveedor.Trim().ToLower();
+                query = query.Where(c =>
+                    c.Proveedor != null &&
+                    c.Proveedor.Nombre.ToLower().Contains(proveedor)
+                );
+            }
 
             if (desde.HasValue)
                 query = query.Where(c => c.Fecha.Date >= desde.Value.Date);
@@ -44,21 +63,62 @@ namespace PropamaPOS.Controllers
             if (hasta.HasValue)
                 query = query.Where(c => c.Fecha.Date <= hasta.Value.Date);
 
-            var compras = await query.OrderByDescending(c => c.Fecha).ToListAsync();
+            if (!string.IsNullOrWhiteSpace(numero))
+            {
+                numero = numero.Trim();
+                query = query.Where(c => c.NumeroCompra.Contains(numero));
+            }
 
+            if (!string.IsNullOrWhiteSpace(empleado))
+            {
+                empleado = empleado.Trim().ToLower();
+                query = query.Where(c =>
+                    (c.Empleado != null && (
+                        c.Empleado.Nombre.ToLower().Contains(empleado) ||
+                        (c.Empleado.Apellido != null && c.Empleado.Apellido.ToLower().Contains(empleado))
+                    ))
+                    || c.CreadoPor.ToLower().Contains(empleado)
+                );
+            }
+
+            // --- Paginación ---
+            var total = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(total / (double)PageSize);
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            var compras = await query
+                .OrderByDescending(c => c.Fecha)
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
+                .ToListAsync();
+
+            // --- ViewBag ---
             ViewBag.Proveedores = await _context.Proveedores.OrderBy(p => p.Nombre).ToListAsync();
-            ViewBag.CurrentProveedor = id_Proveedor;
+            ViewBag.CurrentProveedor = proveedor;
             ViewBag.CurrentDesde = desde?.ToString("yyyy-MM-dd");
             ViewBag.CurrentHasta = hasta?.ToString("yyyy-MM-dd");
+            ViewBag.CurrentNumero = numero;
+            ViewBag.CurrentEmpleado = empleado;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = total;
 
             return View(compras);
         }
 
-        // GET: Reportes/DownloadComprasPdf?Id_Proveedor=1&desde=2025-01-01&hasta=2025-01-31
-        public async Task<IActionResult> DownloadComprasPdf(int? id_Proveedor, DateTime? desde, DateTime? hasta)
+        // GET: Reportes/DownloadComprasPdf
+        public async Task<IActionResult> DownloadComprasPdf(
+            string proveedor = null,
+            DateTime? desde = null,
+            DateTime? hasta = null,
+            string numero = null,
+            string empleado = null,
+            int page = 1)
         {
             var query = _context.Compras
                 .Include(c => c.Proveedor)
+                .Include(c => c.Empleado)
                 .Include(c => c.Detalles)
                     .ThenInclude(d => d.Presentacion)
                         .ThenInclude(p => p.UnidadMedida)
@@ -66,20 +126,42 @@ namespace PropamaPOS.Controllers
                     .ThenInclude(d => d.Item)
                 .AsQueryable();
 
-            if (id_Proveedor.HasValue)
-                query = query.Where(c => c.Id_Proveedor == id_Proveedor.Value);
+            query = query.Where(c => c.Estado == CompraEstado.Recibida);
+
+            if (!string.IsNullOrWhiteSpace(proveedor))
+            {
+                proveedor = proveedor.Trim().ToLower();
+                query = query.Where(c =>
+                    c.Proveedor != null &&
+                    c.Proveedor.Nombre.ToLower().Contains(proveedor)
+                );
+            }
 
             if (desde.HasValue)
                 query = query.Where(c => c.Fecha.Date >= desde.Value.Date);
 
             if (hasta.HasValue)
                 query = query.Where(c => c.Fecha.Date <= hasta.Value.Date);
+
+            if (!string.IsNullOrWhiteSpace(numero))
+                query = query.Where(c => c.NumeroCompra.Contains(numero));
+
+            if (!string.IsNullOrWhiteSpace(empleado))
+            {
+                empleado = empleado.Trim().ToLower();
+                query = query.Where(c =>
+                    (c.Empleado != null && (
+                        c.Empleado.Nombre.ToLower().Contains(empleado) ||
+                        (c.Empleado.Apellido != null && c.Empleado.Apellido.ToLower().Contains(empleado))
+                    ))
+                    || c.CreadoPor.ToLower().Contains(empleado)
+                );
+            }
 
             var compras = await query.OrderByDescending(c => c.Fecha).ToListAsync();
 
             QuestPDF.Settings.License = LicenseType.Community;
 
-            // Información del negocio (ajusta si tienes variables reales)
             string nombreNegocio = "Librería y Papelería Propama";
             string nitNegocio = "6613799";
             string direccionNegocio = "2da. Calle 5-41, Zona 1, Mazatenango, Suchitepéquez";
@@ -88,99 +170,124 @@ namespace PropamaPOS.Controllers
             {
                 container.Page(page =>
                 {
-                    page.Margin(30);
+                    page.Margin(35);
                     page.Size(PageSizes.A4);
                     page.DefaultTextStyle(x => x.FontSize(10));
 
+                    // ENCABEZADO
                     page.Header().Column(header =>
                     {
-                        header.Item().AlignCenter().Text(nombreNegocio).FontSize(14).Bold();
+                        header.Item().AlignCenter().Text(nombreNegocio).FontSize(16).Bold();
                         header.Item().AlignCenter().Text($"NIT: {nitNegocio}");
                         header.Item().AlignCenter().Text(direccionNegocio);
-                        header.Item().PaddingVertical(6).LineHorizontal(1);
-                        header.Item().Text($"Reporte de Compras").FontSize(12).Bold().AlignCenter();
+                        header.Item().PaddingVertical(4).LineHorizontal(1).LineColor(Colors.Grey.Darken2);
+                        header.Item().AlignCenter().Text("Reporte de Compras").FontSize(12).Bold();
                         string periodo = (desde.HasValue || hasta.HasValue)
                             ? $"Periodo: {(desde?.ToString("dd/MM/yyyy") ?? "Inicio")} - {(hasta?.ToString("dd/MM/yyyy") ?? "Fin")}"
-                            : $"Periodo: Todos";
-                        header.Item().AlignCenter().Text(periodo).FontSize(9);
+                            : "Periodo: Todos";
+                        header.Item().AlignCenter().Text(periodo).FontSize(9).Italic();
+                        header.Item().PaddingVertical(4).LineHorizontal(1).LineColor(Colors.Grey.Darken2);
                     });
 
-                    page.Content().PaddingVertical(6).Column(content =>
+                    // CONTENIDO
+                    page.Content().PaddingVertical(10).Column(content =>
                     {
-                        // Tabla resumen de compras
                         content.Item().Table(table =>
                         {
                             table.ColumnsDefinition(columns =>
                             {
                                 columns.RelativeColumn(2); // Fecha
-                                columns.RelativeColumn(2); // Número
-                                columns.RelativeColumn(3); // Proveedor
-                                columns.RelativeColumn(1); // Líneas
-                                columns.RelativeColumn(2); // Subtotal
-                                columns.RelativeColumn(2); // IVA
-                                columns.RelativeColumn(2); // Total
+                                columns.RelativeColumn(2);    // Número
+                                columns.RelativeColumn(3);    // Proveedor
+                                columns.RelativeColumn(3);    // Empleado
+                                columns.RelativeColumn(1);    // Líneas
+                                columns.RelativeColumn(2);    // Total
                             });
 
-                            // Header
+                            // CABECERA
                             table.Header(headerRow =>
                             {
-                                headerRow.Cell().Element(CellStyle).Text("Fecha");
-                                headerRow.Cell().Element(CellStyle).Text("Número");
-                                headerRow.Cell().Element(CellStyle).Text("Proveedor");
-                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Líneas");
-                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Subtotal");
-                                headerRow.Cell().Element(CellStyle).AlignRight().Text("IVA");
-                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Total");
+                                headerRow.Cell().Element(HeaderCell).Text("Fecha");
+                                headerRow.Cell().Element(HeaderCell).Text("Número");
+                                headerRow.Cell().Element(HeaderCell).Text("Proveedor");
+                                headerRow.Cell().Element(HeaderCell).Text("Empleado");
+                                headerRow.Cell().Element(HeaderCell).AlignRight().Text("Líneas");
+                                headerRow.Cell().Element(HeaderCell).AlignRight().Text("Total");
                             });
 
-                            // Rows
-                            decimal totalSubtotal = 0m;
-                            decimal totalIva = 0m;
                             decimal totalTotal = 0m;
+                            int rowIndex = 0;
 
                             foreach (var c in compras)
                             {
-                                int lineas = c.Detalles?.Count ?? 0;
-                                var fecha = c.Fecha.ToLocalTime().ToString("dd/MM/yyyy");
-                                table.Cell().Element(CellStyle).Text(fecha);
-                                table.Cell().Element(CellStyle).Text(c.NumeroCompra ?? "-");
-                                table.Cell().Element(CellStyle).Text(c.Proveedor?.Nombre ?? "N/A");
-                                table.Cell().Element(CellStyle).AlignRight().Text(lineas.ToString());
-                                table.Cell().Element(CellStyle).AlignRight().Text($"Q{(c.Subtotal):F2}");
-                                table.Cell().Element(CellStyle).AlignRight().Text($"Q{(c.IVA):F2}");
-                                table.Cell().Element(CellStyle).AlignRight().Text($"Q{(c.Total):F2}");
+                                string empleadoNombre = c.Empleado != null
+                                    ? $"{c.Empleado.Nombre} {c.Empleado.Apellido}"
+                                    : c.CreadoPor;
 
-                                totalSubtotal += c.Subtotal;
-                                totalIva += c.IVA;
+                                var backgroundColor = rowIndex++ % 2 == 0 ? Colors.Grey.Lighten5 : Colors.White;
+
+                                table.Cell().Element(r => CellStyle(r, backgroundColor)).Text(c.Fecha.ToLocalTime().ToString("dd/MM/yyyy"));
+                                table.Cell().Element(r => CellStyle(r, backgroundColor)).Text(c.NumeroCompra);
+                                table.Cell().Element(r => CellStyle(r, backgroundColor)).Text(c.Proveedor?.Nombre ?? "N/A");
+                                table.Cell().Element(r => CellStyle(r, backgroundColor)).Text(empleadoNombre);
+                                table.Cell().Element(r => CellStyle(r, backgroundColor)).AlignRight().Text((c.Detalles?.Count ?? 0).ToString());
+                                table.Cell().Element(r => CellStyle(r, backgroundColor)).AlignRight().Text($"Q{c.Total:F2}");
+
                                 totalTotal += c.Total;
                             }
 
-                            // Totales finales
+                            // PIE
                             table.Footer(footer =>
                             {
-                                footer.Cell().ColumnSpan(4).Element(CellStyle).AlignRight().Text("Totales:");
-                                footer.Cell().Element(CellStyle).AlignRight().Text($"Q{totalSubtotal:F2}");
-                                footer.Cell().Element(CellStyle).AlignRight().Text($"Q{totalIva:F2}");
-                                footer.Cell().Element(CellStyle).AlignRight().Text($"Q{totalTotal:F2}");
+                                footer.Cell().ColumnSpan(5).Element(TotalCell).AlignRight().Text("Total General:");
+                                footer.Cell().Element(TotalCell).AlignRight().Text($"Q{totalTotal:F2}");
                             });
 
-                            // estilo celda
-                            IContainer CellStyle(IContainer c2) => c2.Padding(4).BorderBottom(1).BorderColor(Colors.Grey.Lighten3);
-                        });
+                            // Estilos
+                            IContainer HeaderCell(IContainer c2) => c2
+                                .Background(Colors.Grey.Darken2)
+                                .PaddingVertical(5)
+                                .PaddingHorizontal(3)
+                                .DefaultTextStyle(x => x.FontColor(Colors.White).SemiBold())
+                                .Border(0.5f)
+                                .BorderColor(Colors.Grey.Darken2);
 
-                        // Agrega aquí si quieres más secciones (detalles por compra) ...
+                            IContainer CellStyle(IContainer c2, string bg) => c2
+                                .Background(bg)
+                                .Padding(4)
+                                .BorderBottom(0.5f)
+                                .BorderColor(Colors.Grey.Lighten2);
+
+                            IContainer TotalCell(IContainer c2) => c2
+                                .Background(Colors.Grey.Lighten3)
+                                .Padding(5)
+                                .Border(0.5f)
+                                .BorderColor(Colors.Grey.Lighten2)
+                                .DefaultTextStyle(x => x.SemiBold().FontSize(11));
+                        });
                     });
 
-                    page.Footer().AlignCenter().Text($"Generado: {DateTime.Now.ToString("g", CultureInfo.InvariantCulture)}").FontSize(8);
+                    // PIE DE PÁGINA
+                    page.Footer().AlignCenter().Text($"Generado: {DateTime.Now:dd/MM/yyyy HH:mm}").FontSize(8).Italic();
                 });
             }).GeneratePdf();
 
             return File(pdfBytes, "application/pdf", $"Reporte_Compras_{DateTime.UtcNow:yyyyMMdd}.pdf");
         }
 
-        // GET: Reportes/Ventas?clienteId=1&desde=2025-01-01&hasta=2025-01-31
-        public async Task<IActionResult> IndexVentas(int? clienteId, DateTime? desde, DateTime? hasta)
+
+        // GET: Reportes/IndexVentas
+        public async Task<IActionResult> IndexVentas(
+            string numero,
+            string cliente,
+            string empleado,
+            MetodoPagoVenta? metodoPago,
+            DateTime? fechaDesde,
+            DateTime? fechaHasta,
+            int page = 1)
         {
+            const int PageSize = 30;
+
             var query = _context.Ventas
                 .Include(v => v.Cliente)
                 .Include(v => v.Empleado)
@@ -191,27 +298,84 @@ namespace PropamaPOS.Controllers
                     .ThenInclude(d => d.Item)
                 .AsQueryable();
 
-            if (clienteId.HasValue)
-                query = query.Where(v => v.Id_Cliente == clienteId.Value);
+            // --- Filtros ---
 
-            if (desde.HasValue)
-                query = query.Where(v => v.Fecha.Date >= desde.Value.Date);
+            if (!string.IsNullOrWhiteSpace(numero))
+            {
+                numero = numero.Trim().ToLower();
+                query = query.Where(v => v.NumeroVenta.ToLower().Contains(numero));
+            }
 
-            if (hasta.HasValue)
-                query = query.Where(v => v.Fecha.Date <= hasta.Value.Date);
+            if (!string.IsNullOrWhiteSpace(cliente))
+            {
+                cliente = cliente.Trim().ToLower();
+                query = query.Where(v =>
+                    (v.Cliente != null && (
+                        v.Cliente.Nombre.ToLower().Contains(cliente) ||
+                        (v.Cliente.Apellido != null && v.Cliente.Apellido.ToLower().Contains(cliente)) ||
+                        (v.Cliente.NIT != null && v.Cliente.NIT.ToLower().Contains(cliente))
+                    )) ||
+                    (v.Cliente == null && v.NombreConsumidor.ToLower().Contains(cliente))
+                );
+            }
 
-            var ventas = await query.OrderByDescending(v => v.Fecha).ToListAsync();
+            if (!string.IsNullOrWhiteSpace(empleado))
+            {
+                empleado = empleado.Trim().ToLower();
+                query = query.Where(v =>
+                    (v.Empleado != null && (
+                        v.Empleado.Nombre.ToLower().Contains(empleado) ||
+                        (v.Empleado.Apellido != null && v.Empleado.Apellido.ToLower().Contains(empleado))
+                    )) ||
+                    v.CreadoPor.ToLower().Contains(empleado)
+                );
+            }
 
-            ViewBag.Clientes = await _context.Clientes.OrderBy(c => c.Nombre).ToListAsync();
-            ViewBag.CurrentCliente = clienteId;
-            ViewBag.CurrentDesde = desde?.ToString("yyyy-MM-dd");
-            ViewBag.CurrentHasta = hasta?.ToString("yyyy-MM-dd");
+            if (metodoPago.HasValue)
+                query = query.Where(v => v.MetodoPago == metodoPago.Value);
+
+            if (fechaDesde.HasValue)
+                query = query.Where(v => v.Fecha.Date >= fechaDesde.Value.Date);
+
+            if (fechaHasta.HasValue)
+                query = query.Where(v => v.Fecha.Date <= fechaHasta.Value.Date);
+
+            // --- Orden y paginación ---
+            query = query.OrderByDescending(v => v.Fecha);
+
+            var total = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(total / (double)PageSize);
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            var ventas = await query
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
+                .ToListAsync();
+
+            // --- ViewBag para filtros ---
+            ViewBag.CurrentNumero = numero;
+            ViewBag.CurrentCliente = cliente;
+            ViewBag.CurrentEmpleado = empleado;
+            ViewBag.CurrentMetodoPago = metodoPago;
+            ViewBag.CurrentFechaDesde = fechaDesde?.ToString("yyyy-MM-dd");
+            ViewBag.CurrentFechaHasta = fechaHasta?.ToString("yyyy-MM-dd");
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = total;
 
             return View("Ventas", ventas);
         }
 
-        // GET: Reportes/DownloadVentasPdf?clienteId=1&desde=2025-01-01&hasta=2025-01-31
-        public async Task<IActionResult> DownloadVentasPdf(int? clienteId, DateTime? desde, DateTime? hasta)
+
+        // GET: Reportes/DownloadVentasPdf
+        public async Task<IActionResult> DownloadVentasPdf(
+            string numero,
+            string cliente,
+            string empleado,
+            MetodoPagoVenta? metodoPago,
+            DateTime? fechaDesde,
+            DateTime? fechaHasta)
         {
             var query = _context.Ventas
                 .Include(v => v.Cliente)
@@ -223,20 +387,48 @@ namespace PropamaPOS.Controllers
                     .ThenInclude(d => d.Item)
                 .AsQueryable();
 
-            if (clienteId.HasValue)
-                query = query.Where(v => v.Id_Cliente == clienteId.Value);
+            // Filtros
+            if (!string.IsNullOrWhiteSpace(numero))
+                query = query.Where(v => v.NumeroVenta.ToLower().Contains(numero.Trim().ToLower()));
 
-            if (desde.HasValue)
-                query = query.Where(v => v.Fecha.Date >= desde.Value.Date);
+            if (!string.IsNullOrWhiteSpace(cliente))
+            {
+                cliente = cliente.Trim().ToLower();
+                query = query.Where(v =>
+                    (v.Cliente != null && (
+                        v.Cliente.Nombre.ToLower().Contains(cliente) ||
+                        (v.Cliente.Apellido != null && v.Cliente.Apellido.ToLower().Contains(cliente)) ||
+                        (v.Cliente.NIT != null && v.Cliente.NIT.ToLower().Contains(cliente))
+                    )) ||
+                    (v.Cliente == null && v.NombreConsumidor.ToLower().Contains(cliente))
+                );
+            }
 
-            if (hasta.HasValue)
-                query = query.Where(v => v.Fecha.Date <= hasta.Value.Date);
+            if (!string.IsNullOrWhiteSpace(empleado))
+            {
+                empleado = empleado.Trim().ToLower();
+                query = query.Where(v =>
+                    (v.Empleado != null && (
+                        v.Empleado.Nombre.ToLower().Contains(empleado) ||
+                        (v.Empleado.Apellido != null && v.Empleado.Apellido.ToLower().Contains(empleado))
+                    )) ||
+                    v.CreadoPor.ToLower().Contains(empleado)
+                );
+            }
+
+            if (metodoPago.HasValue)
+                query = query.Where(v => v.MetodoPago == metodoPago.Value);
+
+            if (fechaDesde.HasValue)
+                query = query.Where(v => v.Fecha.Date >= fechaDesde.Value.Date);
+
+            if (fechaHasta.HasValue)
+                query = query.Where(v => v.Fecha.Date <= fechaHasta.Value.Date);
 
             var ventas = await query.OrderByDescending(v => v.Fecha).ToListAsync();
 
             QuestPDF.Settings.License = LicenseType.Community;
 
-            // Info del negocio - ajusta si quieres leer desde config
             string nombreNegocio = "Librería y Papelería Propama";
             string nitNegocio = "6613799";
             string direccionNegocio = "2da. Calle 5-41, Zona 1, Mazatenango, Suchitepéquez";
@@ -245,117 +437,137 @@ namespace PropamaPOS.Controllers
             {
                 container.Page(page =>
                 {
-                    page.Margin(30);
+                    page.Margin(35);
                     page.Size(PageSizes.A4);
                     page.DefaultTextStyle(x => x.FontSize(9));
 
-                    // Header
                     page.Header().Column(header =>
                     {
-                        header.Item().AlignCenter().Text(nombreNegocio).FontSize(14).Bold();
-                        header.Item().AlignCenter().Text($"NIT: {nitNegocio}").FontSize(9);
-                        header.Item().AlignCenter().Text(direccionNegocio).FontSize(9);
-                        header.Item().PaddingVertical(6).LineHorizontal(1);
-                        header.Item().Text("Reporte de Ventas").FontSize(12).Bold().AlignCenter();
-                        string periodo = (desde.HasValue || hasta.HasValue)
-                            ? $"Periodo: {(desde?.ToString("dd/MM/yyyy") ?? "Inicio")} - {(hasta?.ToString("dd/MM/yyyy") ?? "Fin")}"
-                            : $"Periodo: Todos";
-                        header.Item().AlignCenter().Text(periodo).FontSize(9);
+                        header.Item().AlignCenter().Text(nombreNegocio).FontSize(16).Bold();
+                        header.Item().AlignCenter().Text($"NIT: {nitNegocio}");
+                        header.Item().AlignCenter().Text(direccionNegocio);
+                        header.Item().PaddingVertical(4).LineHorizontal(1).LineColor(Colors.Grey.Darken2);
+                        header.Item().AlignCenter().Text("Reporte de Ventas").FontSize(12).Bold();
+                        string periodo = (fechaDesde.HasValue || fechaHasta.HasValue)
+                            ? $"Periodo: {(fechaDesde?.ToString("dd/MM/yyyy") ?? "Inicio")} - {(fechaHasta?.ToString("dd/MM/yyyy") ?? "Fin")}"
+                            : "Periodo: Todos";
+                        header.Item().AlignCenter().Text(periodo).FontSize(9).Italic();
+                        header.Item().PaddingVertical(4).LineHorizontal(1).LineColor(Colors.Grey.Darken2);
                     });
 
-                    page.Content().PaddingVertical(6).Column(content =>
+                    page.Content().PaddingVertical(10).Column(content =>
                     {
-                        // Tabla resumen de ventas
                         content.Item().Table(table =>
                         {
                             table.ColumnsDefinition(columns =>
                             {
-                                columns.RelativeColumn(2); // Fecha
-                                columns.RelativeColumn(2); // Número
-                                columns.RelativeColumn(3); // Cliente
-                                columns.RelativeColumn(1); // Líneas
-                                columns.RelativeColumn(2); // Subtotal
-                                columns.RelativeColumn(2); // IVA
-                                columns.RelativeColumn(2); // Total
-                                columns.RelativeColumn(2); // Utilidad
+                                columns.RelativeColumn(1.5f);
+                                columns.RelativeColumn(1.5f);
+                                columns.RelativeColumn(2.5f);
+                                columns.RelativeColumn(2.5f);
+                                columns.RelativeColumn(1.5f);
+                                columns.RelativeColumn(1);
+                                columns.RelativeColumn(1.5f);
+                                columns.RelativeColumn(1.5f);
+                                columns.RelativeColumn(1.5f);
+                                columns.RelativeColumn(1.5f);
                             });
 
-                            // Header
                             table.Header(headerRow =>
                             {
-                                headerRow.Cell().Element(CellStyle).Text("Fecha");
-                                headerRow.Cell().Element(CellStyle).Text("Número");
-                                headerRow.Cell().Element(CellStyle).Text("Cliente");
-                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Líneas");
-                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Subtotal");
-                                headerRow.Cell().Element(CellStyle).AlignRight().Text("IVA");
-                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Total");
-                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Utilidad");
+                                headerRow.Cell().Element(HeaderCell).Text("Fecha");
+                                headerRow.Cell().Element(HeaderCell).Text("Número");
+                                headerRow.Cell().Element(HeaderCell).Text("Cliente");
+                                headerRow.Cell().Element(HeaderCell).Text("Empleado");
+                                headerRow.Cell().Element(HeaderCell).Text("Pago");
+                                headerRow.Cell().Element(HeaderCell).AlignRight().Text("Líneas");
+                                headerRow.Cell().Element(HeaderCell).AlignRight().Text("Subtotal");
+                                headerRow.Cell().Element(HeaderCell).AlignRight().Text("IVA");
+                                headerRow.Cell().Element(HeaderCell).AlignRight().Text("Total");
+                                headerRow.Cell().Element(HeaderCell).AlignRight().Text("Utilidad");
                             });
 
-                            decimal totalSubtotal = 0m;
-                            decimal totalIva = 0m;
-                            decimal totalTotal = 0m;
-                            decimal totalUtilidad = 0m;
+                            decimal totalSubtotal = 0m, totalIva = 0m, totalTotal = 0m, totalUtilidad = 0m;
+                            int rowIndex = 0;
 
                             foreach (var v in ventas)
                             {
-                                int lineas = v.Detalles?.Count ?? 0;
-                                var fecha = v.Fecha.ToLocalTime().ToString("dd/MM/yyyy");
-                                table.Cell().Element(CellStyle).Text(fecha);
-                                table.Cell().Element(CellStyle).Text(v.NumeroVenta ?? "-");
-                                string clienteNombre = v.Cliente != null ? $"{v.Cliente.Nombre} {v.Cliente.Apellido}".Trim() : v.NombreConsumidor ?? "Consumidor Final";
-                                table.Cell().Element(CellStyle).Text(clienteNombre);
-                                table.Cell().Element(CellStyle).AlignRight().Text(lineas.ToString());
-                                table.Cell().Element(CellStyle).AlignRight().Text($"Q{v.Subtotal:F2}");
-                                table.Cell().Element(CellStyle).AlignRight().Text($"Q{v.IVA:F2}");
-                                table.Cell().Element(CellStyle).AlignRight().Text($"Q{v.Total:F2}");
+                                string clienteNombre = v.Cliente != null ? $"{v.Cliente.Nombre} {v.Cliente.Apellido}" : v.NombreConsumidor ?? "Consumidor Final";
+                                string empleadoNombre = v.Empleado != null ? $"{v.Empleado.Nombre} {v.Empleado.Apellido}" : v.CreadoPor ?? "N/A";
+                                string metodo = v.MetodoPago.ToString();
+                                var bg = rowIndex++ % 2 == 0 ? Colors.Grey.Lighten5 : Colors.White;
 
-                                // Calcular utilidad por venta: para cada detalle (precioVentaPorPresentacion - precioCostoPorPresentacion) * CantidadPresentaciones
-                                decimal utilidadVenta = 0m;
-                                foreach (var det in v.Detalles)
+                                decimal utilidad = 0m;
+                                foreach (var d in v.Detalles)
                                 {
-                                    decimal precioVentaPres = det.PrecioVentaPorPresentacion;
-                                    decimal precioCostoPres = det.Presentacion?.PrecioCosto ?? 0m; // si es null, asumimos 0 (servicio o costo no registrado)
-                                    decimal utilidadLinea = (precioVentaPres - precioCostoPres) * det.CantidadPresentaciones;
-                                    utilidadVenta += utilidadLinea;
+                                    decimal costo = d.Presentacion?.PrecioCosto ?? 0m;
+                                    utilidad += (d.PrecioVentaPorPresentacion - costo) * d.CantidadPresentaciones;
                                 }
 
-                                table.Cell().Element(CellStyle).AlignRight().Text($"Q{utilidadVenta:F2}");
+                                table.Cell().Element(r => CellStyle(r, bg)).Text(v.Fecha.ToLocalTime().ToString("dd/MM/yyyy"));
+                                table.Cell().Element(r => CellStyle(r, bg)).Text(v.NumeroVenta ?? "-");
+                                table.Cell().Element(r => CellStyle(r, bg)).Text(clienteNombre);
+                                table.Cell().Element(r => CellStyle(r, bg)).Text(empleadoNombre);
+                                table.Cell().Element(r => CellStyle(r, bg)).Text(metodo);
+                                table.Cell().Element(r => CellStyle(r, bg)).AlignRight().Text((v.Detalles?.Count ?? 0).ToString());
+                                table.Cell().Element(r => CellStyle(r, bg)).AlignRight().Text($"Q{v.Subtotal:F2}");
+                                table.Cell().Element(r => CellStyle(r, bg)).AlignRight().Text($"Q{v.IVA:F2}");
+                                table.Cell().Element(r => CellStyle(r, bg)).AlignRight().Text($"Q{v.Total:F2}");
+                                table.Cell().Element(r => CellStyle(r, bg)).AlignRight().Text($"Q{utilidad:F2}");
 
                                 totalSubtotal += v.Subtotal;
                                 totalIva += v.IVA;
                                 totalTotal += v.Total;
-                                totalUtilidad += utilidadVenta;
+                                totalUtilidad += utilidad;
                             }
 
-                            // Totales
                             table.Footer(footer =>
                             {
-                                footer.Cell().ColumnSpan(4).Element(CellStyle).AlignRight().Text("Totales:");
-                                footer.Cell().Element(CellStyle).AlignRight().Text($"Q{totalSubtotal:F2}");
-                                footer.Cell().Element(CellStyle).AlignRight().Text($"Q{totalIva:F2}");
-                                footer.Cell().Element(CellStyle).AlignRight().Text($"Q{totalTotal:F2}");
-                                footer.Cell().Element(CellStyle).AlignRight().Text($"Q{totalUtilidad:F2}");
+                                footer.Cell().ColumnSpan(6).Element(TotalCell).AlignRight().Text("Totales:");
+                                footer.Cell().Element(TotalCell).AlignRight().Text($"Q{totalSubtotal:F2}");
+                                footer.Cell().Element(TotalCell).AlignRight().Text($"Q{totalIva:F2}");
+                                footer.Cell().Element(TotalCell).AlignRight().Text($"Q{totalTotal:F2}");
+                                footer.Cell().Element(TotalCell).AlignRight().Text($"Q{totalUtilidad:F2}");
                             });
 
-                            // estilo celda
-                            IContainer CellStyle(IContainer c2) => c2.Padding(4).BorderBottom(1).BorderColor(Colors.Grey.Lighten3);
-                        });
+                            // estilos
+                            IContainer HeaderCell(IContainer c2) => c2
+                                .Background(Colors.Grey.Darken2)
+                                .PaddingVertical(5)
+                                .PaddingHorizontal(3)
+                                .DefaultTextStyle(x => x.FontColor(Colors.White).SemiBold())
+                                .Border(0.5f)
+                                .BorderColor(Colors.Grey.Darken2);
 
-                        // Opcional: sección con detalles por venta (si quieres)
+                            IContainer CellStyle(IContainer c2, string bg) => c2
+                                .Background(bg)
+                                .Padding(4)
+                                .BorderBottom(0.5f)
+                                .BorderColor(Colors.Grey.Lighten2);
+
+                            IContainer TotalCell(IContainer c2) => c2
+                                .Background(Colors.Grey.Lighten3)
+                                .Padding(5)
+                                .Border(0.5f)
+                                .BorderColor(Colors.Grey.Lighten2)
+                                .DefaultTextStyle(x => x.SemiBold().FontSize(11));
+                        });
                     });
 
-                    page.Footer().AlignCenter().Text($"Generado: {DateTime.Now.ToString("g", CultureInfo.InvariantCulture)}").FontSize(8);
+                    page.Footer().AlignCenter().Text($"Generado: {DateTime.Now:dd/MM/yyyy HH:mm}").FontSize(8).Italic();
                 });
             }).GeneratePdf();
 
             return File(pdfBytes, "application/pdf", $"Reporte_Ventas_{DateTime.UtcNow:yyyyMMdd}.pdf");
         }
 
-        // GET: Reportes/IndexInventario?categoriaId=1&bajoStock=true&minStock=5
-        public async Task<IActionResult> IndexInventario(int? categoriaId, bool? bajoStock, int? minStock, string q = null)
+
+
+        // GET: Reportes/IndexInventario
+        public async Task<IActionResult> IndexInventario(int? categoriaId, bool? bajoStock, string q = null, int page = 1)
         {
+            const int PageSize = 30;
+
             var query = _context.Items
                 .Where(i => i.Activo && !i.IsServicio)
                 .Include(i => i.Categoria)
@@ -367,12 +579,7 @@ namespace PropamaPOS.Controllers
                 query = query.Where(i => i.Id_Categoria == categoriaId.Value);
 
             if (bajoStock.HasValue && bajoStock.Value)
-            {
-                if (minStock.HasValue)
-                    query = query.Where(i => i.Stock <= minStock.Value);
-                else
-                    query = query.Where(i => i.Stock <= (i.StockMinimo ?? 0));
-            }
+                query = query.Where(i => i.Stock <= (i.StockMinimo ?? 0));
 
             if (!string.IsNullOrWhiteSpace(q))
             {
@@ -380,19 +587,31 @@ namespace PropamaPOS.Controllers
                 query = query.Where(i => i.Nombre.Contains(q) || i.Codigo.Contains(q));
             }
 
-            var items = await query.OrderBy(i => i.Nombre).ToListAsync();
+            var total = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(total / (double)PageSize);
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            var items = await query
+                .OrderBy(i => i.Nombre)
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
+                .ToListAsync();
 
             ViewBag.Categorias = await _context.Categorias.OrderBy(c => c.Nombre).ToListAsync();
             ViewBag.CurrentCategoria = categoriaId;
             ViewBag.CurrentBajoStock = bajoStock;
-            ViewBag.CurrentMinStock = minStock;
             ViewBag.CurrentQ = q;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = total;
 
             return View("Inventario", items);
         }
 
-        // GET: Reportes/DownloadInventarioPdf?categoriaId=1&bajoStock=true&minStock=5
-        public async Task<IActionResult> DownloadInventarioPdf(int? categoriaId, bool? bajoStock, int? minStock, string q = null)
+
+        // GET: Reportes/DownloadInventarioPdf
+        public async Task<IActionResult> DownloadInventarioPdf(int? categoriaId, bool? bajoStock, string q = null)
         {
             var query = _context.Items
                 .Where(i => i.Activo && !i.IsServicio)
@@ -405,12 +624,7 @@ namespace PropamaPOS.Controllers
                 query = query.Where(i => i.Id_Categoria == categoriaId.Value);
 
             if (bajoStock.HasValue && bajoStock.Value)
-            {
-                if (minStock.HasValue)
-                    query = query.Where(i => i.Stock <= minStock.Value);
-                else
-                    query = query.Where(i => i.Stock <= (i.StockMinimo ?? 0));
-            }
+                query = query.Where(i => i.Stock <= (i.StockMinimo ?? 0));
 
             if (!string.IsNullOrWhiteSpace(q))
             {
@@ -430,91 +644,113 @@ namespace PropamaPOS.Controllers
             {
                 container.Page(page =>
                 {
-                    page.Margin(25);
+                    page.Margin(35);
                     page.Size(PageSizes.A4);
                     page.DefaultTextStyle(x => x.FontSize(9));
 
-                    // Header
+                    // Encabezado
                     page.Header().Column(header =>
                     {
-                        header.Item().AlignCenter().Text(nombreNegocio).FontSize(14).Bold();
-                        header.Item().AlignCenter().Text($"NIT: {nitNegocio}").FontSize(9);
-                        header.Item().AlignCenter().Text(direccionNegocio).FontSize(9);
-                        header.Item().PaddingVertical(6).LineHorizontal(1);
-                        header.Item().Text("Reporte de Inventario").FontSize(12).Bold().AlignCenter();
-                        string filtros = (bajoStock == true) ? "Filtro: Bajo stock" : "Filtro: Todos";
-                        header.Item().AlignCenter().Text(filtros).FontSize(9);
+                        header.Item().AlignCenter().Text(nombreNegocio).FontSize(16).Bold();
+                        header.Item().AlignCenter().Text($"NIT: {nitNegocio}");
+                        header.Item().AlignCenter().Text(direccionNegocio);
+                        header.Item().PaddingVertical(4).LineHorizontal(1).LineColor(Colors.Grey.Darken2);
+                        header.Item().AlignCenter().Text("Reporte de Inventario").FontSize(12).Bold();
+                        string filtroTxt = bajoStock == true ? "Solo bajo stock" : "Todos los productos";
+                        header.Item().AlignCenter().Text($"Filtro: {filtroTxt}").FontSize(9).Italic();
+                        header.Item().PaddingVertical(4).LineHorizontal(1).LineColor(Colors.Grey.Darken2);
                     });
 
-                    page.Content().PaddingVertical(6).Column(content =>
+                    // Contenido
+                    page.Content().PaddingVertical(10).Column(content =>
                     {
                         content.Item().Table(table =>
                         {
                             table.ColumnsDefinition(columns =>
                             {
                                 columns.RelativeColumn(3); // Producto
-                                columns.RelativeColumn(2); // Categoria
+                                columns.RelativeColumn(2); // Categoría
                                 columns.RelativeColumn(1); // Stock
-                                columns.RelativeColumn(1); // Stock Min
-                                columns.RelativeColumn(2); // Costo prom/unidad
-                                columns.RelativeColumn(2); // Precio venta
-                                columns.RelativeColumn(2); // Valor inventario
-                                columns.RelativeColumn(2); // Utilidad potencial
+                                columns.RelativeColumn(1.2f); // Stock min
+                                columns.RelativeColumn(1.5f); // Costo
+                                columns.RelativeColumn(1.5f); // Precio
+                                columns.RelativeColumn(1.8f); // Valor inventario
+                                columns.RelativeColumn(1.8f); // Utilidad
                             });
 
-                            // Header fila
+                            // Encabezado
                             table.Header(headerRow =>
                             {
-                                headerRow.Cell().Element(CellStyle).Text("Producto").Bold();
-                                headerRow.Cell().Element(CellStyle).Text("Categoría").Bold();
-                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Stock").Bold();
-                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Stock Min").Bold();
-                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Costo (Q)").Bold();
-                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Precio (Q)").Bold();
-                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Valor Inv. (Q)").Bold();
-                                headerRow.Cell().Element(CellStyle).AlignRight().Text("Utilidad Pot. (Q)").Bold();
+                                headerRow.Cell().Element(HeaderCell).Text("Producto");
+                                headerRow.Cell().Element(HeaderCell).Text("Categoría");
+                                headerRow.Cell().Element(HeaderCell).AlignRight().Text("Stock");
+                                headerRow.Cell().Element(HeaderCell).AlignRight().Text("Stock Min");
+                                headerRow.Cell().Element(HeaderCell).AlignRight().Text("Costo (Q)");
+                                headerRow.Cell().Element(HeaderCell).AlignRight().Text("Precio (Q)");
+                                headerRow.Cell().Element(HeaderCell).AlignRight().Text("Valor Inv. (Q)");
+                                headerRow.Cell().Element(HeaderCell).AlignRight().Text("Utilidad Pot. (Q)");
                             });
 
-                            decimal totalValorInv = 0m;
-                            decimal totalUtilidadPot = 0m;
+                            decimal totalValorInv = 0m, totalUtilidad = 0m;
+                            int rowIndex = 0;
 
-                            foreach (var it in items)
+                            foreach (var i in items)
                             {
-                                
-                                decimal costoProm = it.CostoPromedioUnidad;
-                                var presRef = it.Presentaciones?.FirstOrDefault();
-                                decimal precioVentaRef = presRef?.PrecioVenta ?? 0m;
+                                var costo = i.CostoPromedioUnidad;
+                                var pres = i.Presentaciones?.FirstOrDefault();
+                                var precio = pres?.PrecioVenta ?? 0m;
 
-                                decimal valorInv = Math.Round(it.Stock * costoProm, 2);
-                                decimal utilidadPot = Math.Round((precioVentaRef - costoProm) * it.Stock, 2);
+                                var valorInv = Math.Round(i.Stock * costo, 2);
+                                var utilidadPot = Math.Round((precio - costo) * i.Stock, 2);
 
                                 totalValorInv += valorInv;
-                                totalUtilidadPot += utilidadPot;
+                                totalUtilidad += utilidadPot;
 
-                                table.Cell().Element(CellStyle).Text(it.Nombre);
-                                table.Cell().Element(CellStyle).Text(it.Categoria?.Nombre ?? "-");
-                                table.Cell().Element(CellStyle).AlignRight().Text(it.Stock.ToString());
-                                table.Cell().Element(CellStyle).AlignRight().Text((it.StockMinimo ?? 0).ToString());
-                                table.Cell().Element(CellStyle).AlignRight().Text($"Q{costoProm:F2}");
-                                table.Cell().Element(CellStyle).AlignRight().Text($"Q{precioVentaRef:F2}");
-                                table.Cell().Element(CellStyle).AlignRight().Text($"Q{valorInv:F2}");
-                                table.Cell().Element(CellStyle).AlignRight().Text($"Q{utilidadPot:F2}");
+                                var bg = rowIndex++ % 2 == 0 ? Colors.Grey.Lighten5 : Colors.White;
+
+                                table.Cell().Element(r => CellStyle(r, bg)).Text(i.Nombre);
+                                table.Cell().Element(r => CellStyle(r, bg)).Text(i.Categoria?.Nombre ?? "-");
+                                table.Cell().Element(r => CellStyle(r, bg)).AlignRight().Text(i.Stock.ToString());
+                                table.Cell().Element(r => CellStyle(r, bg)).AlignRight().Text((i.StockMinimo ?? 0).ToString());
+                                table.Cell().Element(r => CellStyle(r, bg)).AlignRight().Text($"Q{costo:F2}");
+                                table.Cell().Element(r => CellStyle(r, bg)).AlignRight().Text($"Q{precio:F2}");
+                                table.Cell().Element(r => CellStyle(r, bg)).AlignRight().Text($"Q{valorInv:F2}");
+                                table.Cell().Element(r => CellStyle(r, bg)).AlignRight().Text($"Q{utilidadPot:F2}");
                             }
 
                             // Totales
                             table.Footer(footer =>
                             {
-                                footer.Cell().ColumnSpan(6).Element(CellStyle).AlignRight().Text("Totales:");
-                                footer.Cell().Element(CellStyle).AlignRight().Text($"Q{totalValorInv:F2}");
-                                footer.Cell().Element(CellStyle).AlignRight().Text($"Q{totalUtilidadPot:F2}");
+                                footer.Cell().ColumnSpan(6).Element(TotalCell).AlignRight().Text("Totales:");
+                                footer.Cell().Element(TotalCell).AlignRight().Text($"Q{totalValorInv:F2}");
+                                footer.Cell().Element(TotalCell).AlignRight().Text($"Q{totalUtilidad:F2}");
                             });
 
-                            // estilo de celda
-                            IContainer CellStyle(IContainer c2) => c2.Padding(4).BorderBottom(1).BorderColor(Colors.Grey.Lighten3);
+                            // --- Estilos ---
+                            IContainer HeaderCell(IContainer c2) => c2
+                                .Background(Colors.Grey.Darken2)
+                                .PaddingVertical(5)
+                                .PaddingHorizontal(3)
+                                .DefaultTextStyle(x => x.FontColor(Colors.White).SemiBold())
+                                .Border(0.5f)
+                                .BorderColor(Colors.Grey.Darken2);
+
+                            IContainer CellStyle(IContainer c2, string bg) => c2
+                                .Background(bg)
+                                .Padding(4)
+                                .BorderBottom(0.5f)
+                                .BorderColor(Colors.Grey.Lighten2);
+
+                            IContainer TotalCell(IContainer c2) => c2
+                                .Background(Colors.Grey.Lighten3)
+                                .Padding(5)
+                                .Border(0.5f)
+                                .BorderColor(Colors.Grey.Lighten2)
+                                .DefaultTextStyle(x => x.SemiBold().FontSize(11));
                         });
                     });
 
-                    page.Footer().AlignCenter().Text($"Generado: {DateTime.Now.ToString("g", CultureInfo.InvariantCulture)}").FontSize(8);
+                    page.Footer().AlignCenter().Text($"Generado: {DateTime.Now:dd/MM/yyyy HH:mm}").FontSize(8).Italic();
                 });
             }).GeneratePdf();
 

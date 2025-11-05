@@ -13,18 +13,50 @@ namespace PropamaPOS.Controllers
         public ServicioComponentesController(AppDbContext context) => _context = context;
 
         // GET: ServicioComponentes
-        public async Task<IActionResult> Index()
+        [Authorize(Roles = "Admin,Empleado")]
+        public async Task<IActionResult> Index(string q, int page = 1)
         {
-            // Agrupar por servicio
-            var servicios = await _context.Items
+            const int PageSize = 30;
+
+            var serviciosQuery = _context.Items
                 .Where(i => i.Activo && i.IsServicio)
                 .Include(i => i.ServicioComponentes!)
                     .ThenInclude(sc => sc.ItemConsumido)
-                .OrderBy(i => i.Nombre)
+                .AsQueryable();
+
+            // Filtro de texto (nombre del servicio o del insumo consumido)
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                q = q.Trim().ToLower();
+                serviciosQuery = serviciosQuery.Where(s =>
+                    s.Nombre.ToLower().Contains(q) ||
+                    s.ServicioComponentes.Any(c => c.ItemConsumido!.Nombre.ToLower().Contains(q))
+                );
+            }
+
+            // Paginación
+            var total = await serviciosQuery.CountAsync();
+            var totalPages = (int)Math.Ceiling(total / (double)PageSize);
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            var servicios = await serviciosQuery
+                .OrderBy(s => s.Nombre)
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
                 .ToListAsync();
+
+            // ViewBags para la vista
+            ViewBag.CurrentQuery = q;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = total;
+            ViewBag.PageSize = PageSize;
 
             return View(servicios);
         }
+
+
 
         // GET: ServicioComponentes/CrearMultiple
         [Authorize(Roles = "Admin")]
@@ -121,6 +153,7 @@ namespace PropamaPOS.Controllers
             return View(componentes);
         }
 
+        // POST: ServicioComponentes/EditarServicio/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]

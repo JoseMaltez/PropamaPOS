@@ -1,10 +1,16 @@
 ﻿@model IEnumerable<PropamaPOS.Models.Venta>
+@using PropamaPOS.Models
 @{
     ViewData["Title"] = "Reportes - Ventas";
-    var clientes = ViewBag.Clientes as List<PropamaPOS.Models.Cliente> ?? new();
-    var currentCliente = ViewBag.CurrentCliente as int?;
-    var currentDesde = ViewBag.CurrentDesde as string;
-    var currentHasta = ViewBag.CurrentHasta as string;
+    string currentNumero = ViewBag.CurrentNumero as string ?? "";
+    string currentCliente = ViewBag.CurrentCliente as string ?? "";
+    string currentEmpleado = ViewBag.CurrentEmpleado as string ?? "";
+    MetodoPagoVenta? currentMetodoPago = ViewBag.CurrentMetodoPago as MetodoPagoVenta?;
+    string currentFechaDesde = ViewBag.CurrentFechaDesde as string;
+    string currentFechaHasta = ViewBag.CurrentFechaHasta as string;
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int totalItems = ViewBag.TotalItems ?? 0;
 }
 
 <div class="container mt-4">
@@ -21,88 +27,175 @@
         </div>
 
         <div class="card-body">
-            <form method="get" asp-action="IndexVentas" class="row g-2 align-items-end mb-3">
-                <div class="col-md-4">
-                    <label class="form-label">Cliente</label>
-                    <select name="clienteId" class="form-select">
-                        <option value="">-- Todos --</option>
-                        @foreach (var c in clientes)
-                        {
-                            if (currentCliente == c.Id_Cliente)
-                            {
-                                <option value="@c.Id_Cliente" selected>@c.Nombre @c.Apellido</option>
-                            }
-                            else
-                            {
-                                <option value="@c.Id_Cliente">@c.Nombre @c.Apellido</option>
-                            }
-                        }
-                    </select>
-                </div>
 
-                <div class="col-md-3">
-                    <label class="form-label">Desde</label>
-                    <input type="date" name="desde" class="form-control" value="@currentDesde" />
-                </div>
+            <!-- FILTROS -->
+            <div class="card shadow-sm p-3 mb-4">
+                <h5 class="mb-3 text-primary"><i class="bi bi-funnel"></i> Filtros de búsqueda</h5>
+                <form method="get" class="row g-3">
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold"># Factura</label>
+                        <input type="text" name="numero" value="@currentNumero" class="form-control" placeholder="Ej: FAC-000001" />
+                    </div>
 
-                <div class="col-md-3">
-                    <label class="form-label">Hasta</label>
-                    <input type="date" name="hasta" class="form-control" value="@currentHasta" />
-                </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Cliente o NIT</label>
+                        <input type="text" name="cliente" value="@currentCliente" class="form-control" placeholder="Ej: Juan Pérez o 12345678" />
+                    </div>
 
-                <div class="col-md-2 d-grid">
-                    <button type="submit" class="btn btn-primary">Filtrar</button>
-                    <a asp-action="IndexVentas" class="btn btn-outline-secondary mt-1">Limpiar</a>
-                </div>
-            </form>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Empleado</label>
+                        <input type="text" name="empleado" value="@currentEmpleado" class="form-control" placeholder="Nombre del empleado" />
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Método de pago</label>
+                        <select name="metodoPago" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="0" selected="@(currentMetodoPago == MetodoPagoVenta.Efectivo)">Efectivo</option>
+                            <option value="1" selected="@(currentMetodoPago == MetodoPagoVenta.Tarjeta)">Tarjeta</option>
+                        </select>
+                    </div>
+
+                    <div class="w-100"></div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Desde</label>
+                        <input type="date" name="fechaDesde" value="@currentFechaDesde" class="form-control" />
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Hasta</label>
+                        <input type="date" name="fechaHasta" value="@currentFechaHasta" class="form-control" />
+                    </div>
+
+                    <div class="col-md-8 d-flex justify-content-end align-items-end gap-2">
+                        <button class="btn btn-primary px-4" type="submit"><i class="bi bi-search"></i> Buscar</button>
+                        <a class="btn btn-outline-secondary px-4" href="@Url.Action("IndexVentas", "Reportes")">
+                            <i class="bi bi-x-lg"></i> Limpiar
+                        </a>
+                    </div>
+                </form>
+            </div>
+
 
             <div class="mb-3 d-flex justify-content-end gap-2">
-                <a asp-action="DownloadVentasPdf" asp-route-clienteId="@currentCliente" asp-route-desde="@currentDesde" asp-route-hasta="@currentHasta"
-                   class="btn btn-success">
+                <a class="btn btn-success"
+                   asp-action="DownloadVentasPdf"
+                   asp-route-numero="@currentNumero"
+                   asp-route-cliente="@currentCliente"
+                   asp-route-empleado="@currentEmpleado"
+                   asp-route-metodoPago="@currentMetodoPago"
+                   asp-route-fechaDesde="@currentFechaDesde"
+                   asp-route-fechaHasta="@currentFechaHasta">
                     <i class="bi bi-download"></i> Descargar PDF
                 </a>
             </div>
 
-            <table class="table table-sm table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Número</th>
-                        <th>Cliente</th>
-                        <th>Líneas</th>
-                        <th class="text-end">Subtotal</th>
-                        <th class="text-end">IVA</th>
-                        <th class="text-end">Total</th>
-                        <th class="text-end">Utilidad</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var v in Model)
-                    {
-                        var utilidadVenta = 0.0m;
-                        foreach (var d in v.Detalles)
-                        {
-                            var precioCosto = d.Presentacion?.PrecioCosto ?? 0m;
-                            utilidadVenta += (d.PrecioVentaPorPresentacion - precioCosto) * d.CantidadPresentaciones;
-                        }
+
+            <!-- TABLA -->
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
                         <tr>
-                            <td>@v.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
-                            <td>@v.NumeroVenta</td>
-                            <td>@(v.Cliente != null ? $"{v.Cliente.Nombre} {v.Cliente.Apellido}" : v.NombreConsumidor)</td>
-                            <td>@(v.Detalles?.Count ?? 0)</td>
-                            <td class="text-end">Q@(v.Subtotal.ToString("F2"))</td>
-                            <td class="text-end">Q@(v.IVA.ToString("F2"))</td>
-                            <td class="text-end">Q@(v.Total.ToString("F2"))</td>
-                            <td class="text-end">Q@(utilidadVenta.ToString("F2"))</td>
-                            <td class="text-end">
-                                <a asp-action="Details" asp-controller="Ventas" asp-route-id="@v.Id_Venta" class="btn btn-sm btn-outline-primary">Ver</a>
-                                <a asp-action="DownloadPdf" asp-controller="Ventas" asp-route-id="@v.Id_Venta" class="btn btn-sm btn-outline-success">PDF</a>
-                            </td>
+                            <th>Fecha</th>
+                            <th>Número</th>
+                            <th>Cliente</th>
+                            <th>Empleado</th>
+                            <th>Método de pago</th>
+                            <th class="text-center">Líneas</th>
+                            <th class="text-end">Subtotal</th>
+                            <th class="text-end">IVA</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-end text-success">Utilidad</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @if (Model.Any())
+                        {
+                            decimal totalSubtotal = 0, totalIva = 0, totalTotal = 0, totalUtilidad = 0;
+
+                            foreach (var v in Model)
+                            {
+                                int lineas = v.Detalles?.Count ?? 0;
+                                decimal utilidad = 0;
+
+                                // Calcular utilidad (igual que en el PDF)
+                                foreach (var det in v.Detalles)
+                                {
+                                    decimal costo = det.Presentacion?.PrecioCosto ?? 0m;
+                                    utilidad += (det.PrecioVentaPorPresentacion - costo) * det.CantidadPresentaciones;
+                                }
+
+                                totalSubtotal += v.Subtotal;
+                                totalIva += v.IVA;
+                                totalTotal += v.Total;
+                                totalUtilidad += utilidad;
+
+                                <tr>
+                                    <td>@v.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                    <td>@v.NumeroVenta</td>
+                                    <td>@(v.Cliente != null ? $"{v.Cliente.Nombre} {v.Cliente.Apellido}" : v.NombreConsumidor)</td>
+                                    <td>@(v.Empleado != null ? $"{v.Empleado.Nombre} {v.Empleado.Apellido}" : v.CreadoPor)</td>
+                                    <td>@v.MetodoPago</td>
+                                    <td class="text-center">@lineas</td>
+                                    <td class="text-end">Q@(v.Subtotal.ToString("F2"))</td>
+                                    <td class="text-end">Q@(v.IVA.ToString("F2"))</td>
+                                    <td class="text-end fw-bold">Q@(v.Total.ToString("F2"))</td>
+                                    <td class="text-end fw-semibold text-success">Q@(utilidad.ToString("F2"))</td>
+                                </tr>
+                            }
+
+                            <!-- Totales -->
+                            <tr class="table-secondary fw-semibold">
+                                <td colspan="6" class="text-end">Totales:</td>
+                                <td class="text-end">Q@(totalSubtotal.ToString("F2"))</td>
+                                <td class="text-end">Q@(totalIva.ToString("F2"))</td>
+                                <td class="text-end fw-bold">Q@(totalTotal.ToString("F2"))</td>
+                                <td class="text-end text-success fw-bold">Q@(totalUtilidad.ToString("F2"))</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="10" class="text-center text-muted py-3">
+                                    <i class="bi bi-exclamation-circle"></i> No se encontraron resultados con los filtros aplicados.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+
+            <!-- PAGINACIÓN -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <small>Mostrando página @currentPage de @totalPages — Total: @totalItems</small>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        @if (currentPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="?page=@(currentPage - 1)">Anterior</a>
+                            </li>
+                        }
+                        @for (int i = 1; i <= totalPages; i++)
+                        {
+                            if (i >= currentPage - 2 && i <= currentPage + 2)
+                            {
+                                <li class="page-item @(i == currentPage ? "active" : "")">
+                                    <a class="page-link" href="?page=@i">@i</a>
+                                </li>
+                            }
+                        }
+                        @if (currentPage < totalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="?page=@(currentPage + 1)">Siguiente</a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
         </div>
     </div>
 </div>

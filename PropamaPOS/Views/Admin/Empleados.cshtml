@@ -1,10 +1,16 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@using System.Security.Claims
 @model IEnumerable<PropamaPOS.Models.Empleado>
 
 @{
     ViewData["Title"] = "Gestión de Empleados";
+    string q = ViewBag.CurrentQuery as string ?? "";
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int totalItems = ViewBag.TotalItems ?? 0;
+    var roles = ViewBag.Roles as List<PropamaPOS.Models.Rol> ?? new();
+    int? selectedRol = ViewBag.RolId as int?;
+    string desde = ViewBag.Desde as string;
+    string hasta = ViewBag.Hasta as string;
 }
 
 <div class="container mt-4">
@@ -15,17 +21,56 @@
         </a>
     </div>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <!-- FILTROS -->
+    <form method="get" asp-action="Empleados" class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Buscar</label>
+                    <input type="text" name="q" value="@q" class="form-control" placeholder="Nombre, usuario, correo, teléfono..." />
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Rol</label>
+                    <select name="rolId" class="form-select">
+                        <option value="">Todos</option>
+                        @foreach (var r in roles)
+                        {
+                            <option value="@r.Id_Rol" selected="@(selectedRol == r.Id_Rol)">
+                                @r.Nombre
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Desde</label>
+                    <input type="date" name="desde" value="@desde" class="form-control" />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Hasta</label>
+                    <input type="date" name="hasta" value="@hasta" class="form-control" />
+                </div>
+
+                <div class="col-md-1 d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary me-2" title="Filtrar resultados">
+                        <i class="bi bi-search"></i>
+                    </button>
+                    <a asp-action="Empleados" class="btn btn-outline-secondary" title="Limpiar filtros">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                </div>
+            </div>
         </div>
-    }
+    </form>
+
+    @await Html.PartialAsync("_AlertsPartial")
 
     <div class="card shadow">
-        <div class="card-header bg-primary text-white">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0"><i class="bi bi-list"></i> Lista de Empleados</h5>
+            <small>Total: @totalItems registros</small>
         </div>
         <div class="card-body">
             @if (!Model.Any())
@@ -41,7 +86,7 @@
             else
             {
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover">
+                    <table class="table table-striped table-hover align-middle">
                         <thead class="table-dark">
                             <tr>
                                 <th>ID</th>
@@ -50,8 +95,8 @@
                                 <th>Teléfono</th>
                                 <th>Usuario</th>
                                 <th>Rol</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
+                                <th>Fecha Contratación</th>
+                                <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -68,20 +113,16 @@
                                             @empleado.Usuario.Rol?.Nombre
                                         </span>
                                     </td>
-                                    <td>
-                                        <span class="badge bg-@(empleado.Activo ? "success" : "danger")">
-                                            @(empleado.Activo ? "Activo" : "Inactivo")
-                                        </span>
-                                    </td>
-                                    <td>
+                                    <td>@empleado.FechaContratacion.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-center">
                                         <div class="btn-group" role="group">
                                             <a asp-action="EditarEmpleado" asp-route-id="@empleado.Id_Empleado"
                                                class="btn btn-sm btn-outline-primary" title="Editar">
-                                                <i class="bi bi-pencil"></i> Editar
+                                                <i class="bi bi-pencil"></i>
                                             </a>
                                             <a asp-action="EliminarEmpleado" asp-route-id="@empleado.Id_Empleado"
                                                class="btn btn-sm btn-outline-danger" title="Eliminar">
-                                                <i class="bi bi-trash"></i> Eliminar
+                                                <i class="bi bi-trash"></i>
                                             </a>
                                         </div>
                                     </td>
@@ -89,6 +130,33 @@
                             }
                         </tbody>
                     </table>
+                </div>
+
+                <!-- PAGINACIÓN -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>Mostrando página @currentPage de @totalPages</div>
+                    <nav>
+                        <ul class="pagination mb-0">
+                            <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Empleados"
+                                   asp-route-page="@(currentPage - 1)"
+                                   asp-route-q="@q"
+                                   asp-route-rolId="@selectedRol"
+                                   asp-route-desde="@desde"
+                                   asp-route-hasta="@hasta">‹</a>
+                            </li>
+                            <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Empleados"
+                                   asp-route-page="@(currentPage + 1)"
+                                   asp-route-q="@q"
+                                   asp-route-rolId="@selectedRol"
+                                   asp-route-desde="@desde"
+                                   asp-route-hasta="@hasta">›</a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
             }
         </div>

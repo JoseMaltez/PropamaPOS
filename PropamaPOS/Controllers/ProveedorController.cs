@@ -18,11 +18,40 @@ namespace PropamaPOS.Controllers
         }
 
         // GET: Proveedor
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string q, int page = 1)
         {
-            var proveedores = await _context.Proveedores
+            const int PageSize = 30;
+
+            var query = _context.Proveedores
                 .Where(p => p.Activo)
+                .AsQueryable();
+
+            // Filtro de búsqueda general
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                q = q.Trim().ToLower();
+                query = query.Where(p =>
+                    p.Nombre.ToLower().Contains(q) ||
+                    p.Telefono.Contains(q) ||
+                    p.Correo.ToLower().Contains(q) ||
+                    p.Direccion.ToLower().Contains(q)
+                );
+            }
+
+            var total = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(total / (double)PageSize);
+
+            var proveedores = await query
+                .OrderBy(p => p.Nombre)
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
                 .ToListAsync();
+
+            ViewBag.CurrentQuery = q;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = total;
+
             return View(proveedores);
         }
 

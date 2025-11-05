@@ -24,26 +24,34 @@ namespace PropamaPOS.Controllers
             _config = config;
         }
 
-        public async Task<IActionResult> Index(string numero = null, string cliente = null, DateTime? fechaDesde = null, DateTime? fechaHasta = null, int page = 1)
+        public async Task<IActionResult> Index(
+        string numero = null,
+        string cliente = null,
+        string empleado = null,
+        MetodoPagoVenta? metodoPago = null,
+        DateTime? fechaDesde = null,
+        DateTime? fechaHasta = null,
+        int page = 1)
         {
             const int PageSize = 30;
 
-            // cargar lista base con includes necesarios
+            // Incluye relaciones, sin filtrar por activos
             var query = _context.Ventas
-                        .Include(v => v.Cliente)
-                        .Include(v => v.Empleado)
-                        .AsQueryable();
+                .Include(v => v.Cliente)
+                .Include(v => v.Empleado)
+                .Include(v => v.Detalles)
+                .AsQueryable();
 
             // --- Filtros ---
 
-            // Por número de factura
+            // Número de factura
             if (!string.IsNullOrWhiteSpace(numero))
             {
                 numero = numero.Trim();
                 query = query.Where(v => v.NumeroVenta.Contains(numero));
             }
 
-            // Por cliente o consumidor final (nombre o NIT)
+            // Cliente o consumidor final (nombre, apellido o NIT)
             if (!string.IsNullOrWhiteSpace(cliente))
             {
                 cliente = cliente.Trim().ToLower();
@@ -57,13 +65,31 @@ namespace PropamaPOS.Controllers
                 );
             }
 
-            // Por rango de fechas
+            // Empleado o creador de la venta
+            if (!string.IsNullOrWhiteSpace(empleado))
+            {
+                empleado = empleado.Trim().ToLower();
+                query = query.Where(v =>
+                    (v.Empleado != null && (
+                        v.Empleado.Nombre.ToLower().Contains(empleado) ||
+                        (v.Empleado.Apellido != null && v.Empleado.Apellido.ToLower().Contains(empleado))
+                    )) ||
+                    (!string.IsNullOrEmpty(v.CreadoPor) && v.CreadoPor.ToLower().Contains(empleado))
+                );
+            }
+
+            // Método de pago
+            if (metodoPago.HasValue)
+            {
+                query = query.Where(v => v.MetodoPago == metodoPago.Value);
+            }
+
+            // Rango de fechas
             if (fechaDesde.HasValue)
             {
                 var desde = fechaDesde.Value.Date;
                 query = query.Where(v => v.Fecha >= desde);
             }
-
             if (fechaHasta.HasValue)
             {
                 var hasta = fechaHasta.Value.Date.AddDays(1).AddTicks(-1);
@@ -84,20 +110,19 @@ namespace PropamaPOS.Controllers
                 .Take(PageSize)
                 .ToListAsync();
 
-            // ViewBag para recordar filtros
+            // ViewBag
             ViewBag.CurrentNumero = numero;
             ViewBag.CurrentCliente = cliente;
+            ViewBag.CurrentEmpleado = empleado;
+            ViewBag.CurrentMetodoPago = metodoPago;
             ViewBag.CurrentFechaDesde = fechaDesde?.ToString("yyyy-MM-dd");
             ViewBag.CurrentFechaHasta = fechaHasta?.ToString("yyyy-MM-dd");
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
-            ViewBag.PageSize = PageSize;
             ViewBag.TotalItems = total;
 
             return View(ventas);
         }
-
-
 
         public async Task<IActionResult> Details(int id)
         {

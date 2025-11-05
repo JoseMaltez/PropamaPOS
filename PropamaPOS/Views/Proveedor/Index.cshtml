@@ -1,10 +1,11 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model IEnumerable<PropamaPOS.Models.Proveedor>
+﻿@model IEnumerable<PropamaPOS.Models.Proveedor>
 
 @{
     ViewData["Title"] = "Gestión de Proveedores";
+    string q = ViewBag.CurrentQuery as string ?? "";
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int totalItems = ViewBag.TotalItems ?? 0;
 }
 
 <div class="container mt-4">
@@ -15,33 +16,51 @@
         </a>
     </div>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <!-- FILTRO DE BÚSQUEDA -->
+    <form method="get" asp-action="Index" class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-8">
+                    <label class="form-label">Buscar proveedor</label>
+                    <input type="text" name="q" value="@q" class="form-control"
+                           placeholder="Buscar por nombre, teléfono, correo o dirección..." />
+                </div>
+
+                <div class="col-md-4 d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Limpiar
+                    </a>
+                </div>
+            </div>
         </div>
-    }
+    </form>
+
+    @await Html.PartialAsync("_AlertsPartial")
 
     <div class="card shadow">
-        <div class="card-header bg-primary text-white">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0"><i class="bi bi-list"></i> Lista de Proveedores</h5>
+            <small>Total: @totalItems registros</small>
         </div>
+
         <div class="card-body">
             @if (!Model.Any())
             {
                 <div class="text-center py-4">
                     <i class="bi bi-truck display-1 text-muted"></i>
-                    <h5 class="text-muted">No hay proveedores registrados</h5>
+                    <h5 class="text-muted">No se encontraron proveedores</h5>
                     <a asp-action="Crear" class="btn btn-primary mt-2">
-                        <i class="bi bi-plus-circle"></i> Crear Primer Proveedor
+                        <i class="bi bi-plus-circle"></i> Crear Proveedor
                     </a>
                 </div>
             }
             else
             {
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover">
+                    <table class="table table-striped table-hover align-middle">
                         <thead class="table-dark">
                             <tr>
                                 <th>ID</th>
@@ -49,8 +68,7 @@
                                 <th>Teléfono</th>
                                 <th>Correo</th>
                                 <th>Dirección</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
+                                <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -62,20 +80,15 @@
                                     <td>@proveedor.Telefono</td>
                                     <td>@proveedor.Correo</td>
                                     <td>@proveedor.Direccion</td>
-                                    <td>
-                                        <span class="badge bg-@(proveedor.Activo ? "success" : "danger")">
-                                            @(proveedor.Activo ? "Activo" : "Inactivo")
-                                        </span>
-                                    </td>
-                                    <td>
+                                    <td class="text-center">
                                         <div class="btn-group" role="group">
                                             <a asp-action="Editar" asp-route-id="@proveedor.Id_Proveedor"
                                                class="btn btn-sm btn-outline-primary" title="Editar">
-                                                <i class="bi bi-pencil"></i> Editar
+                                                <i class="bi bi-pencil"></i>
                                             </a>
                                             <a asp-action="Eliminar" asp-route-id="@proveedor.Id_Proveedor"
                                                class="btn btn-sm btn-outline-danger" title="Eliminar">
-                                                <i class="bi bi-trash"></i> Eliminar
+                                                <i class="bi bi-trash"></i>
                                             </a>
                                         </div>
                                     </td>
@@ -83,6 +96,27 @@
                             }
                         </tbody>
                     </table>
+                </div>
+
+                <!-- PAGINACIÓN -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>Mostrando página @currentPage de @totalPages</div>
+                    <nav>
+                        <ul class="pagination mb-0">
+                            <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-page="@(currentPage - 1)"
+                                   asp-route-q="@q">‹</a>
+                            </li>
+                            <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-page="@(currentPage + 1)"
+                                   asp-route-q="@q">›</a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
             }
         </div>

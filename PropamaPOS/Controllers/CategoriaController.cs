@@ -17,11 +17,39 @@ namespace PropamaPOS.Controllers
         }
 
         // GET: Categoria
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string q, int page = 1)
         {
-            var categorias = await _context.Categorias.ToListAsync();
+            const int PageSize = 30;
+
+            var query = _context.Categorias.AsQueryable();
+
+            // Filtro de búsqueda por nombre o descripción
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                q = q.Trim().ToLower();
+                query = query.Where(c =>
+                    c.Nombre.ToLower().Contains(q) ||
+                    (c.Descripcion != null && c.Descripcion.ToLower().Contains(q))
+                );
+            }
+
+            var total = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(total / (double)PageSize);
+
+            var categorias = await query
+                .OrderBy(c => c.Nombre)
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
+                .ToListAsync();
+
+            ViewBag.CurrentQuery = q;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = total;
+
             return View(categorias);
         }
+
 
         // GET: Categoria/Crear
         public IActionResult Crear()

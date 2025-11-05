@@ -39,9 +39,9 @@ namespace PropamaPOS.Controllers
 
         // GET: Item
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Index(string q, int? categoriaId, bool? bajoStock, int page = 1)
+        public async Task<IActionResult> Index(string q, int? categoriaId, bool? bajoStock, bool? esServicio, int page = 1)
         {
-            const int PageSize = 30;
+            const int PageSize = 15;
             decimal IVA = _config.GetValue<decimal?>("Tax:IVA") ?? 0.12m;
 
             var query = _context.Items
@@ -63,15 +63,15 @@ namespace PropamaPOS.Controllers
 
             // Filtro por categoría
             if (categoriaId.HasValue && categoriaId.Value > 0)
-            {
                 query = query.Where(i => i.Id_Categoria == categoriaId.Value);
-            }
 
             // Filtro por bajo stock
             if (bajoStock.HasValue && bajoStock.Value)
-            {
                 query = query.Where(i => !i.IsServicio && i.Stock <= (i.StockMinimo ?? 0));
-            }
+
+            // Filtro por tipo (producto o servicio)
+            if (esServicio.HasValue)
+                query = query.Where(i => i.IsServicio == esServicio.Value);
 
             // Paginación
             var total = await query.CountAsync();
@@ -89,11 +89,11 @@ namespace PropamaPOS.Controllers
                 .OrderBy(c => c.Nombre)
                 .ToListAsync();
 
-            // ViewBag
             ViewBag.Categorias = categorias;
             ViewBag.CurrentCategoria = categoriaId;
             ViewBag.CurrentQuery = q;
             ViewBag.CurrentBajoStock = bajoStock;
+            ViewBag.CurrentEsServicio = esServicio;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.TotalItems = total;
@@ -102,6 +102,7 @@ namespace PropamaPOS.Controllers
 
             return View(items);
         }
+
 
 
         // GET: Item/Crear

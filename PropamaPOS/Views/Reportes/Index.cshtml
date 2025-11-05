@@ -5,6 +5,11 @@
     var currentProveedor = ViewBag.CurrentProveedor as int?;
     var currentDesde = ViewBag.CurrentDesde as string;
     var currentHasta = ViewBag.CurrentHasta as string;
+    var currentNumero = ViewBag.CurrentNumero as string;
+    var currentEmpleado = ViewBag.CurrentEmpleado as string;
+    var currentPage = ViewBag.CurrentPage ?? 1;
+    var totalPages = ViewBag.TotalPages ?? 1;
+    var totalItems = ViewBag.TotalItems ?? 0;
 }
 
 <div class="container mt-4">
@@ -21,86 +26,131 @@
         </div>
 
         <div class="card-body">
-            <form method="get" class="row g-2 align-items-end mb-3">
-                <div class="col-md-4">
-                    <label class="form-label">Proveedor</label>
-                    <select name="id_Proveedor" class="form-select">
-                        <option value="">-- Todos --</option>
-                        @foreach (var p in proveedores)
-                        {
-                            @if (currentProveedor == p.Id_Proveedor)
-                            {
-                                <option value="@p.Id_Proveedor" selected>@p.Nombre</option>
-                            }
-                            else
-                            {
-                                <option value="@p.Id_Proveedor">@p.Nombre</option>
-                            }
 
-                        }
-                    </select>
-                </div>
+            <!-- FILTROS -->
+            <div class="card shadow-sm p-3 mb-4">
+                <h5 class="mb-3 text-primary">
+                    <i class="bi bi-funnel"></i> Filtros de búsqueda
+                </h5>
 
-                <div class="col-md-3">
-                    <label class="form-label">Desde</label>
-                    <input type="date" name="desde" class="form-control" value="@currentDesde" />
-                </div>
+                <form method="get" class="row g-3">
+                    <!-- Primera fila -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Número de compra</label>
+                        <input type="text" name="numero" value="@currentNumero"
+                               class="form-control" placeholder="Ej: CMP-000001" />
+                    </div>
 
-                <div class="col-md-3">
-                    <label class="form-label">Hasta</label>
-                    <input type="date" name="hasta" class="form-control" value="@currentHasta" />
-                </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Proveedor</label>
+                        <input type="text" name="proveedor" value="@ViewBag.CurrentProveedorTexto"
+                               class="form-control" placeholder="Nombre del proveedor" />
+                    </div>
 
-                <div class="col-md-2 d-grid">
-                    <button type="submit" class="btn btn-primary">Filtrar</button>
-                    <a asp-action="Index" class="btn btn-outline-secondary mt-1">Limpiar</a>
-                </div>
-            </form>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Empleado</label>
+                        <input type="text" name="empleado" value="@currentEmpleado"
+                               class="form-control" placeholder="Nombre del empleado" />
+                    </div>
 
+                    <!-- Salto de línea -->
+                    <div class="w-100"></div>
+
+                    <!-- Segunda fila (fechas) -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Desde</label>
+                        <input type="date" name="desde" value="@currentDesde"
+                               class="form-control" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Hasta</label>
+                        <input type="date" name="hasta" value="@currentHasta"
+                               class="form-control" />
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="col-md-6 d-flex justify-content-end align-items-end gap-2">
+                        <button class="btn btn-primary px-4" type="submit">
+                            <i class="bi bi-search"></i> Aplicar filtros
+                        </button>
+                        <a class="btn btn-outline-secondary px-4" href="@Url.Action("Index", "Reportes")">
+                            <i class="bi bi-x-lg"></i> Limpiar
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+
+
+
+            <!-- DESCARGA PDF -->
             <div class="mb-3 d-flex justify-content-end gap-2">
-                <a asp-action="DownloadComprasPdf" asp-route-id_Proveedor="@currentProveedor" asp-route-desde="@currentDesde" asp-route-hasta="@currentHasta"
+                <a asp-action="DownloadComprasPdf"
+                   asp-route-id_Proveedor="@currentProveedor"
+                   asp-route-desde="@currentDesde"
+                   asp-route-hasta="@currentHasta"
+                   asp-route-numero="@currentNumero"
+                   asp-route-empleado="@currentEmpleado"
                    class="btn btn-success">
                     <i class="bi bi-download"></i> Descargar PDF
                 </a>
             </div>
 
-            <table class="table table-sm table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Número</th>
-                        <th>Proveedor</th>
-                        <th>Líneas</th>
-                        <th class="text-end">Subtotal</th>
-                        <th class="text-end">IVA</th>
-                        <th class="text-end">Total</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var c in Model)
-                    {
+            <!-- TABLA -->
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle">
+                    <thead class="table-light">
                         <tr>
-                            <td>@c.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
-                            <td>@c.NumeroCompra</td>
-                            <td>@c.Proveedor?.Nombre</td>
-                            <td>@(c.Detalles?.Count ?? 0)</td>
-                            <td class="text-end">Q@(c.Subtotal.ToString("F2"))</td>
-                            <td class="text-end">Q@(c.IVA.ToString("F2"))</td>
-                            <td class="text-end">Q@(c.Total.ToString("F2"))</td>
-                            <td>
-                                <a asp-controller="Compras" asp-action="Details" asp-route-id="@c.Id_Compra" class="btn btn-sm btn-outline-secondary">Ver</a>
-                            </td>
+                            <th>Fecha</th>
+                            <th>Número</th>
+                            <th>Proveedor</th>
+                            <th>Empleado</th>
+                            <th>Líneas</th>
+                            <th class="text-end">Subtotal</th>
+                            <th class="text-end">IVA</th>
+                            <th class="text-end">Total</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var c in Model)
+                        {
+                            <tr>
+                                <td>@c.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                <td>@c.NumeroCompra</td>
+                                <td>@c.Proveedor?.Nombre</td>
+                                <td>@(c.Empleado != null ? $"{c.Empleado.Nombre} {c.Empleado.Apellido}" : c.CreadoPor)</td>
+                                <td>@(c.Detalles?.Count ?? 0)</td>
+                                <td class="text-end">Q@(c.Subtotal.ToString("F2"))</td>
+                                <td class="text-end">Q@(c.IVA.ToString("F2"))</td>
+                                <td class="text-end">Q@(c.Total.ToString("F2"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PAGINACIÓN -->
+            <div class="d-flex justify-content-between align-items-center">
+                <div>Mostrando página @currentPage de @totalPages | Total: @totalItems registros</div>
+                <nav>
+                    <ul class="pagination mb-0">
+                        <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { id_Proveedor = currentProveedor, desde = currentDesde, hasta = currentHasta, numero = currentNumero, empleado = currentEmpleado, page = currentPage - 1 })">‹</a>
+                        </li>
+                        @for (int p = 1; p <= totalPages; p++)
+                        {
+                            <li class="page-item @(p == currentPage ? "active" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { id_Proveedor = currentProveedor, desde = currentDesde, hasta = currentHasta, numero = currentNumero, empleado = currentEmpleado, page = p })">@p</a>
+                            </li>
+                        }
+                        <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { id_Proveedor = currentProveedor, desde = currentDesde, hasta = currentHasta, numero = currentNumero, empleado = currentEmpleado, page = currentPage + 1 })">›</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
 
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-    </script>
-}

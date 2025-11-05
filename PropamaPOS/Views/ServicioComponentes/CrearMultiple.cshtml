@@ -1,93 +1,199 @@
 ﻿@model PropamaPOS.Models.ViewModels.ServicioComponentesCrearViewModel
 @{
-    ViewData["Title"] = "Agregar insumos al servicio";
+    ViewData["Title"] = "Agregar Insumos al Servicio";
     var servicios = ViewBag.Servicios as List<PropamaPOS.Models.Item>;
     var items = ViewBag.Items as List<PropamaPOS.Models.Item>;
 }
 
-<h3>Agregar insumos a Servicio</h3>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">
+                        <i class="bi bi-diagram-3"></i> Agregar Insumos a un Servicio
+                    </h3>
 
-<form asp-action="CrearMultiple" method="post">
-    <div class="mb-3">
-        <label>Servicio</label>
-        <select asp-for="Id_Servicio" class="form-control">
-            <option value="">-- Seleccione --</option>
-            @foreach(var s in servicios)
-            {
-                <option value="@s.Id_Item" selected="@(Model.Id_Servicio == s.Id_Item)">
-                    @s.Nombre
-                </option>
-            }
-        </select>
-        <span asp-validation-for="Id_Servicio" class="text-danger"></span>
+                    <form asp-action="CrearMultiple" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <!-- Servicio (texto predictivo) -->
+                        <div class="mb-4 position-relative">
+                            <label asp-for="Id_Servicio" class="form-label">Servicio</label>
+                            <input type="text" id="buscarServicio" class="form-control" placeholder="Buscar servicio por nombre o código..." autocomplete="off" />
+                            <input type="hidden" asp-for="Id_Servicio" id="servicioIdHidden" />
+                            <div id="suggestionsServicio" class="list-group position-absolute w-100"
+                                 style="z-index:1050; display:none; max-height:250px; overflow:auto;"></div>
+                            <span asp-validation-for="Id_Servicio" class="text-danger"></span>
+                        </div>
+
+                        <!-- Tabla de componentes -->
+                        <h5 class="mb-3"><i class="bi bi-tools"></i> Insumos del Servicio</h5>
+                        <table class="table table-bordered align-middle" id="componentesTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Insumo</th>
+                                    <th style="width: 200px;">Cantidad por Servicio</th>
+                                    <th style="width: 100px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.Lineas.Count; i++)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="position-relative">
+                                                <input type="text" name="Lineas[@i].NombreInsumo" class="form-control buscarInsumo" placeholder="Buscar insumo..." autocomplete="off" />
+                                                <input type="hidden" name="Lineas[@i].Id_Item" class="insumoIdHidden" value="@Model.Lineas[i].Id_Item" />
+                                                <div class="list-group position-absolute w-100 sugerenciasInsumo" style="z-index: 1050; display:none;"></div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <input name="Lineas[@i].CantidadPorServicio" class="form-control" value="@Model.Lineas[i].CantidadPorServicio" type="number" min="0.01" step="0.01" />
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-danger remove-row">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="button" id="addRow" class="btn btn-outline-secondary">
+                                <i class="bi bi-plus-circle"></i> Agregar insumo
+                            </button>
+                            <div>
+                                <a asp-action="Index" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left"></i> Volver
+                                </a>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-save"></i> Guardar todos
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <table class="table" id="componentesTable">
-        <thead>
-            <tr><th>Insumo</th><th>Cantidad por servicio</th><th></th></tr>
-        </thead>
-        <tbody>
-            @for (int i=0; i < Model.Lineas.Count; i++)
-            {
-                <tr>
-                    <td>
-                        <select name="Lineas[@i].Id_Item" class="form-control">
-                            <option value="">-- Seleccione --</option>
-                            @foreach(var it in items)
-                            {
-                                <option value="@it.Id_Item" selected="@(Model.Lineas[i].Id_Item == it.Id_Item)">
-                                    @it.Nombre
-                                </option>
-                            }
-                        </select>
-                    </td>
-                    <td>
-                        <input name="Lineas[@i].CantidadPorServicio" class="form-control" value="@Model.Lineas[i].CantidadPorServicio" />
-                    </td>
-                    <td>
-                        <button type="button" class="btn btn-sm btn-danger remove-row">Eliminar</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-
-    <button type="button" id="addRow" class="btn btn-primary">Agregar insumo</button>
-    <button type="submit" class="btn btn-success">Guardar todos</button>
-    <a asp-action="Index" class="btn btn-secondary">Volver</a>
-</form>
+</div>
 
 @section Scripts {
-<script>
-    (function(){
-        function newRowHtml(index) {
-            return `<tr>
-                <td>
-                    <select name="Lineas[${index}].Id_Item" class="form-control">
-                        <option value="">-- Seleccione --</option>
-                        @foreach(var it in items) {
-                            @: <option value="@it.Id_Item">@it.Nombre</option>
-                        }
-                    </select>
-                </td>
-                <td><input name="Lineas[${index}].CantidadPorServicio" class="form-control" value="1" /></td>
-                <td><button type="button" class="btn btn-sm btn-danger remove-row">Eliminar</button></td>
-            </tr>`;
-        }
-
-        let table = document.getElementById('componentesTable').getElementsByTagName('tbody')[0];
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        (function () {
         let index = @Model.Lineas.Count;
 
-        document.getElementById('addRow').addEventListener('click', function(){
-            table.insertAdjacentHTML('beforeend', newRowHtml(index));
+        // Agregar nueva fila con input predictivo
+        document.getElementById('addRow').addEventListener('click', () => {
+            const newRow = `
+                <tr>
+                    <td>
+                        <div class="position-relative">
+                            <input type="text" name="Lineas[${index}].NombreInsumo" class="form-control buscarInsumo" placeholder="Buscar insumo..." autocomplete="off" />
+                            <input type="hidden" name="Lineas[${index}].Id_Item" class="insumoIdHidden" />
+                            <div class="list-group position-absolute w-100 sugerenciasInsumo" style="z-index:1050; display:none;"></div>
+                        </div>
+                    </td>
+                    <td>
+                        <input name="Lineas[${index}].CantidadPorServicio" class="form-control" type="number" min="0.01" step="0.01" value="1" />
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-row">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            document.querySelector('#componentesTable tbody').insertAdjacentHTML('beforeend', newRow);
             index++;
         });
 
-        document.addEventListener('click', function(e){
-            if (e.target && e.target.classList.contains('remove-row')) {
-                e.target.closest('tr').remove();
-            }
+
+        document.addEventListener('click', e => {
+            if (e.target.closest('.remove-row')) e.target.closest('tr').remove();
         });
     })();
+
+        // --- Texto predictivo para Servicio e Insumos ---
+        const servicios = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(servicios ?? new object()));
+        const items = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(items ?? new object()));
+
+
+    // Servicio: autocompletado
+    const sugServEl = document.getElementById('suggestionsServicio');
+    document.getElementById('buscarServicio').addEventListener('input', function () {
+        const q = this.value.trim().toLowerCase();
+        if (!q) { sugServEl.style.display = 'none'; return; }
+
+        const matches = servicios.filter(s =>
+            (s.Nombre && s.Nombre.toLowerCase().includes(q)) ||
+            (s.Codigo && s.Codigo.toLowerCase().includes(q))
+        ).slice(0, 10);
+
+
+        sugServEl.innerHTML = '';
+        if (matches.length === 0) { sugServEl.style.display = 'none'; return; }
+
+        matches.forEach(m => {
+            const el = document.createElement('button');
+            el.type = 'button';
+            el.className = 'list-group-item list-group-item-action';
+            el.innerHTML = `<div><strong>${m.Nombre}</strong><div class="small text-muted">${m.Codigo ?? ''}</div></div>`;
+            el.addEventListener('click', () => {
+                document.getElementById('buscarServicio').value = `${m.Nombre}${m.Codigo ? ' • ' + m.Codigo : ''}`;
+                document.getElementById('servicioIdHidden').value = m.Id_Item;
+                sugServEl.style.display = 'none';
+            });
+
+            sugServEl.appendChild(el);
+        });
+        sugServEl.style.display = 'block';
+    });
+
+    // Insumo: autocompletado por fila
+    document.addEventListener('input', function (e) {
+        if (!e.target.classList.contains('buscarInsumo')) return;
+
+        const input = e.target;
+        const contenedor = input.closest('td');
+        const sugBox = contenedor.querySelector('.sugerenciasInsumo');
+        const q = input.value.trim().toLowerCase();
+        if (!q) { sugBox.style.display = 'none'; return; }
+
+        const matches = items.filter(it =>
+            (it.Nombre && it.Nombre.toLowerCase().includes(q)) ||
+            (it.Codigo && it.Codigo.toLowerCase().includes(q))
+        ).slice(0, 10);
+
+
+        sugBox.innerHTML = '';
+        if (matches.length === 0) { sugBox.style.display = 'none'; return; }
+
+        matches.forEach(m => {
+            const el = document.createElement('button');
+            el.type = 'button';
+            el.className = 'list-group-item list-group-item-action';
+            el.innerHTML = `<div><strong>${m.Nombre}</strong><div class="small text-muted">${m.Codigo ?? ''}</div></div>`;
+            el.addEventListener('click', () => {
+                input.value = `${m.Nombre}${m.Codigo ? ' • ' + m.Codigo : ''}`;
+                contenedor.querySelector('.insumoIdHidden').value = m.Id_Item;
+                sugBox.style.display = 'none';
+            });
+
+            sugBox.appendChild(el);
+        });
+        sugBox.style.display = 'block';
+    });
+
+    // Ocultar sugerencias al hacer clic fuera
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.list-group') && !e.target.classList.contains('buscarInsumo') && e.target.id !== 'buscarServicio') {
+            document.querySelectorAll('.list-group').forEach(l => l.style.display = 'none');
+        }
+    });
+
 </script>
 }

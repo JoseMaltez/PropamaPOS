@@ -5,6 +5,7 @@
     var currentCategoria = ViewBag.CurrentCategoria as int?;
     var currentQuery = ViewBag.CurrentQuery as string;
     var bajoStock = ViewBag.CurrentBajoStock as bool?;
+    var esServicio = ViewBag.CurrentEsServicio as bool?;
     var currentPage = ViewBag.CurrentPage ?? 1;
     var totalPages = ViewBag.TotalPages ?? 1;
     var totalItems = ViewBag.TotalItems ?? 0;
@@ -16,24 +17,34 @@
         <h2><i class="bi bi-box-seam"></i> Gestión de Productos y Servicios</h2>
         <a asp-action="Crear" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Crear nuevo</a>
     </div>
+
     @await Html.PartialAsync("_AlertsPartial")
+
     <!-- Filtros -->
     <form method="get" class="card shadow-sm mb-4 p-3">
-        <div class="row g-2 align-items-end">
-            <div class="col-md-4">
-                <label class="form-label">Buscar por nombre o código</label>
-                <input type="text" name="q" value="@currentQuery" class="form-control" placeholder="Buscar..." />
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Buscar</label>
+                <input type="text" name="q" value="@currentQuery" class="form-control" placeholder="Nombre o código..." />
             </div>
             <div class="col-md-3">
                 <label class="form-label">Categoría</label>
                 <select name="categoriaId" class="form-select">
-                    <option value="">-- Todas --</option>
+                    <option value="">Todas</option>
                     @foreach (var c in categorias)
                     {
-                        <option value="@c.Id_Categoria" selected="@(currentCategoria == c.Id_Categoria ? "selected" : null)">
+                        <option value="@c.Id_Categoria" selected="@(currentCategoria == c.Id_Categoria)">
                             @c.Nombre
                         </option>
                     }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Tipo</label>
+                <select name="esServicio" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="false" selected="@(esServicio == false)">Producto</option>
+                    <option value="true" selected="@(esServicio == true)">Servicio</option>
                 </select>
             </div>
             <div class="col-md-2">
@@ -42,18 +53,30 @@
                     <label class="form-check-label" for="chkBajoStock">Solo bajo stock</label>
                 </div>
             </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Buscar</button>
+            <div class="col-md-2 d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary flex-fill">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary flex-fill">
+                    <i class="bi bi-x-circle"></i> Limpiar
+                </a>
             </div>
         </div>
     </form>
 
     <!-- Tabla -->
     <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-list"></i> Lista de Productos y Servicios</h5>
+            <small>Total: @totalItems registros</small>
+        </div>
         <div class="card-body">
             @if (!Model.Any())
             {
-                <div class="text-center py-4 text-muted">No se encontraron productos con los filtros aplicados.</div>
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-box display-1 text-muted"></i>
+                    <h5>No se encontraron resultados.</h5>
+                </div>
             }
             else
             {
@@ -69,7 +92,6 @@
                                 <th>Stock</th>
                                 <th>Stock Mínimo</th>
                                 <th>Tipo</th>
-                                <th>Estado</th>
                                 <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
@@ -86,7 +108,7 @@
                                         {
                                             var sinIva = p.PrecioVenta;
                                             var conIva = Math.Round(sinIva * (1 + iva), 2);
-                                            <div class="mb-1">
+                                            <div class="mb-2">
                                                 <strong>@p.Cantidad @p.UnidadMedida?.Nombre</strong><br />
                                                 <small class="text-muted">
                                                     Sin IVA: @($"Q{sinIva:F2}")<br />
@@ -106,7 +128,7 @@
                                             <span class="fw-bold">@i.Stock</span>
                                         }
                                     </td>
-                                    <td>@(i.StockMinimo.HasValue? i.StockMinimo.Value.ToString() : "N/A")</td>
+                                    <td>@(i.StockMinimo?.ToString() ?? "N/A")</td>
                                     <td>
                                         @if (i.IsServicio)
                                         {
@@ -117,18 +139,13 @@
                                             <span class="badge bg-secondary">Producto</span>
                                         }
                                     </td>
-                                    <td>
-                                        <span class="badge bg-@(i.Activo ? "success" : "danger")">
-                                            @(i.Activo ? "Activo" : "Inactivo")
-                                        </span>
-                                    </td>
                                     <td class="text-center">
                                         <div class="btn-group">
                                             <a asp-action="Editar" asp-route-id="@i.Id_Item" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-pencil"></i> Editar
+                                                <i class="bi bi-pencil"></i>
                                             </a>
                                             <a asp-action="Eliminar" asp-route-id="@i.Id_Item" class="btn btn-sm btn-outline-danger">
-                                                <i class="bi bi-trash"></i> Eliminar
+                                                <i class="bi bi-trash"></i>
                                             </a>
                                         </div>
                                     </td>
@@ -140,28 +157,28 @@
 
                 <!-- Paginación -->
                 <div class="d-flex justify-content-between align-items-center mt-3">
-                    <small>Mostrando página @currentPage de @totalPages — Total: @totalItems productos</small>
+                    <small>Mostrando página @currentPage de @totalPages — Total: @totalItems</small>
                     <nav>
                         <ul class="pagination pagination-sm mb-0">
                             @if (currentPage > 1)
                             {
                                 <li class="page-item">
-                                    <a class="page-link" href="?page=@(currentPage - 1)&q=@currentQuery&categoriaId=@currentCategoria&bajoStock=@bajoStock">Anterior</a>
+                                    <a class="page-link" href="?page=@(currentPage - 1)&q=@currentQuery&categoriaId=@currentCategoria&bajoStock=@bajoStock&esServicio=@esServicio">Anterior</a>
                                 </li>
                             }
-                            @for (int i = 1; i <= (int)totalPages; i++)
+                            @for (int i = 1; i <= totalPages; i++)
                             {
-                                if (i >= (int)currentPage - 2 && i <= (int)currentPage + 2)
+                                if (i >= currentPage - 2 && i <= currentPage + 2)
                                 {
-                                    <li class="page-item @(i == (int)currentPage ? "active" : "")">
-                                        <a class="page-link" href="?page=@i&q=@currentQuery&categoriaId=@currentCategoria&bajoStock=@bajoStock">@i</a>
+                                    <li class="page-item @(i == currentPage ? "active" : "")">
+                                        <a class="page-link" href="?page=@i&q=@currentQuery&categoriaId=@currentCategoria&bajoStock=@bajoStock&esServicio=@esServicio">@i</a>
                                     </li>
                                 }
                             }
                             @if (currentPage < totalPages)
                             {
                                 <li class="page-item">
-                                    <a class="page-link" href="?page=@(currentPage + 1)&q=@currentQuery&categoriaId=@currentCategoria&bajoStock=@bajoStock">Siguiente</a>
+                                    <a class="page-link" href="?page=@(currentPage + 1)&q=@currentQuery&categoriaId=@currentCategoria&bajoStock=@bajoStock&esServicio=@esServicio">Siguiente</a>
                                 </li>
                             }
                         </ul>

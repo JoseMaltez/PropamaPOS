@@ -6,59 +6,156 @@
     ViewData["Title"] = "Componentes de Servicios";
     var user = HttpContextAccessor.HttpContext?.User;
     bool isAdmin = user?.IsInRole("Admin") ?? false;
-}
-@await Html.PartialAsync("_AlertsPartial")
 
-<h3>Insumos de Servicios</h3>
-
-@if (isAdmin)
-{
-    <p>
-        <a asp-action="CrearMultiple" class="btn btn-success">Agregar insumos a un servicio</a>
-    </p>
+    var servicios = ViewBag.Servicios as List<PropamaPOS.Models.Item> ?? new();
+    var currentServicio = ViewBag.CurrentServicio as int?;
+    var q = ViewBag.CurrentQuery as string ?? "";
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int totalItems = ViewBag.TotalItems ?? 0;
 }
 
-<table class="table table-bordered align-middle">
-    <thead class="table-light">
-        <tr>
-            <th>Servicio</th>
-            <th>Insumos y cantidades</th>
-            @if (isAdmin)
-            {
-                <th style="width:200px;">Acciones</th>
-            }
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var servicio in Model)
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-diagram-3"></i> Componentes de Servicios</h2>
+        @if (isAdmin)
         {
-            <tr>
-                <td class="fw-bold align-top">@servicio.Nombre</td>
-                <td>
-                    @if (servicio.ServicioComponentes != null && servicio.ServicioComponentes.Any())
-                    {
-                        <ul class="mb-0 ps-3">
-                            @foreach (var comp in servicio.ServicioComponentes)
+            <a asp-action="CrearMultiple" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Agregar insumos a un servicio
+            </a>
+        }
+    </div>
+
+    @await Html.PartialAsync("_AlertsPartial")
+
+    <!-- Filtros -->
+    <form method="get" class="card shadow-sm mb-4 p-3">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-8">
+                <label class="form-label">Buscar</label>
+                <input type="text" name="q" value="@q" class="form-control"
+                       placeholder="Buscar por nombre de servicio o insumo..." />
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-x-circle"></i> Limpiar
+                </a>
+            </div>
+        </div>
+    </form>
+
+    <!-- Tabla -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-list"></i> Lista de Servicios con sus Insumos</h5>
+            <small>Total: @totalItems servicios</small>
+        </div>
+
+        <div class="card-body">
+            @if (!Model.Any())
+            {
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-diagram-3 display-1 text-muted"></i>
+                    <h5>No hay servicios registrados o no coinciden con los filtros.</h5>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width: 25%">Servicio</th>
+                                <th>Insumos y Cantidades</th>
+                                @if (isAdmin)
+                                {
+                                    <th class="text-center" style="width: 180px;">Acciones</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var servicio in Model)
                             {
-                                <li>
-                                    @comp.ItemConsumido?.Nombre - <strong>@comp.CantidadPorServicio</strong>
+                                <tr>
+                                    <td class="fw-bold">
+                                        <i class="bi bi-gear-fill text-primary"></i> @servicio.Nombre
+                                    </td>
+                                    <td>
+                                        @if (servicio.ServicioComponentes != null && servicio.ServicioComponentes.Any())
+                                        {
+                                            <ul class="list-unstyled mb-0">
+                                                @foreach (var comp in servicio.ServicioComponentes)
+                                                {
+                                                    <li class="mb-1">
+                                                        <i class="bi bi-caret-right-fill text-muted"></i>
+                                                        <strong>@comp.ItemConsumido?.Nombre</strong>
+                                                        <span class="text-muted">
+                                                            — Cantidad: 
+                                                            <span class="fw-bold">@comp.CantidadPorServicio</span>
+                                                        </span>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted fst-italic">Sin insumos registrados</span>
+                                        }
+                                    </td>
+                                    @if (isAdmin)
+                                    {
+                                        <td class="text-center">
+                                            <div class="btn-group">
+                                                <a asp-action="EditarServicio" asp-route-id="@servicio.Id_Item"
+                                                   class="btn btn-sm btn-outline-primary" title="Editar">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a asp-action="EliminarServicio" asp-route-id="@servicio.Id_Item"
+                                                   class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <small>Mostrando página @currentPage de @totalPages — Total: @totalItems servicios</small>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+                            @if (currentPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=@(currentPage - 1)&q=@q&servicioId=@currentServicio">Anterior</a>
+                                </li>
+                            }
+                            @for (int i = 1; i <= totalPages; i++)
+                            {
+                                if (i >= currentPage - 2 && i <= currentPage + 2)
+                                {
+                                    <li class="page-item @(i == currentPage ? "active" : "")">
+                                        <a class="page-link" href="?page=@i&q=@q&servicioId=@currentServicio">@i</a>
+                                    </li>
+                                }
+                            }
+                            @if (currentPage < totalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=@(currentPage + 1)&q=@q&servicioId=@currentServicio">Siguiente</a>
                                 </li>
                             }
                         </ul>
-                    }
-                    else
-                    {
-                        <span class="text-muted fst-italic">Sin insumos</span>
-                    }
-                </td>
-                @if (isAdmin)
-                {
-                    <td class="text-center">
-                        <a asp-action="EditarServicio" asp-route-id="@servicio.Id_Item" class="btn btn-sm btn-secondary">Editar</a>
-                        <a asp-action="EliminarServicio" asp-route-id="@servicio.Id_Item" class="btn btn-sm btn-danger">Eliminar</a>
-                    </td>
-                }
-            </tr>
-        }
-    </tbody>
-</table>
+                    </nav>
+                </div>
+            }
+        </div>
+    </div>
+</div>

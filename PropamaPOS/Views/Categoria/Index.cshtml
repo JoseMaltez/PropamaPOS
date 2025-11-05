@@ -1,52 +1,131 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model IEnumerable<PropamaPOS.Models.Categoria>
+﻿@model IEnumerable<PropamaPOS.Models.Categoria>
+
 @{
-    ViewData["Title"] = "Categorías";
+    ViewData["Title"] = "Gestión de Categorías";
+    string q = ViewBag.CurrentQuery as string ?? "";
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int totalItems = ViewBag.TotalItems ?? 0;
 }
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between mb-3">
-        <h2><i class="bi bi-tags"></i> Categorías</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-tags"></i> Gestión de Categorías</h2>
         <a asp-action="Crear" class="btn btn-primary">
             <i class="bi bi-plus-circle"></i> Nueva Categoría
         </a>
     </div>
 
-    @if (!string.IsNullOrWhiteSpace(TempData["SuccessMessage"] as string))
-    {
-        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-    }
-    @if (!string.IsNullOrWhiteSpace(TempData["ErrorMessage"] as string))
-    {
-        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
-    }
+    <!-- Filtros de búsqueda -->
+    <form method="get" asp-action="Index" class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-8">
+                    <label class="form-label">Buscar categoría</label>
+                    <input type="text" name="q" value="@q" class="form-control"
+                           placeholder="Buscar por nombre o descripción..." />
+                </div>
 
+                <div class="col-md-4 d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Limpiar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
 
-    <table class="table table-striped table-bordered">
-        <thead class="table-dark">
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Descripción</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var cat in Model)
+    @await Html.PartialAsync("_AlertsPartial")
+
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-list"></i> Lista de Categorías</h5>
+            <small>Total: @totalItems registros</small>
+        </div>
+
+        <div class="card-body">
+            @if (!Model.Any())
             {
-                <tr>
-                    <td>@cat.Id_Categoria</td>
-                    <td>@cat.Nombre</td>
-                    <td>@cat.Descripcion</td>
-                    <td>
-                        <a asp-action="Editar" asp-route-id="@cat.Id_Categoria" class="btn btn-sm btn-outline-primary">Editar</a>
-                        <a asp-action="Eliminar" asp-route-id="@cat.Id_Categoria" class="btn btn-sm btn-outline-danger">Eliminar</a>
-                    </td>
-                </tr>
+                <div class="text-center py-4">
+                    <i class="bi bi-tags display-1 text-muted"></i>
+                    <h5 class="text-muted">No hay categorías registradas</h5>
+                    <a asp-action="Crear" class="btn btn-primary mt-2">
+                        <i class="bi bi-plus-circle"></i> Crear Primera Categoría
+                    </a>
+                </div>
             }
-        </tbody>
-    </table>
-</div>
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="text-center">#</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var cat in Model)
+                            {
+                                <tr>
+                                    <td class="text-center fw-bold">@cat.Id_Categoria</td>
+                                    <td>
+                                        <div class="fw-semibold">@cat.Nombre</div>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(cat.Descripcion))
+                                        {
+                                            @cat.Descripcion
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted fst-italic">Sin descripción</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Editar" asp-route-id="@cat.Id_Categoria"
+                                               class="btn btn-sm btn-outline-primary" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a asp-action="Eliminar" asp-route-id="@cat.Id_Categoria"
+                                               class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
 
+                <!-- Paginación -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>Mostrando página @currentPage de @totalPages</div>
+                    <nav>
+                        <ul class="pagination mb-0">
+                            <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-page="@(currentPage - 1)"
+                                   asp-route-q="@q">‹</a>
+                            </li>
+                            <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-page="@(currentPage + 1)"
+                                   asp-route-q="@q">›</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            }
+        </div>
+    </div>
+</div>
