@@ -1,8 +1,92 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+﻿// Sidebar toggle mejorado
+document.addEventListener("DOMContentLoaded", function () {
+    const sidebar = document.getElementById("appSidebar");
+    const toggleBtn = document.getElementById("sidebarToggleBtn");
+    const body = document.body;
 
-// Write your JavaScript code.
-// spinner login
+    // 🔹 Si no hay sidebar, quitar margen y salir
+    if (!sidebar) {
+        body.classList.remove("sidebar-hidden");
+        body.classList.remove("preload");
+        return;
+    }
+
+    if (!toggleBtn) return;
+
+    // Leer estado guardado
+    let hidden = localStorage.getItem("propama_sidebar_hidden");
+    if (hidden === null) hidden = "false";
+    hidden = hidden === "true";
+
+    applySidebarState(hidden, true);
+
+    // Quita la clase preload una vez aplicado el estado
+    setTimeout(() => {
+        body.classList.remove("preload");
+    }, 100);
+
+    toggleBtn.addEventListener("click", function () {
+        hidden = !hidden;
+        applySidebarState(hidden);
+    });
+
+    // Cerrar sidebar en móvil al hacer clic fuera - SIN OVERLAY
+    document.addEventListener('click', function (e) {
+        if (window.innerWidth <= 767.98 &&
+            !sidebar.classList.contains('hidden') &&
+            !sidebar.contains(e.target) &&
+            e.target !== toggleBtn &&
+            !toggleBtn.contains(e.target) &&
+            !e.target.closest('.navbar-toggler')) {
+            hidden = true;
+            applySidebarState(hidden);
+        }
+    });
+
+    // Manejar redimensionamiento
+    window.addEventListener('resize', function () {
+        if (window.innerWidth > 767.98) {
+            // En desktop, restaurar estado guardado
+            const savedState = localStorage.getItem("propama_sidebar_hidden") === "true";
+            applySidebarState(savedState, true);
+        }
+    });
+
+    function applySidebarState(isHidden, instant = false) {
+        const transition = instant ? "none" : "transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)";
+        sidebar.style.transition = transition;
+
+        if (isHidden) {
+            body.classList.add("sidebar-hidden");
+            sidebar.classList.add("hidden");
+        } else {
+            body.classList.remove("sidebar-hidden");
+            sidebar.classList.remove("hidden");
+        }
+
+        localStorage.setItem("propama_sidebar_hidden", isHidden);
+
+        // En móvil, NO agregar overlay (comentado)
+        // if (window.innerWidth <= 767.98 && !isHidden) {
+        //     addMobileOverlay();
+        // } else {
+        //     removeMobileOverlay();
+        // }
+    }
+
+    // Eliminar las funciones de overlay o mantenerlas comentadas
+    /*
+    function addMobileOverlay() {
+        // Comentado - no usar overlay
+    }
+
+    function removeMobileOverlay() {
+        // Comentado - no usar overlay
+    }
+    */
+});
+
+
 document.addEventListener('DOMContentLoaded', function () {
     const loginForm = document.getElementById('loginForm');
 
@@ -49,57 +133,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-// Sidebar toggle
-document.addEventListener("DOMContentLoaded", function () {
-    const sidebar = document.getElementById("appSidebar");
-    const toggleBtn = document.getElementById("sidebarToggleBtn");
-
-    // 🔹 Si no hay sidebar, quitar margen y salir
-    if (!sidebar) {
-        document.body.classList.remove("sidebar-hidden");
-        document.body.classList.remove("preload");
-        return;
-    }
-
-    if (!toggleBtn) return;
-
-    // Leer estado guardado
-    let hidden = localStorage.getItem("propama_sidebar_hidden");
-    if (hidden === null) hidden = "false";
-    hidden = hidden === "true";
-
-
-    applySidebarState(hidden, true);
-
-    // Quita la clase preload una vez aplicado el estado
-    setTimeout(() => {
-        document.body.classList.remove("preload");
-    }, 0);
-
-
-    toggleBtn.addEventListener("click", function () {
-        hidden = !hidden;
-        applySidebarState(hidden);
-    });
-
-    function applySidebarState(isHidden, instant = false) {
-        const transition = instant ? "none" : "transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)";
-        if (instant) sidebar.style.transition = "none";
-        sidebar.style.transition = transition;
-
-        if (isHidden) {
-            document.body.classList.add("sidebar-hidden");
-            sidebar.classList.add("hidden");
-        } else {
-            document.body.classList.remove("sidebar-hidden");
-            sidebar.classList.remove("hidden");
-        }
-
-        localStorage.setItem("propama_sidebar_hidden", isHidden);
-    }
-});
-
-
 // === Guardar estado de secciones colapsables del sidebar ===
 document.addEventListener("DOMContentLoaded", function () {
     const collapsibleLinks = document.querySelectorAll('.menu-section > a[data-bs-toggle="collapse"]');
@@ -128,5 +161,16 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-
-
+// Mejora para tablas responsivas
+document.addEventListener("DOMContentLoaded", function () {
+    // Agregar clases responsivas a tablas
+    document.querySelectorAll('table').forEach(table => {
+        if (!table.closest('.table-responsive')) {
+            table.classList.add('table', 'table-hover');
+            const wrapper = document.createElement('div');
+            wrapper.className = 'table-responsive';
+            table.parentNode.insertBefore(wrapper, table);
+            wrapper.appendChild(table);
+        }
+    });
+});

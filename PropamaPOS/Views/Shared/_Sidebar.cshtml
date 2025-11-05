@@ -14,9 +14,9 @@
 
         <div class="sidebar-header p-3 d-flex align-items-center justify-content-between">
             <strong>Menú</strong>
-            @* <button id="sidebarCollapseBtn" class="btn btn-sm btn-outline-secondary toggle-btn" aria-label="Toggle sidebar">
-                <i class="bi bi-chevron-left"></i>
-            </button> *@
+            <button id="sidebarCloseBtn" class="btn btn-sm btn-outline-warning d-lg-none toggle-btn" aria-label="Cerrar sidebar">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
 
         <nav class="nav flex-column p-2">
@@ -133,4 +133,21 @@
             }
         </nav>
     </aside>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const closeBtn = document.getElementById('sidebarCloseBtn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    const sidebar = document.getElementById('appSidebar');
+                    if (sidebar) {
+                        sidebar.classList.add('hidden');
+                        document.body.classList.add('sidebar-hidden');
+                        localStorage.setItem("propama_sidebar_hidden", "true");
+                        removeMobileOverlay();
+                    }
+                });
+            }
+        });
+    </script>
 }

@@ -1,44 +1,60 @@
-﻿
-@{
+﻿@{
     var success = TempData["SuccessMessage"] as string;
     var error = TempData["ErrorMessage"] as string;
     var warning = TempData["WarningMessage"] as string;
     var info = TempData["InfoMessage"] as string;
 }
 
-@if (!string.IsNullOrWhiteSpace(success))
-{
-    <div class="alert alert-success alert-dismissible fade show shadow-sm mt-3" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i>
-        @success
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-    </div>
-}
+<div class="container mt-3">
+    @if (!string.IsNullOrWhiteSpace(success))
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-check-circle-fill me-3 fs-5"></i>
+                <div class="flex-grow-1">
+                    <strong class="me-2">Éxito!</strong>@success
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+    }
 
-@if (!string.IsNullOrWhiteSpace(error))
-{
-    <div class="alert alert-danger alert-dismissible fade show shadow-sm mt-3" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        @error
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-    </div>
-}
+    @if (!string.IsNullOrWhiteSpace(error))
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill me-3 fs-5"></i>
+                <div class="flex-grow-1">
+                    <strong class="me-2">Error!</strong>@error
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+    }
 
-@if (!string.IsNullOrWhiteSpace(warning))
-{
-    <div class="alert alert-warning alert-dismissible fade show shadow-sm mt-3" role="alert">
-        <i class="bi bi-exclamation-circle-fill me-2"></i>
-        @warning
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-    </div>
-}
+    @if (!string.IsNullOrWhiteSpace(warning))
+    {
+        <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-exclamation-circle-fill me-3 fs-5"></i>
+                <div class="flex-grow-1">
+                    <strong class="me-2">Advertencia!</strong>@warning
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+    }
 
-@if (!string.IsNullOrWhiteSpace(info))
-{
-    <div class="alert alert-info alert-dismissible fade show shadow-sm mt-3" role="alert">
-        <i class="bi bi-info-circle-fill me-2"></i>
-        @info
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-    </div>
-}
-
+    @if (!string.IsNullOrWhiteSpace(info))
+    {
+        <div class="alert alert-info alert-dismissible fade show shadow-sm" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-info-circle-fill me-3 fs-5"></i>
+                <div class="flex-grow-1">
+                    <strong class="me-2">Información!</strong>@info
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+    }
+</div>
