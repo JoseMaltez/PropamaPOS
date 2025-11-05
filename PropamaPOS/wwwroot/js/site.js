@@ -87,21 +87,21 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-document.addEventListener('DOMContentLoaded', function () {
-    const loginForm = document.getElementById('loginForm');
+//document.addEventListener('DOMContentLoaded', function () {
+//    const loginForm = document.getElementById('loginForm');
 
-    if (loginForm) {
-        loginForm.addEventListener('submit', function () {
-            const btnLogin = document.getElementById('btnLogin');
-            const loginText = document.getElementById('loginText');
-            const loginSpinner = document.getElementById('loginSpinner');
+//    if (loginForm) {
+//        loginForm.addEventListener('submit', function () {
+//            const btnLogin = document.getElementById('btnLogin');
+//            const loginText = document.getElementById('loginText');
+//            const loginSpinner = document.getElementById('loginSpinner');
 
-            loginText.classList.add('d-none');
-            loginSpinner.classList.remove('d-none');
-            btnLogin.disabled = true;
-        });
-    }
-});
+//            loginText.classList.add('d-none');
+//            loginSpinner.classList.remove('d-none');
+//            btnLogin.disabled = true;
+//        });
+//    }
+//});
 
 document.addEventListener('DOMContentLoaded', function () {
     // Confirmación para eliminaciones
@@ -174,3 +174,86 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
+
+// ===== MEJORAS ESPECÍFICAS PARA VISTAS DE ACCOUNT =====
+
+// Inicialización de componentes de Account
+document.addEventListener("DOMContentLoaded", function () {
+    initializeAccountComponents();
+});
+
+function initializeAccountComponents() {
+    // Toggle password visibility para Account
+    document.querySelectorAll(".toggle-password").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const inputGroup = this.closest('.input-group');
+            const input = inputGroup.querySelector('input');
+            const icon = this.querySelector("i");
+
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("bi-eye");
+                icon.classList.add("bi-eye-slash");
+                this.classList.add("active");
+            } else {
+                input.type = "password";
+                icon.classList.remove("bi-eye-slash");
+                icon.classList.add("bi-eye");
+                this.classList.remove("active");
+            }
+        });
+    });
+
+    // Validación de formularios de Account - VERSIÓN SIMPLIFICADA
+    const accountForms = document.querySelectorAll('.account-form');
+    accountForms.forEach(form => {
+        form.addEventListener('submit', function (e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn && !submitBtn.disabled) {
+                // Solo deshabilitar el botón, el spinner ya se maneja en la vista
+                submitBtn.disabled = true;
+                submitBtn.classList.add('btn-loading');
+            }
+        });
+    });
+
+    // Efectos de focus para inputs de Account
+    const accountInputs = document.querySelectorAll('.account-form .form-control');
+    accountInputs.forEach(input => {
+        input.addEventListener('focus', function () {
+            this.parentElement.classList.add('focused');
+        });
+
+        input.addEventListener('blur', function () {
+            if (!this.value) {
+                this.parentElement.classList.remove('focused');
+            }
+        });
+    });
+
+    // Animación de entrada para el login container
+    const loginContainer = document.querySelector('.login-container');
+    if (loginContainer) {
+        setTimeout(() => {
+            loginContainer.style.opacity = '0';
+            loginContainer.style.transform = 'translateY(20px)';
+            loginContainer.style.transition = 'all 0.5s ease';
+
+            setTimeout(() => {
+                loginContainer.style.opacity = '1';
+                loginContainer.style.transform = 'translateY(0)';
+            }, 50);
+        }, 100);
+    }
+}
+
+// Función para mostrar/ocultar loading states
+function setButtonLoading(button, isLoading) {
+    if (isLoading) {
+        button.disabled = true;
+        button.classList.add('btn-loading');
+    } else {
+        button.disabled = false;
+        button.classList.remove('btn-loading');
+    }
+}

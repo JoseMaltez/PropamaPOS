@@ -8,22 +8,51 @@
     bool isEmpleado = user?.IsInRole("Empleado") ?? false;
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="alert alert-danger shadow-lg p-4 text-center">
-                <h3 class="mb-3">🚫 Acceso Denegado</h3>
-                <p>No tienes permisos para acceder a esta página.</p>
-                @if (isAdmin)
-                {
-                    <a asp-action="Dashboard" asp-controller="Admin" class="btn btn-primary mt-3">Volver a Inicio</a>
-                }
-                @if (isEmpleado)
-                {
-                    <a asp-action="Dashboard" asp-controller="Empleado" class="btn btn-primary mt-3">Volver a Inicio</a>
-                }
+<div class="login-main-content">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="access-denied-container">
+                    <!-- Icono -->
+                    <div class="access-denied-icon">
+                        <i class="bi bi-shield-exclamation"></i>
+                    </div>
+
+                    <!-- Mensaje -->
+                    <h1 class="login-title text-danger">Acceso Denegado</h1>
+                    <p class="login-subtitle mb-4">No tienes los permisos necesarios para acceder a esta página.</p>
+
+                    <!-- Información adicional -->
+                    <div class="alert alert-warning account-alert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-info-circle-fill me-3 fs-5"></i>
+                            <div>
+                                <strong>Usuario actual:</strong> @user?.Identity?.Name<br>
+                                <strong>Rol:</strong> @(isAdmin ? "Administrador" : isEmpleado ? "Empleado" : "Sin rol asignado")
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="d-grid gap-3 mt-4">
+                        @if (isAdmin)
+                        {
+                            <a asp-action="Dashboard" asp-controller="Admin" class="btn btn-account-primary">
+                                <i class="bi bi-house me-2"></i>Volver al Dashboard
+                            </a>
+                        }
+                        @if (isEmpleado)
+                        {
+                            <a asp-action="Dashboard" asp-controller="Empleado" class="btn btn-account-primary">
+                                <i class="bi bi-house me-2"></i>Volver al Dashboard
+                            </a>
+                        }
+                        <a asp-action="Index" asp-controller="Home" class="btn btn-account-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Volver al Inicio
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
-

@@ -1,52 +1,75 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-    ViewData["Title"] = "Login";
+﻿@{
+    ViewData["Title"] = "Iniciar Sesión";
 }
 
-<div class="row justify-content-center mt-5">
-    <div class="col-md-4">
-        <div class="card shadow">
-            <div class="card-body">
-                <h3 class="text-center mb-4">Iniciar Sesión</h3>
-
-                <form asp-action="Login" method="post" id="loginForm">
-                    <div class="form-group mb-3">
-                        <label for="nombreUsuario">Nombre de Usuario</label>
-                        <input type="text" name="nombreUsuario" class="form-control"
-                         placeholder="Ingrese su nombre de usuario" required />
-                    </div>
-
-                    <div class="form-group mb-3">
-                        <label for="password">Contraseña</label>
-                        <div class="input-group mb-3">
-                            <input type="password" name="password" class="form-control"
-                            placeholder="Ingrese su contraseña" required />
-                            <button type="button" class="btn btn-outline-secondary toggle-password">
-                                <i class="bi bi-eye"></i>
-                            </button>
+<div class="login-main-content">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5 col-lg-4">
+                <div class="login-container">
+                    <!-- Header -->
+                    <div class="login-header">
+                        <div class="login-logo">
+                            <i class="bi bi-shop-window"></i>
                         </div>
+                        <h1 class="login-title">Propama</h1>
+                        <p class="login-subtitle">Libreria y Papeleria</p>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100" id="btnLogin">
-                        <span id="loginText">Ingresar</span>
-                        <span id="loginSpinner" class="spinner-border spinner-border-sm d-none" role="status">
-                            <span class="visually-hidden">Cargando...</span>
-                        </span>
-                    </button>
+                    <!-- Formulario -->
+                    <form asp-action="Login" method="post" class="account-form" id="loginForm">
+                        <div class="form-group">
+                            <label for="nombreUsuario" class="form-label">Usuario</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="bi bi-person"></i>
+                                </span>
+                                <input type="text" name="nombreUsuario" class="form-control border-start-0"
+                                       placeholder="Ingrese su usuario" required />
+                            </div>
+                        </div>
 
-                    @if (ViewBag.Error != null)
+                        <div class="form-group">
+                            <label for="password" class="form-label">Contraseña</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                                <input type="password" name="password" class="form-control border-start-0"
+                                       placeholder="Ingrese su contraseña" required />
+                                <button type="button" class="btn btn-outline-secondary toggle-password border-start-0">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-account-primary" id="btnLogin">
+                            <span id="loginText">Ingresar al Sistema</span>
+                            <span id="loginSpinner" class="spinner-border spinner-border-sm d-none ms-2" role="status"></span>
+                        </button>
+
+                        @if (ViewBag.Error != null)
+                        {
+                            <div class="alert alert-danger account-alert mt-3">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                @ViewBag.Error
+                            </div>
+                        }
+                    </form>
+
+                    @if (TempData["Message"] != null)
                     {
-                        <div class="alert alert-danger mt-3">@ViewBag.Error</div>
+                        <div class="alert alert-info account-alert mt-3">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            @TempData["Message"]
+                        </div>
                     }
-                </form>
-                @if (TempData["Message"] != null)
-                {
-                    <div class="alert alert-info mt-3">@TempData["Message"]</div>
-                }
-                <div class="text-center mt-3">
-                    <a asp-controller="Account" asp-action="ForgotPassword">¿Olvidaste tu contraseña?</a>
+
+                    <div class="text-center mt-4">
+                        <a asp-controller="Account" asp-action="ForgotPassword" class="account-link">
+                            <i class="bi bi-key me-1"></i>¿Olvidaste tu contraseña?
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -57,4 +80,46 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Toggle password visibility
+            document.querySelectorAll(".toggle-password").forEach(btn => {
+                btn.addEventListener("click", function () {
+                    const input = this.closest('.input-group').querySelector('input');
+                    const icon = this.querySelector("i");
+                    if (input.type === "password") {
+                        input.type = "text";
+                        icon.classList.remove("bi-eye");
+                        icon.classList.add("bi-eye-slash");
+                    } else {
+                        input.type = "password";
+                        icon.classList.remove("bi-eye-slash");
+                        icon.classList.add("bi-eye");
+                    }
+                });
+            });
+
+            // Login form submission - VERSIÓN SIMPLIFICADA
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function () {
+                    const btnLogin = document.getElementById('btnLogin');
+                    const loginText = document.getElementById('loginText');
+                    const loginSpinner = document.getElementById('loginSpinner');
+
+                    // Solo cambiar el texto y mostrar el spinner de Bootstrap
+                    if (loginText) {
+                        loginText.textContent = 'Iniciando sesión...';
+                    }
+                    if (loginSpinner) {
+                        loginSpinner.classList.remove('d-none');
+                    }
+
+                    btnLogin.disabled = true;
+                    btnLogin.classList.add('btn-loading');
+                });
+            }
+        });
+    </script>
 }

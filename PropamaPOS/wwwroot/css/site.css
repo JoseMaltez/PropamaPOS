@@ -547,3 +547,303 @@ img, video, iframe, table, canvas {
         transition: transform 0.3s ease-in-out; /* Transición más suave */
     }
 }
+
+/* ===== MEJORAS ESPECÍFICAS PARA VISTAS DE ACCOUNT ===== */
+
+/* Contenedor de login mejorado */
+.login-container {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    border: 1px solid rgba(255, 195, 0, 0.1);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-logo {
+    font-size: 2.5rem;
+    color: var(--accent-yellow);
+    margin-bottom: 1rem;
+}
+
+.login-title {
+    color: var(--primary-dark-blue);
+    font-weight: 700;
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.login-subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* Formularios de Account mejorados */
+.account-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.account-form .form-label {
+    color: var(--primary-dark-blue);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.account-form .form-control {
+    border: 2px solid var(--border-light);
+    border-radius: 8px;
+    padding: 0.875rem;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background-color: #fafbfc;
+}
+
+    .account-form .form-control:focus {
+        border-color: var(--accent-yellow);
+        background-color: white;
+        box-shadow: 0 0 0 0.2rem rgba(255, 195, 0, 0.15);
+        transform: translateY(-1px);
+    }
+
+/* Input groups mejorados */
+.input-group {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+    .input-group .form-control {
+        border-right: none;
+    }
+
+    .input-group .btn-outline-secondary {
+        border: 2px solid var(--border-light);
+        border-left: none;
+        background-color: white;
+        color: var(--text-muted);
+        transition: all 0.3s ease;
+    }
+
+        .input-group .btn-outline-secondary:hover {
+            border-color: var(--accent-yellow);
+            background-color: var(--accent-yellow);
+            color: var(--primary-dark);
+        }
+
+/* Botones de Account mejorados */
+.btn-account-primary {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-dark-blue) 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    color: white;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+    .btn-account-primary:hover {
+        background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 53, 102, 0.4);
+    }
+
+.btn-account-secondary {
+    background: transparent;
+    border: 2px solid var(--primary-blue);
+    color: var(--primary-blue);
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+    .btn-account-secondary:hover {
+        background: var(--primary-blue);
+        color: white;
+        transform: translateY(-1px);
+    }
+
+/* Tarjetas de Account mejoradas */
+.account-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    background: white;
+}
+
+    .account-card .card-body {
+        padding: 2.5rem;
+    }
+
+/* Alertas específicas para Account */
+.account-alert {
+    border-radius: 10px;
+    border: none;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.alert-access-denied {
+    background: linear-gradient(135deg, #ffe6e6 0%, #ffcccc 100%);
+    color: #721c24;
+    border-left: 4px solid #dc3545;
+}
+
+/* Mejoras para la página de acceso denegado */
+.access-denied-container {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.access-denied-icon {
+    font-size: 4rem;
+    color: #dc3545;
+    margin-bottom: 1.5rem;
+}
+
+/* Mejoras para requisitos de contraseña */
+.password-requirements {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 0.5rem;
+    border-left: 4px solid var(--accent-yellow);
+}
+
+    .password-requirements ul {
+        margin-bottom: 0;
+    }
+
+    .password-requirements li {
+        font-size: 0.85rem;
+        margin-bottom: 0.25rem;
+        transition: color 0.3s ease;
+    }
+
+    .password-requirements .valid {
+        color: #198754;
+    }
+
+    .password-requirements .invalid {
+        color: #dc3545;
+    }
+
+/* Enlaces mejorados */
+.account-link {
+    color: var(--primary-blue);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+    .account-link:hover {
+        color: var(--primary-dark-blue);
+        text-decoration: underline;
+    }
+
+/* Responsive mejorado para Account */
+@media (max-width: 767.98px) {
+    .login-container {
+        margin: 1rem;
+        padding: 2rem 1.5rem;
+        border-radius: 12px;
+    }
+
+    .account-card .card-body {
+        padding: 2rem 1.5rem;
+    }
+
+    .login-title {
+        font-size: 1.5rem;
+    }
+
+    .login-logo {
+        font-size: 2rem;
+    }
+}
+
+/* Estados de carga mejorados */
+.btn-loading {
+    position: relative;
+    opacity: 0.8;
+}
+
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Mejoras visuales para los toggle de password */
+.toggle-password {
+    border: 2px solid var(--border-light);
+    border-left: none;
+    transition: all 0.3s ease;
+}
+
+    .toggle-password:hover {
+        background-color: var(--accent-yellow);
+        border-color: var(--accent-yellow);
+        color: var(--primary-dark);
+    }
+
+
+
+/* ===== MEJORAS PARA ESTADOS DE LOADING - SOLO SPINNER BOOTSTRAP ===== */
+.btn-loading {
+    position: relative;
+    opacity: 0.8;
+}
+
+    /* Spinner de Bootstrap mejorado */
+    .btn-loading .spinner-border {
+        width: 1rem;
+        height: 1rem;
+        border-width: 2px;
+        border-color: currentColor transparent currentColor currentColor;
+    }
+
+/* Estado de loading mejorado para botones de Account */
+#btnLogin:disabled {
+    opacity: 0.8;
+    transform: none !important;
+    box-shadow: none !important;
+    cursor: not-allowed;
+}
+
+/* Asegurar que el texto y spinner estén alineados */
+#btnLogin {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    position: relative;
+}
+
+/* Transición suave para el cambio de texto */
+#loginText {
+    transition: all 0.3s ease;
+}
+
+/* Cuando está en estado loading, centrar contenido */
+#btnLogin.btn-loading {
+    justify-content: center;
+}
