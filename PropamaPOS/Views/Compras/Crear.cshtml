@@ -81,6 +81,36 @@
     </div>
 </div>
 
+<style>
+    /* Permite que el cuadro de sugerencias se vea fuera del contenedor con overflow */
+    .table-responsive {
+        overflow: visible !important;
+    }
+
+    /* Asegura que el contenedor de sugerencias se muestre sobre otros elementos */
+    .sugerenciasProducto {
+        position: absolute !important;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        z-index: 2000;
+        display: none;
+        background: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        max-height: 250px;
+        overflow-y: auto;
+    }
+
+        /* Opcional: resalta el hover de los resultados */
+        .sugerenciasProducto .list-group-item:hover {
+            background-color: #f1f1f1;
+            cursor: pointer;
+        }
+</style>
+
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
@@ -114,19 +144,22 @@
         }
 
 
-        function agregarFila() {
+                function agregarFila() {
             const tbody = document.querySelector("#tablaLineas tbody");
             const tr = document.createElement("tr");
 
             tr.innerHTML = `
                 <td>
-                    <select class="form-select form-select-sm item-select" data-index="${index}">
-                        <option value="">-- Producto --</option>
-                        ${items.map(i => `<option value="${i.id_Item}">${i.nombre}</option>`).join("")}
-                    </select>
+                    <div class="position-relative">
+                        <input type="text" class="form-control form-control-sm buscarProducto" placeholder="Buscar producto..." autocomplete="off" />
+                        <input type="hidden" name="Lineas[${index}].Id_Item" class="productoIdHidden" />
+                        <div class="list-group position-absolute w-100 sugerenciasProducto" style="z-index:1050; display:none; max-height:250px; overflow:auto;"></div>
+                    </div>
                 </td>
                 <td>
-                    <select name="Lineas[${index}].Id_ItemPresentacion" class="form-select form-select-sm pres-select" required></select>
+                    <select name="Lineas[${index}].Id_ItemPresentacion" class="form-select form-select-sm pres-select" required>
+                        <option value="">-- Seleccione presentación --</option>
+                    </select>
                 </td>
                 <td>
                     <input type="number" name="Lineas[${index}].CantidadPresentaciones" value="1" min="1" class="form-control form-control-sm cantidad" required />
@@ -147,23 +180,59 @@
         document.getElementById("btnAgregar").addEventListener("click", agregarFila);
 
 
-        document.querySelector("#tablaLineas tbody").addEventListener("change", function (e) {
-            if (e.target.classList.contains("item-select")) {
-                const itemId = parseInt(e.target.value);
-                const row = e.target.closest("tr");
-                const presSelect = row.querySelector(".pres-select");
-                presSelect.innerHTML = "";
+                // --- Texto predictivo para productos ---
+        document.addEventListener('input', function (e) {
+            if (!e.target.classList.contains('buscarProducto')) return;
 
-                if (!itemId) return;
-                const item = items.find(i => i.id_Item === itemId);
-                if (item && item.presentaciones && item.presentaciones.length > 0) {
-                    presSelect.innerHTML = item.presentaciones.map(p =>
-                        `<option value="${p.id_ItemPresentacion}">
-                            ${p.unidadMedida.nombre} (${p.cantidad}) — Q${Number(p.precioVenta).toFixed(2)}
-                         </option>`).join("");
-                } else {
-                    presSelect.innerHTML = `<option value="">-- Sin presentaciones --</option>`;
-                }
+            const input = e.target;
+            const contenedor = input.closest('td');
+            const sugBox = contenedor.querySelector('.sugerenciasProducto');
+            const q = input.value.trim().toLowerCase();
+            if (!q) { sugBox.style.display = 'none'; return; }
+
+            const matches = items.filter(it =>
+                (it.nombre && it.nombre.toLowerCase().includes(q)) ||
+                (it.codigo && it.codigo.toLowerCase().includes(q))
+            ).slice(0, 10);
+
+            sugBox.innerHTML = '';
+            if (matches.length === 0) { sugBox.style.display = 'none'; return; }
+
+            matches.forEach(m => {
+                const el = document.createElement('button');
+                el.type = 'button';
+                el.className = 'list-group-item list-group-item-action';
+                el.innerHTML = `<div><strong>${m.nombre}</strong><div class="small text-muted">${m.codigo ?? ''}</div></div>`;
+                el.addEventListener('click', () => {
+                    input.value = `${m.nombre}${m.codigo ? ' • ' + m.codigo : ''}`;
+                    contenedor.querySelector('.productoIdHidden').value = m.id_Item;
+
+                    // llenar el select de presentaciones del mismo tr
+                    const row = input.closest('tr');
+                    const presSelect = row.querySelector('.pres-select');
+                    presSelect.innerHTML = '';
+
+                    if (m.presentaciones && m.presentaciones.length > 0) {
+                        presSelect.innerHTML = m.presentaciones.map(p =>
+                            `<option value="${p.id_ItemPresentacion}">
+                                ${p.unidadMedida.nombre} (${p.cantidad}) — Q${Number(p.precioVenta).toFixed(2)}
+                            </option>`
+                        ).join('');
+                    } else {
+                        presSelect.innerHTML = `<option value="">-- Sin presentaciones --</option>`;
+                    }
+
+                    sugBox.style.display = 'none';
+                });
+                sugBox.appendChild(el);
+            });
+            sugBox.style.display = 'block';
+        });
+
+        // Ocultar sugerencias al hacer clic fuera
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.list-group') && !e.target.classList.contains('buscarProducto')) {
+                document.querySelectorAll('.list-group').forEach(l => l.style.display = 'none');
             }
         });
 

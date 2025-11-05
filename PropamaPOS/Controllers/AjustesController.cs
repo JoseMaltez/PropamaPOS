@@ -136,6 +136,13 @@ namespace PropamaPOS.Controllers
                 return View(model);
             }
 
+            if (model.Lineas == null || !model.Lineas.Any(l => l.Id_Item != null && l.Id_ItemPresentacion != null))
+            {
+                ModelState.AddModelError("", "Debe agregar al menos una línea al ajuste antes de guardarlo.");
+                await CargarViewBags();
+                return View(model);
+            }
+
             // Determinar sign por tipo
             int signFromTipo(TipoMovimientoAjuste t)
             {

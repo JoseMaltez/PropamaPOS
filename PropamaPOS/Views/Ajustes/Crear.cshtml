@@ -1,7 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model PropamaPOS.Models.ViewModels.AjusteCrearViewModel
+﻿@model PropamaPOS.Models.ViewModels.AjusteCrearViewModel
 @using System.Text.Json
 @{
     ViewData["Title"] = "Registrar ajuste";
@@ -14,6 +11,7 @@
             <h5 class="mb-0">Registrar ajuste de inventario</h5>
             <a asp-action="Index" class="btn btn-light btn-sm">Volver</a>
         </div>
+
         <div class="card-body">
             <form asp-action="Crear" method="post" id="formAjuste">
                 <div class="row mb-3">
@@ -42,12 +40,14 @@
 
                 <hr />
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6>Líneas</h6>
-                    <button type="button" id="btnAgregar" class="btn btn-outline-primary btn-sm"><i class="bi bi-plus"></i> Agregar</button>
+                    <h6>Líneas del ajuste</h6>
+                    <button type="button" id="btnAgregar" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-plus"></i> Agregar
+                    </button>
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-sm" id="tablaLineas">
+                    <table class="table table-sm align-middle" id="tablaLineas">
                         <thead class="table-light">
                             <tr>
                                 <th>Producto</th>
@@ -62,13 +62,44 @@
                     </table>
                 </div>
 
-                <div class="text-end">
-                    <button type="submit" class="btn btn-success">Guardar ajuste</button>
+                <div class="text-end mt-3">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Guardar ajuste
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<style>
+    /* 🔹 Evita que el cuadro de sugerencias se corte */
+    .table-responsive {
+        overflow: visible !important;
+    }
+
+    /* 🔹 Caja de sugerencias predictivas */
+    .sugerenciasProducto {
+        position: absolute !important;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        z-index: 2000;
+        display: none;
+        background: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        max-height: 250px;
+        overflow-y: auto;
+    }
+
+        /* Hover bonito para las sugerencias */
+        .sugerenciasProducto .list-group-item:hover {
+            background-color: #f1f1f1;
+            cursor: pointer;
+        }
+</style>
 
 @section Scripts {
     <script>
@@ -78,12 +109,14 @@
         function agregarFila() {
             const tbody = document.querySelector("#tablaLineas tbody");
             const tr = document.createElement("tr");
+
             tr.innerHTML = `
                 <td>
-                    <select name="Lineas[${idx}].Id_Item" class="form-select form-select-sm item-select" data-idx="${idx}">
-                        <option value="">-- Producto --</option>
-                        ${items.map(i => `<option value="${i.id_Item}">${i.nombre}</option>`).join("")}
-                    </select>
+                    <div class="position-relative">
+                        <input type="text" class="form-control form-control-sm buscarProducto" placeholder="Buscar producto..." autocomplete="off" />
+                        <input type="hidden" name="Lineas[${idx}].Id_Item" class="productoIdHidden" />
+                        <div class="list-group position-absolute w-100 sugerenciasProducto"></div>
+                    </div>
                 </td>
                 <td>
                     <select name="Lineas[${idx}].Id_ItemPresentacion" class="form-select form-select-sm pres-select" required>
@@ -101,34 +134,78 @@
                     <button type="button" class="btn btn-danger btn-sm eliminar"><i class="bi bi-trash"></i></button>
                 </td>
             `;
+
             tbody.appendChild(tr);
             idx++;
         }
 
         document.getElementById("btnAgregar").addEventListener("click", agregarFila);
 
-        // llenar presentaciones al seleccionar producto
-        document.querySelector("#tablaLineas tbody").addEventListener("change", function (e) {
-            if (e.target.classList.contains("item-select")) {
-                const itemId = parseInt(e.target.value);
-                const row = e.target.closest("tr");
-                const presSelect = row.querySelector(".pres-select");
-                presSelect.innerHTML = `<option value="">-- Presentación --</option>`;
-                if (!itemId) return;
-                const item = items.find(i => i.id_Item === itemId);
-                if (item && item.presentaciones && item.presentaciones.length) {
-                    presSelect.innerHTML += item.presentaciones.map(p => `<option value="${p.id_ItemPresentacion}" data-cantidad="${p.cantidad}">${p.cantidad} ${p.unidadMedida.nombre}</option>`).join("");
-                }
-                calcularFila(row);
-            }
+        // --- Texto predictivo para productos ---
+        document.addEventListener('input', function (e) {
+            if (!e.target.classList.contains('buscarProducto')) return;
 
-            if (e.target.classList.contains("pres-select")) {
+            const input = e.target;
+            const contenedor = input.closest('td');
+            const sugBox = contenedor.querySelector('.sugerenciasProducto');
+            const q = input.value.trim().toLowerCase();
+            if (!q) { sugBox.style.display = 'none'; return; }
+
+            const matches = items.filter(it =>
+                (it.nombre && it.nombre.toLowerCase().includes(q)) ||
+                (it.codigo && it.codigo.toLowerCase().includes(q))
+            ).slice(0, 10);
+
+            sugBox.innerHTML = '';
+            if (matches.length === 0) { sugBox.style.display = 'none'; return; }
+
+            matches.forEach(m => {
+                const el = document.createElement('button');
+                el.type = 'button';
+                el.className = 'list-group-item list-group-item-action';
+                el.innerHTML = `<div><strong>${m.nombre}</strong><div class="small text-muted">${m.codigo ?? ''}</div></div>`;
+                el.addEventListener('click', () => {
+                    input.value = `${m.nombre}${m.codigo ? ' • ' + m.codigo : ''}`;
+                    contenedor.querySelector('.productoIdHidden').value = m.id_Item;
+
+                    const row = input.closest('tr');
+                    const presSelect = row.querySelector('.pres-select');
+                    presSelect.innerHTML = '<option value="">-- Presentación --</option>';
+
+                    if (m.presentaciones && m.presentaciones.length > 0) {
+                        presSelect.innerHTML += m.presentaciones.map(p =>
+                            `<option value="${p.id_ItemPresentacion}" data-cantidad="${p.cantidad}">
+                                ${p.cantidad} ${p.unidadMedida.nombre}
+                             </option>`
+                        ).join('');
+                    } else {
+                        presSelect.innerHTML = `<option value="">-- Sin presentaciones --</option>`;
+                    }
+
+                    sugBox.style.display = 'none';
+                    calcularFila(row);
+                });
+                sugBox.appendChild(el);
+            });
+            sugBox.style.display = 'block';
+        });
+
+        // Ocultar sugerencias al hacer clic fuera
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.list-group') && !e.target.classList.contains('buscarProducto')) {
+                document.querySelectorAll('.list-group').forEach(l => l.style.display = 'none');
+            }
+        });
+
+        // --- Calcular unidades ---
+        document.querySelector("#tablaLineas tbody").addEventListener("input", function (e) {
+            if (e.target.classList.contains("cantidad")) {
                 calcularFila(e.target.closest("tr"));
             }
         });
 
-        document.querySelector("#tablaLineas tbody").addEventListener("input", function (e) {
-            if (e.target.classList.contains("cantidad")) {
+        document.querySelector("#tablaLineas tbody").addEventListener("change", function (e) {
+            if (e.target.classList.contains("pres-select")) {
                 calcularFila(e.target.closest("tr"));
             }
         });
@@ -143,25 +220,40 @@
                 unidadesCell.textContent = "0";
                 return;
             }
+
             const factor = parseInt(selectedOption.dataset.cantidad);
             const cantidadPres = parseInt(cantidadInput.value || "0");
             const unidades = factor * cantidadPres;
             unidadesCell.textContent = unidades.toString();
         }
 
+        // Eliminar fila
         document.querySelector("#tablaLineas tbody").addEventListener("click", function (e) {
-            if (e.target.closest(".eliminar")) {
-                e.target.closest("tr").remove();
-            }
+            if (e.target.closest(".eliminar")) e.target.closest("tr").remove();
         });
 
-        document.getElementById("formAjuste").addEventListener("submit", function (e) {
+        // Validar antes de enviar
+                document.getElementById("formAjuste").addEventListener("submit", function (e) {
             const rows = document.querySelectorAll("#tablaLineas tbody tr");
+
+            // Validar que haya al menos una línea
             if (rows.length === 0) {
                 e.preventDefault();
-                alert("Agregue al menos una línea al ajuste.");
+
+                const alerta = document.createElement("div");
+                alerta.className = "alert alert-warning alert-dismissible fade show mt-3";
+                alerta.role = "alert";
+                alerta.innerHTML = `
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Debe agregar al menos una línea al ajuste antes de guardarlo.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                `;
+                const form = document.getElementById("formAjuste");
+                form.prepend(alerta);
+
+                return;
             }
         });
+
     </script>
 }
-
