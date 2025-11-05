@@ -5,6 +5,52 @@
     ViewData["Title"] = "Nueva Venta";
     var itemsJson = Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Items ?? new object());
 }
+
+<!-- Modal para simulación de pago con tarjeta -->
+<div class="modal fade" id="pagoTarjetaModal" tabindex="-1" aria-labelledby="pagoTarjetaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="pagoTarjetaModalLabel">Procesando Pago con Tarjeta</h5>
+            </div>
+            <div class="modal-body text-center py-4">
+                <!-- Spinner de procesamiento -->
+                <div id="spinnerPago" class="mb-3">
+                    <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status">
+                        <span class="visually-hidden">Procesando pago...</span>
+                    </div>
+                </div>
+
+                <!-- Icono de éxito -->
+                <div id="pagoExitoso" class="mb-3" style="display: none;">
+                    <div class="text-success" style="font-size: 4rem;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+
+                <!-- Mensajes -->
+                <h4 id="mensajePago" class="mb-3">Esperando pago...</h4>
+                <p id="detallePago" class="text-muted">Por favor, acerque o inserte su tarjeta en el terminal</p>
+
+                <!-- Información de la transacción -->
+                <div class="card bg-light mt-3">
+                    <div class="card-body py-2">
+                        <div class="row small">
+                            <div class="col-6 text-start">Monto:</div>
+                            <div class="col-6 text-end fw-bold" id="montoTransaccion">Q 0.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" id="cancelarPagoBtn" class="btn btn-outline-danger">
+                    <i class="fas fa-times me-2"></i>Cancelar Pago
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="container mt-3">
     <div class="card shadow">
         <div class="card-header bg-success text-white">
@@ -177,7 +223,7 @@
 
                 <div class="mt-4 d-flex justify-content-between">
                     <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
-                    <button type="submit" class="btn btn-success">Confirmar y Guardar Venta</button>
+                    <button type="submit" class="btn btn-success" id="btnPagarGuardar">Pagar y Guardar Venta</button>
                 </div>
 
                 <div id="hiddenInputs"></div>
@@ -190,10 +236,121 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <!-- Agregar Font Awesome para los iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <script>
         // Datos pasados desde el servidor
         const items = @Html.Raw(itemsJson ?? "[]");
         let lineas = [];
+        let pagoProcesando = false;
+
+        // Función para simular pago con tarjeta
+        function simularPagoConTarjeta(e) {
+            const metodoPago = document.getElementById('metodoPago').value;
+
+            if (metodoPago === 'Tarjeta' && !pagoProcesando) {
+                e.preventDefault();
+
+                // Validaciones previas
+                if (lineas.length === 0) {
+                    alert('Debe agregar al menos un producto o servicio antes de guardar.');
+                    return;
+                }
+
+                const tipoCliente = document.getElementById('facturarCon').value;
+                const nit = document.getElementById('nitInput').value.trim();
+
+                if (tipoCliente === 'NIT' && !nit) {
+                    const formErrors = document.getElementById('formErrors');
+                    formErrors.innerHTML = '<div class="alert alert-danger">Debe ingresar un NIT válido antes de guardar la venta.</div>';
+                    return;
+                }
+
+                // Configurar modal
+                const total = document.getElementById('totalText').innerText;
+                document.getElementById('montoTransaccion').textContent = `Q ${total}`;
+
+                // Mostrar modal
+                const modal = new bootstrap.Modal(document.getElementById('pagoTarjetaModal'));
+                modal.show();
+
+                // Iniciar proceso de pago
+                iniciarProcesoPago();
+            }
+        }
+
+        function iniciarProcesoPago() {
+            pagoProcesando = true;
+            const spinner = document.getElementById('spinnerPago');
+            const pagoExitoso = document.getElementById('pagoExitoso');
+            const mensajePago = document.getElementById('mensajePago');
+            const detallePago = document.getElementById('detallePago');
+            const cancelarBtn = document.getElementById('cancelarPagoBtn');
+
+            // Resetear estado del modal
+            spinner.style.display = 'block';
+            pagoExitoso.style.display = 'none';
+            mensajePago.textContent = 'Esperando pago...';
+            detallePago.textContent = 'Por favor, acerque o inserte su tarjeta en el terminal';
+            cancelarBtn.style.display = 'block';
+
+            // Simular procesamiento en etapas
+            setTimeout(() => {
+                mensajePago.textContent = 'Procesando tarjeta...';
+                detallePago.textContent = 'Leyendo información de la tarjeta';
+            }, 2000);
+
+            setTimeout(() => {
+                mensajePago.textContent = 'Verificando fondos...';
+                detallePago.textContent = 'Comunicándose con el banco emisor';
+            }, 4000);
+
+            setTimeout(() => {
+                mensajePago.textContent = 'Autorizando transacción...';
+                detallePago.textContent = 'Espere por favor';
+            }, 6000);
+
+            // Finalizar proceso exitosamente
+            setTimeout(() => {
+                spinner.style.display = 'none';
+                pagoExitoso.style.display = 'block';
+                mensajePago.textContent = 'Pago aceptado';
+                mensajePago.className = 'mb-3 text-success fw-bold';
+                detallePago.textContent = 'Transacción completada exitosamente';
+                cancelarBtn.style.display = 'none';
+
+                // Enviar formulario después de mostrar éxito
+                setTimeout(() => {
+                    pagoProcesando = false;
+                    document.getElementById('ventaForm').submit();
+                }, 2000);
+            }, 8000);
+        }
+
+        function cancelarProcesoPago() {
+            pagoProcesando = false;
+            const modal = bootstrap.Modal.getInstance(document.getElementById('pagoTarjetaModal'));
+            modal.hide();
+
+            // Resetear estado
+            const spinner = document.getElementById('spinnerPago');
+            const pagoExitoso = document.getElementById('pagoExitoso');
+            const mensajePago = document.getElementById('mensajePago');
+            const detallePago = document.getElementById('detallePago');
+
+            spinner.style.display = 'block';
+            pagoExitoso.style.display = 'none';
+            mensajePago.textContent = 'Esperando pago...';
+            mensajePago.className = 'mb-3';
+            detallePago.textContent = 'Por favor, acerque o inserte su tarjeta en el terminal';
+        }
+
+        // Event Listeners
+        document.getElementById('btnPagarGuardar').addEventListener('click', simularPagoConTarjeta);
+        document.getElementById('cancelarPagoBtn').addEventListener('click', cancelarProcesoPago);
+
+        // El resto del código JavaScript existente se mantiene igual...
         function actualizarPresentacionesFor(itemId) {
             const item = items.find(i => i.id_Item === parseInt(itemId));
             const sel = document.getElementById('presentacionSelect');
@@ -538,7 +695,7 @@
         });
 
         @{
-            var prev = ViewBag.PreviousLineas ?? new object(); var prevJson = Newtonsoft.Json.JsonConvert.SerializeObject(prev);
+                var prev = ViewBag.PreviousLineas ?? new object(); var prevJson = Newtonsoft.Json.JsonConvert.SerializeObject(prev);
         }
         const previousLineasFromServer = @Html.Raw(prevJson ?? "[]");
         if (previousLineasFromServer && previousLineasFromServer.length) {
@@ -575,8 +732,14 @@
         // Inicial
         document.getElementById('facturarCon').dispatchEvent(new Event('change'));
 
-                // Validación previa al envío
+                // Validación previa al envío (modificada para tarjeta)
         document.getElementById('ventaForm').addEventListener('submit', function (e) {
+            // Si es pago con tarjeta y ya pasó por la simulación, permitir envío
+            const metodo = document.getElementById('metodoPago').value;
+            if (metodo === 'Tarjeta' && pagoProcesando) {
+                return; // Permitir envío
+            }
+
             const tipoCliente = document.getElementById('facturarCon').value;
             const nit = document.getElementById('nitInput').value.trim();
 
@@ -591,10 +754,8 @@
                 formErrors.innerHTML = '<div class="alert alert-danger">Debe ingresar un NIT válido antes de guardar la venta.</div>';
                 e.preventDefault();
                 return;
-
             }
 
-            const metodo = document.getElementById('metodoPago').value;
             if (metodo === 'Efectivo') {
                 const total = parseFloat(document.getElementById('totalText').innerText || '0');
                 const recibido = parseFloat(document.getElementById('montoRecibido').value || '0');
@@ -604,9 +765,6 @@
                     return;
                 }
             }
-
         });
-
-
     </script>
 }
