@@ -49,6 +49,7 @@ body {
     transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
+    width: 100%; /* Asegurar que ocupe todo el ancho */
 }
 
 /* Cuando la sidebar está visible */
@@ -265,29 +266,64 @@ body.sidebar-hidden .main-column {
 }
 
 /* En desktop, el login-container debe ser más ancho */
-@media (max-width: 767.98px) {
-    /* Cuando el sidebar está abierto en móvil, hacer el body no-scrollable */
-    body:has(.propama-sidebar:not(.hidden)) {
-        overflow: hidden;
-        height: 100vh;
-        position: fixed;
-        width: 100%;
-    }
-
-    .propama-sidebar:not(.hidden) {
-        overflow-y: auto;
-        height: 100vh;
+@media (min-width: 768px) {
+    .login-container {
+        max-width: 450px;
+        padding: 3rem;
     }
 }
 
 /* ===== MEJORAS PARA MÓVIL ===== */
 @media (max-width: 767.98px) {
+    /* Reset importante para móvil */
+    html, body {
+        height: 100%;
+        overflow-x: hidden; /* Prevenir scroll horizontal */
+        position: relative;
+    }
+
+    .app-root {
+        min-height: 100vh;
+        height: auto;
+        flex-direction: column;
+    }
+
+    .main-column {
+        min-height: 100vh;
+        height: auto;
+        margin-left: 0 !important; /* Forzar sin margen en móvil */
+        width: 100vw; /* Ocupar todo el viewport */
+        overflow-x: hidden; /* Prevenir scroll horizontal */
+    }
+
+    /* Contenido principal en móvil */
+    .main-content {
+        margin: 0.5rem;
+        padding: 1rem;
+        border-radius: 8px;
+        min-height: auto;
+        flex: 1;
+        width: calc(100% - 1rem); /* Ajustar al ancho disponible */
+        box-sizing: border-box; /* Incluir padding en el cálculo del ancho */
+        overflow-x: hidden; /* Prevenir scroll horizontal */
+    }
+
+    /* Footer en móvil */
+    .footer {
+        flex-shrink: 0; /* Evitar que el footer se encoja */
+        width: 100%;
+    }
+
+    /* Sidebar en móvil - CORREGIDO */
     .propama-sidebar {
         width: 280px;
         transform: translateX(-100%);
         z-index: 1050;
         top: 0;
+        left: 0;
         height: 100vh;
+        position: fixed;
+        overflow-y: auto;
     }
 
         .propama-sidebar:not(.hidden) {
@@ -295,11 +331,31 @@ body.sidebar-hidden .main-column {
             box-shadow: 2px 0 15px rgba(0, 0, 0, 0.3);
         }
 
-    /* Navbar en móvil */
+    /* Prevenir scroll del body cuando el sidebar está abierto en móvil */
+    body:has(.propama-sidebar:not(.hidden)) {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+    }
+
+    .propama-sidebar:not(.hidden) {
+        overflow-y: auto;
+        height: 100vh;
+    }
+
+    /* Navbar en móvil - MEJORADO */
     .navbar {
         padding: 0.5rem 1rem;
         z-index: 1060;
         position: relative;
+        flex-shrink: 0; /* Evitar que el navbar se encoja */
+        width: 100%;
+    }
+
+    /* Asegurar que el contenido del navbar no cause overflow */
+    .navbar-collapse {
+        max-width: 100%;
     }
 
     /* Botón toggle siempre visible en móvil */
@@ -310,50 +366,29 @@ body.sidebar-hidden .main-column {
         color: var(--primary-dark);
     }
 
-    /* Overlay para móvil - MÁS CLARO o ELIMINADO */
-    #sidebarOverlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.2); /* Más claro */
-        z-index: 1040;
-        backdrop-filter: none; /* Sin blur */
-    }
-
-    /* Contenido del navbar colapsado */
-    #navbarContent {
-        background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
-        border-radius: 0 0 8px 8px;
-        margin-top: 8px;
-        padding: 1rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Ajustes para contenido principal en móvil */
-    .main-content {
-        margin: 0.5rem;
-        padding: 1rem;
-        border-radius: 8px;
-        min-height: auto;
-    }
-
-    .main-column.full-width .main-content {
-        margin: 0;
-        border-radius: 0;
-        padding: 1rem;
-    }
-
-    /* Login en móvil */
+    /* Login en móvil - MEJORADO */
     .login-main-content {
         padding: 1rem;
-        min-height: calc(100vh - 1rem);
+        min-height: 100vh;
+        width: 100%;
+        box-sizing: border-box;
     }
 
         .login-main-content .card-body {
             padding: 2rem;
         }
+
+    /* Forzar que todas las tablas sean responsivas */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Prevenir que los elementos se salgan del viewport */
+    .container, .container-fluid {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
 }
 
 /* Utilidades para preload */
@@ -473,3 +508,42 @@ body.preload {
     .login-main-content .card-body {
         padding: 2.5rem;
     }
+
+
+/* ===== UTILIDADES GLOBALES PARA PREVENIR PROBLEMAS ===== */
+/* Asegurar que todos los contenedores principales no causen overflow */
+.container, .container-fluid, .row, .col, [class*="col-"] {
+    max-width: 100%;
+}
+
+/* Prevenir que imágenes y contenido causen overflow */
+img, video, iframe, table, canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Asegurar que los formularios sean responsivos */
+.form-control, .btn, .input-group {
+    max-width: 100%;
+}
+
+/* Footer siempre al fondo */
+.app-root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1 0 auto; /* Ocupar el espacio disponible */
+}
+
+.footer {
+    flex-shrink: 0; /* No reducir el footer */
+}
+
+@media (max-width: 767.98px) {
+    .propama-sidebar {
+        transition: transform 0.3s ease-in-out; /* Transición más suave */
+    }
+}
