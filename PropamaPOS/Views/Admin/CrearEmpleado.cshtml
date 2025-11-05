@@ -3,112 +3,153 @@
     ViewData["Title"] = "Crear Empleado";
 }
 
-<div class="container mt-4">
+<div class="container-fluid mt-4 fade-in">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h3 class="card-title text-center mb-4">Crear Nuevo Empleado</h3>
-
-                    <form asp-action="CrearEmpleado" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-                        <h5 class="mb-3">Datos de Usuario</h5>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="NombreUsuario" class="form-label">Nombre de Usuario</label>
-                                <input asp-for="NombreUsuario" class="form-control" placeholder="Ingrese el nombre de usuario" />
-                                <span asp-validation-for="NombreUsuario" class="text-danger"></span>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="Id_Rol" class="form-label">Rol</label>
-                                <select asp-for="Id_Rol" class="form-select" asp-items="@(new SelectList(ViewBag.Roles, "Id_Rol", "Nombre"))">
-                                    <option value="">Seleccionar Rol</option>
-                                </select>
-                                <span asp-validation-for="Id_Rol" class="text-danger"></span>
-                            </div>
+        <div class="col-xl-10 col-lg-12">
+            <div class="admin-form-card">
+                <div class="card-header bg-primary text-white py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-person-plus-fill me-3 fs-4"></i>
+                        <div>
+                            <h4 class="mb-0">Crear Nuevo Empleado</h4>
+                            <small class="opacity-75">Complete la información para registrar un nuevo empleado en el sistema</small>
                         </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="CrearEmpleado" method="post" class="needs-validation" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="Password" class="form-label">Contraseña</label>
-                                <div class="input-group mb-2">
-                                    <input asp-for="Password" type="password" class="form-control" id="passwordInput"
-                                           placeholder="Ingrese la contraseña" />
-                                    <button type="button" class="btn btn-outline-secondary toggle-password">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
+                        <!-- Datos de Usuario -->
+                        <div class="mb-5">
+                            <h5 class="form-section-title">
+                                <i class="bi bi-person-badge me-2"></i>Datos de Usuario
+                            </h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label asp-for="NombreUsuario" class="form-label fw-medium">Nombre de Usuario *</label>
+                                    <input asp-for="NombreUsuario" class="form-control" 
+                                           placeholder="Ingrese el nombre de usuario" required />
+                                    <span asp-validation-for="NombreUsuario" class="text-danger small"></span>
+                                    <div class="form-text">El nombre de usuario debe ser único en el sistema.</div>
                                 </div>
-                                <span asp-validation-for="Password" class="text-danger"></span>
 
-                                <!-- Lista de requisitos -->
-                                <div class="mt-2" id="passwordRequirements">
-                                    <small class="text-muted">La contraseña debe tener al menos:</small>
-                                    <ul class="list-unstyled ms-3 mt-1">
-                                        <li id="req-length"><i class="bi bi-x-circle text-danger me-1"></i>8 caracteres</li>
-                                        <li id="req-upper"><i class="bi bi-x-circle text-danger me-1"></i>1 mayúscula (A–Z)</li>
-                                        <li id="req-lower"><i class="bi bi-x-circle text-danger me-1"></i>1 minúscula (a–z)</li>
-                                        <li id="req-number"><i class="bi bi-x-circle text-danger me-1"></i>1 número (0–9)</li>
-                                        <li id="req-special"><i class="bi bi-x-circle text-danger me-1"></i>1 carácter especial (&#64;&#35;&#36;&#37;&#94;&amp;&#42;&#33;&#63;)</li>
-                                    </ul>
+                                <div class="col-md-6">
+                                    <label asp-for="Id_Rol" class="form-label fw-medium">Rol *</label>
+                                    <select asp-for="Id_Rol" class="form-select" required
+                                            asp-items="@(new SelectList(ViewBag.Roles, "Id_Rol", "Nombre"))">
+                                        <option value="">Seleccionar Rol...</option>
+                                    </select>
+                                    <span asp-validation-for="Id_Rol" class="text-danger small"></span>
                                 </div>
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="ConfirmPassword" class="form-label">Confirmar Contraseña</label>
-                                <div class="input-group mb-3">
-                                    <input asp-for="ConfirmPassword" type="password" class="form-control"
-                                           placeholder="Repita la contraseña" />
-                                    <button type="button" class="btn btn-outline-secondary toggle-password">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    <label asp-for="Password" class="form-label fw-medium">Contraseña *</label>
+                                    <div class="input-group">
+                                        <input asp-for="Password" type="password" class="form-control" id="passwordInput"
+                                               placeholder="Ingrese la contraseña" required />
+                                        <button type="button" class="btn btn-outline-secondary toggle-password">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                    <span asp-validation-for="Password" class="text-danger small"></span>
+
+                                    <!-- Validación de contraseña -->
+                                    <div class="password-validation mt-2">
+                                        <small class="text-muted fw-medium">La contraseña debe cumplir con:</small>
+                                        <div class="validation-item" id="req-length">
+                                            <i class="bi bi-x-circle text-danger"></i>
+                                            <span>Mínimo 8 caracteres</span>
+                                        </div>
+                                        <div class="validation-item" id="req-upper">
+                                            <i class="bi bi-x-circle text-danger"></i>
+                                            <span>1 letra mayúscula (A-Z)</span>
+                                        </div>
+                                        <div class="validation-item" id="req-lower">
+                                            <i class="bi bi-x-circle text-danger"></i>
+                                            <span>1 letra minúscula (a-z)</span>
+                                        </div>
+                                        <div class="validation-item" id="req-number">
+                                            <i class="bi bi-x-circle text-danger"></i>
+                                            <span>1 número (0-9)</span>
+                                        </div>
+                                        <div class="validation-item" id="req-special">
+                                            <i class="bi bi-x-circle text-danger"></i>
+                                            <span>1 carácter especial (&#64;&#35;&#36;&#37;&#94;&amp;&#42;&#33;&#63;)</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+
+                                <div class="col-md-6">
+                                    <label asp-for="ConfirmPassword" class="form-label fw-medium">Confirmar Contraseña *</label>
+                                    <div class="input-group">
+                                        <input asp-for="ConfirmPassword" type="password" class="form-control"
+                                               placeholder="Repita la contraseña" required />
+                                        <button type="button" class="btn btn-outline-secondary toggle-password">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                    <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                                    <div class="form-text">Ambas contraseñas deben coincidir.</div>
+                                </div>
                             </div>
                         </div>
 
-                        <h5 class="mb-3 mt-4">Datos Personales</h5>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="Nombre" class="form-label"></label>
-                                <input asp-for="Nombre" class="form-control" placeholder="Ingrese el nombre" />
-                                <span asp-validation-for="Nombre" class="text-danger"></span>
+                        <!-- Datos Personales -->
+                        <div class="mb-4">
+                            <h5 class="form-section-title">
+                                <i class="bi bi-person-vcard me-2"></i>Datos Personales
+                            </h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label asp-for="Nombre" class="form-label fw-medium">Nombre *</label>
+                                    <input asp-for="Nombre" class="form-control" 
+                                           placeholder="Ingrese el nombre" required />
+                                    <span asp-validation-for="Nombre" class="text-danger small"></span>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label asp-for="Apellido" class="form-label fw-medium">Apellido *</label>
+                                    <input asp-for="Apellido" class="form-control" 
+                                           placeholder="Ingrese el apellido" required />
+                                    <span asp-validation-for="Apellido" class="text-danger small"></span>
+                                </div>
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="Apellido" class="form-label"></label>
-                                <input asp-for="Apellido" class="form-control" placeholder="Ingrese el apellido" />
-                                <span asp-validation-for="Apellido" class="text-danger"></span>
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    <label asp-for="Correo" class="form-label fw-medium">Correo Electrónico *</label>
+                                    <input asp-for="Correo" type="email" class="form-control" 
+                                           placeholder="ejemplo@correo.com" required />
+                                    <span asp-validation-for="Correo" class="text-danger small"></span>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label asp-for="Telefono" class="form-label fw-medium">Teléfono *</label>
+                                    <input asp-for="Telefono" class="form-control" 
+                                           placeholder="Ingrese el teléfono" />
+                                    <span asp-validation-for="Telefono" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    <label asp-for="FechaContratacion" class="form-label fw-medium">Fecha de Contratación *</label>
+                                    <input asp-for="FechaContratacion" type="date" class="form-control" required />
+                                    <span asp-validation-for="FechaContratacion" class="text-danger small"></span>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="Correo" class="form-label"></label>
-                                <input asp-for="Correo" type="email" class="form-control" placeholder="ejemplo@correo.com" />
-                                <span asp-validation-for="Correo" class="text-danger"></span>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="Telefono" class="form-label"></label>
-                                <input asp-for="Telefono" class="form-control" placeholder="Ingrese el teléfono" />
-                                <span asp-validation-for="Telefono" class="text-danger"></span>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="FechaContratacion" class="form-label">Fecha de Contratación</label>
-                            <input asp-for="FechaContratacion" type="date" class="form-control" />
-                            <span asp-validation-for="FechaContratacion" class="text-danger"></span>
-                        </div>
-
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                            <a asp-action="Empleados" class="btn btn-secondary me-md-2">
-                                <i class="bi bi-arrow-left"></i> Cancelar
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-between align-items-center pt-4 border-top">
+                            <a asp-action="Empleados" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Volver a la Lista
                             </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-circle"></i> Crear Empleado
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-check-circle me-2"></i>Crear Empleado
                             </button>
                         </div>
                     </form>
@@ -126,47 +167,57 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const passwordInput = document.getElementById("passwordInput");
-
-            const reqLength = document.getElementById("req-length");
-            const reqUpper = document.getElementById("req-upper");
-            const reqLower = document.getElementById("req-lower");
-            const reqNumber = document.getElementById("req-number");
-            const reqSpecial = document.getElementById("req-special");
+            const validationItems = {
+                length: document.getElementById("req-length"),
+                upper: document.getElementById("req-upper"),
+                lower: document.getElementById("req-lower"),
+                number: document.getElementById("req-number"),
+                special: document.getElementById("req-special")
+            };
 
             passwordInput.addEventListener("input", function () {
-                // Mostrar/ocultar lista solo cuando se escribe algo
-                if (passwordInput.value.length > 0) {
-                    passwordRequirements.classList.remove("d-none");
-                } else {
-                    passwordRequirements.classList.add("d-none");
-                }
-
-
                 const value = passwordInput.value;
 
-                const hasLength = value.length >= 8;
-                const hasUpper = /[A-Z]/.test(value);
-                const hasLower = /[a-z]/.test(value);
-                const hasNumber = /\d/.test(value);
-                const hasSpecial = /[^A-Za-z0-9]/.test(value);
+                const validations = {
+                    length: value.length >= 8,
+                    upper: /[A-Z]/.test(value),
+                    lower: /[a-z]/.test(value),
+                    number: /\d/.test(value),
+                    special: /[^A-Za-z0-9]/.test(value)
+                };
 
-                updateItem(reqLength, hasLength);
-                updateItem(reqUpper, hasUpper);
-                updateItem(reqLower, hasLower);
-                updateItem(reqNumber, hasNumber);
-                updateItem(reqSpecial, hasSpecial);
+                Object.keys(validations).forEach(key => {
+                    const isValid = validations[key];
+                    const item = validationItems[key];
+                    const icon = item.querySelector("i");
+
+                    if (isValid) {
+                        item.classList.add("validation-valid");
+                        item.classList.remove("validation-invalid");
+                        icon.className = "bi bi-check-circle text-success";
+                    } else {
+                        item.classList.add("validation-invalid");
+                        item.classList.remove("validation-valid");
+                        icon.className = "bi bi-x-circle text-danger";
+                    }
+                });
             });
 
-            function updateItem(element, condition) {
-                const icon = element.querySelector("i");
-                if (condition) {
-                    icon.classList.remove("bi-x-circle", "text-danger");
-                    icon.classList.add("bi-check-circle", "text-success");
-                } else {
-                    icon.classList.remove("bi-check-circle", "text-success");
-                    icon.classList.add("bi-x-circle", "text-danger");
-                }
-            }
+            // Toggle password visibility
+            document.querySelectorAll(".toggle-password").forEach(button => {
+                button.addEventListener("click", function () {
+                    const input = this.parentElement.querySelector("input");
+                    const icon = this.querySelector("i");
+
+                    if (input.type === "password") {
+                        input.type = "text";
+                        icon.className = "bi bi-eye-slash";
+                    } else {
+                        input.type = "password";
+                        icon.className = "bi bi-eye";
+                    }
+                });
+            });
         });
     </script>
 }

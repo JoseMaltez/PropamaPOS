@@ -257,3 +257,233 @@ function setButtonLoading(button, isLoading) {
         button.classList.remove('btn-loading');
     }
 }
+
+
+
+// ===== FUNCIONALIDADES ESPECÍFICAS PARA ADMIN =====
+
+// Inicialización de tooltips
+function initializeAdminTooltips() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+}
+
+// Validación de formularios mejorada
+function initializeFormValidation() {
+    // Bootstrap validation
+    'use strict';
+    window.addEventListener('load', function () {
+        const forms = document.getElementsByClassName('needs-validation');
+        Array.prototype.filter.call(forms, function (form) {
+            form.addEventListener('submit', function (event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    // Scroll al primer error
+                    const firstInvalid = form.querySelector('.is-invalid');
+                    if (firstInvalid) {
+                        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+}
+
+// Mejoras para tablas responsivas
+function enhanceAdminTables() {
+    const tables = document.querySelectorAll('.table-admin');
+
+    tables.forEach(table => {
+        // Añadir clases para mejorar la experiencia en móvil
+        if (window.innerWidth < 768) {
+            table.classList.add('table-sm');
+        }
+    });
+}
+
+// Funcionalidad de filtros avanzados
+function initializeAdminFilters() {
+    const filterToggles = document.querySelectorAll('.filter-toggle');
+
+    filterToggles.forEach(toggle => {
+        toggle.addEventListener('click', function () {
+            const target = document.querySelector(this.getAttribute('data-bs-target'));
+            if (target) {
+                target.classList.toggle('show');
+            }
+        });
+    });
+}
+
+// Contador de caracteres para campos de texto
+function initializeCharacterCounters() {
+    const counters = document.querySelectorAll('[data-max-length]');
+
+    counters.forEach(counter => {
+        const maxLength = parseInt(counter.getAttribute('data-max-length'));
+        const input = counter.querySelector('input, textarea');
+        const countDisplay = counter.querySelector('.char-count');
+
+        if (input && countDisplay) {
+            input.addEventListener('input', function () {
+                const currentLength = this.value.length;
+                countDisplay.textContent = `${currentLength}/${maxLength}`;
+
+                if (currentLength > maxLength * 0.8) {
+                    countDisplay.classList.add('text-warning');
+                } else {
+                    countDisplay.classList.remove('text-warning');
+                }
+
+                if (currentLength >= maxLength) {
+                    countDisplay.classList.add('text-danger');
+                } else {
+                    countDisplay.classList.remove('text-danger');
+                }
+            });
+
+            // Trigger inicial
+            input.dispatchEvent(new Event('input'));
+        }
+    });
+}
+
+// Mejoras para selects con búsqueda
+function initializeEnhancedSelects() {
+    const enhancedSelects = document.querySelectorAll('.enhanced-select');
+
+    enhancedSelects.forEach(select => {
+        // Añadir funcionalidad de búsqueda si es necesario
+        if (select.hasAttribute('data-search')) {
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.className = 'form-control mb-2';
+            searchInput.placeholder = 'Buscar...';
+
+            select.parentNode.insertBefore(searchInput, select);
+
+            searchInput.addEventListener('input', function () {
+                const searchTerm = this.value.toLowerCase();
+                const options = select.querySelectorAll('option');
+
+                options.forEach(option => {
+                    if (option.textContent.toLowerCase().includes(searchTerm)) {
+                        option.style.display = '';
+                    } else {
+                        option.style.display = 'none';
+                    }
+                });
+            });
+        }
+    });
+}
+
+// Animaciones de carga mejoradas
+function showLoadingState(button) {
+    const originalText = button.innerHTML;
+    button.innerHTML = `
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        Procesando...
+    `;
+    button.disabled = true;
+
+    return function () {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    };
+}
+
+// Confirmaciones mejoradas para acciones destructivas
+function initializeEnhancedConfirmations() {
+    const destructiveButtons = document.querySelectorAll('[data-destructive]');
+
+    destructiveButtons.forEach(button => {
+        button.addEventListener('click', function (e) {
+            const message = this.getAttribute('data-confirm-message') ||
+                '¿Está seguro de que desea realizar esta acción?';
+
+            if (!confirm(message)) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        });
+    });
+}
+
+// Auto-hide para alertas
+function initializeAutoHideAlerts() {
+    const autoHideAlerts = document.querySelectorAll('.alert[data-auto-hide]');
+
+    autoHideAlerts.forEach(alert => {
+        const delay = parseInt(alert.getAttribute('data-auto-hide')) || 5000;
+
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }, delay);
+    });
+}
+
+// Mejoras para la paginación
+function initializePaginationEnhancements() {
+    const paginationLinks = document.querySelectorAll('.pagination-admin .page-link');
+
+    paginationLinks.forEach(link => {
+        link.addEventListener('click', function (e) {
+            if (!this.getAttribute('href')) {
+                e.preventDefault();
+                return;
+            }
+
+            // Añadir efecto de loading si es necesario
+            const targetRow = this.closest('tr');
+            if (targetRow) {
+                targetRow.classList.add('table-active');
+            }
+        });
+    });
+}
+
+// Inicialización cuando el DOM está listo
+document.addEventListener('DOMContentLoaded', function () {
+    initializeAdminTooltips();
+    initializeFormValidation();
+    enhanceAdminTables();
+    initializeAdminFilters();
+    initializeCharacterCounters();
+    initializeEnhancedSelects();
+    initializeEnhancedConfirmations();
+    initializeAutoHideAlerts();
+    initializePaginationEnhancements();
+
+    // Añadir clase fade-in a los elementos principales
+    const mainContent = document.querySelector('.fade-in');
+    if (mainContent) {
+        mainContent.style.opacity = '0';
+        mainContent.style.transform = 'translateY(20px)';
+
+        setTimeout(() => {
+            mainContent.style.transition = 'all 0.5s ease';
+            mainContent.style.opacity = '1';
+            mainContent.style.transform = 'translateY(0)';
+        }, 100);
+    }
+});
+
+// Mejoras para responsive
+window.addEventListener('resize', function () {
+    enhanceAdminTables();
+});
+
+// Exportar funciones para uso global
+window.AdminUtils = {
+    showLoadingState,
+    initializeAdminTooltips,
+    initializeFormValidation
+};

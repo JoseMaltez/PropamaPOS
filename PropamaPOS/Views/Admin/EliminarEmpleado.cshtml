@@ -1,68 +1,95 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model PropamaPOS.Models.Empleado
+﻿@model PropamaPOS.Models.Empleado
 @{
     ViewData["Title"] = "Eliminar Empleado";
 }
 
-<div class="container mt-4">
+<div class="container-fluid mt-4 fade-in">
     <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h3 class="card-title text-center mb-4 text-danger">
-                        <i class="bi bi-exclamation-triangle-fill"></i> Eliminar Empleado
-                    </h3>
-
-                    <div class="alert alert-danger" role="alert">
-                        <h5 class="alert-heading">¿Estás seguro de que quieres eliminar este empleado?</h5>
-                        <p class="mb-0">Esta acción no se puede deshacer. Se eliminarán todos los datos asociados al empleado.</p>
+        <div class="col-xl-6 col-lg-8 col-md-10">
+            <div class="admin-form-card border-danger">
+                <div class="card-header bg-danger text-white py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                        <div>
+                            <h4 class="mb-0">Confirmar Eliminación</h4>
+                            <small class="opacity-75">Acción irreversible</small>
+                        </div>
                     </div>
-
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <h6 class="card-subtitle mb-2 text-muted">Información del Empleado</h6>
-                            <dl class="row">
-                                <dt class="col-sm-4">ID:</dt>
-                                <dd class="col-sm-8">@Model.Id_Empleado</dd>
-
-                                <dt class="col-sm-4">Nombre:</dt>
-                                <dd class="col-sm-8">@Model.Nombre @Model.Apellido</dd>
-
-                                <dt class="col-sm-4">Correo:</dt>
-                                <dd class="col-sm-8">@Model.Correo</dd>
-
-                                <dt class="col-sm-4">Teléfono:</dt>
-                                <dd class="col-sm-8">@Model.Telefono</dd>
-
-                                <dt class="col-sm-4">Rol:</dt>
-                                <dd class="col-sm-8">
-                                    <span class="badge bg-@(Model.Usuario.Rol?.Nombre == "Admin" ? "danger" : "secondary")">
-                                        @Model.Usuario.Rol?.Nombre
-                                    </span>
-                                </dd>
-
-                                <dt class="col-sm-4">Estado:</dt>
-                                <dd class="col-sm-8">
-                                    <span class="badge bg-@(Model.Activo ? "success" : "danger")">
-                                        @(Model.Activo ? "Activo" : "Inactivo")
-                                    </span>
-                                </dd>
-                            </dl>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-warning border-warning mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-circle-fill me-3 fs-5 text-warning"></i>
+                            <div>
+                                <h6 class="alert-heading mb-1">¡Atención!</h6>
+                                <p class="mb-0">Está a punto de eliminar permanentemente un empleado del sistema.</p>
+                            </div>
                         </div>
                     </div>
 
+                    <!-- Información del empleado -->
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" 
+                                 style="width: 50px; height: 50px;">
+                                <i class="bi bi-person-fill text-white fs-5"></i>
+                            </div>
+                            <div class="ms-3">
+                                <h5 class="mb-0 text-danger">@Model.Nombre @Model.Apellido</h5>
+                                <p class="text-muted mb-0">ID: #@Model.Id_Empleado</p>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <label class="form-label fw-medium text-muted">Usuario</label>
+                                <p class="fw-medium">@Model.Usuario.NombreUsuario</p>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label fw-medium text-muted">Rol</label>
+                                <span class="badge @(Model.Usuario.Rol?.Nombre == "Admin" ? "badge-role-admin" : "badge-role-empleado")">
+                                    @Model.Usuario.Rol?.Nombre
+                                </span>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label fw-medium text-muted">Correo</label>
+                                <p class="mb-0">@Model.Correo</p>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label fw-medium text-muted">Teléfono</label>
+                                <p class="mb-0">@(Model.Telefono ?? "No especificado")</p>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-medium text-muted">Fecha de Contratación</label>
+                                <p class="mb-0">@Model.FechaContratacion.ToString("dd/MM/yyyy")</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advertencias importantes -->
+                    <div class="alert alert-danger border-danger">
+                        <h6 class="alert-heading mb-2">
+                            <i class="bi bi-shield-exclamation me-2"></i>Consideraciones importantes:
+                        </h6>
+                        <ul class="mb-0 ps-3">
+                            <li>Esta acción no se puede deshacer</li>
+                            <li>El empleado perderá acceso inmediato al sistema</li>
+                            <li>Se eliminarán todos los datos asociados al usuario</li>
+                            <li>Las transacciones históricas se mantendrán</li>
+                        </ul>
+                    </div>
+
+                    <!-- Formulario de confirmación -->
                     <form asp-action="EliminarEmpleado" method="post">
                         <input type="hidden" asp-for="Id_Empleado" />
-
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a asp-action="Empleados" class="btn btn-secondary me-md-2">
-                                <i class="bi bi-arrow-left"></i> Cancelar
+                        
+                        <div class="d-flex justify-content-between align-items-center pt-3">
+                            <a asp-action="Empleados" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Cancelar
                             </a>
-                            <button type="submit" class="btn btn-danger"
-                                    onclick="return confirm('¿Estás seguro de que quieres eliminar este empleado? Esta acción no se puede deshacer.')">
-                                <i class="bi bi-trash"></i> Eliminar Definitivamente
+                            <button type="submit" class="btn btn-danger px-4" 
+                                    onclick="return confirm('¿Está completamente seguro de que desea eliminar este empleado?')">
+                                <i class="bi bi-trash-fill me-2"></i>Confirmar Eliminación
                             </button>
                         </div>
                     </form>
