@@ -6,153 +6,587 @@
     var servicioId = (int)ViewBag.ServicioId;
 }
 
-<div class="container mt-4">
+<div class="container-fluid mt-4">
     <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h3 class="card-title text-center mb-4">
-                        <i class="bi bi-pencil-square"></i> Editar Insumos del Servicio
-                    </h3>
-                    <h5 class="text-center text-muted mb-4">Servicio: <strong>@servicioNombre</strong></h5>
+        <div class="col-12 col-lg-10">
+            <!-- Header de la página -->
+            <div class="servicio-header bg-primary-dark-blue text-white rounded-3 p-4 mb-4">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-pencil-square fs-2 me-3 text-accent-yellow"></i>
+                    <div>
+                        <h1 class="h3 mb-1 fw-bold">Editar Insumos del Servicio</h1>
+                        <p class="mb-0 opacity-75">Modifique los productos necesarios para la prestación del servicio</p>
+                    </div>
+                </div>
+            </div>
 
-                    <form asp-action="EditarServicio" method="post">
+            <!-- Información del servicio -->
+            <div class="card servicio-info-card border-0 shadow-sm mb-4">
+                <div class="card-body p-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="mb-1 text-muted">Servicio Seleccionado</h6>
+                            <h5 class="mb-0 text-primary-dark-blue fw-bold">
+                                <i class="bi bi-gear-fill me-2"></i>@servicioNombre
+                            </h5>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <span class="badge bg-primary fs-6">ID: @servicioId</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card principal de edición -->
+            <div class="card servicio-card border-0 shadow-lg">
+                <div class="card-body p-4">
+                    <form asp-action="EditarServicio" method="post" class="servicio-form">
                         <input type="hidden" name="id" value="@servicioId" />
 
-                        <table class="table table-bordered align-middle" id="componentesTable">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Insumo</th>
-                                    <th style="width: 200px;">Cantidad por Servicio</th>
-                                    <th style="width: 100px;"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @for (int i = 0; i < Model.Count; i++)
-                                {
-                                    var nombreInsumo = Model[i].ItemConsumido?.Nombre ?? "";
-                                    var codigoInsumo = Model[i].ItemConsumido?.Codigo ?? "";
-                                    <tr>
-                                        <td>
-                                            <div class="position-relative">
-                                                <input type="text" name="[@i].NombreInsumo" class="form-control buscarInsumo"
-                                                       value="@($"{nombreInsumo}{(string.IsNullOrEmpty(codigoInsumo) ? "" : " • " + codigoInsumo)}")"
-                                                       placeholder="Buscar insumo..." autocomplete="off" />
-                                                <input type="hidden" name="[@i].Id_Item" class="insumoIdHidden" value="@Model[i].Id_Item" />
-                                                <div class="list-group position-absolute w-100 sugerenciasInsumo" style="z-index:1050; display:none;"></div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <input name="[@i].CantidadPorServicio" class="form-control" type="number" min="0.01" step="0.01"
-                                                   value="@Model[i].CantidadPorServicio" />
-                                        </td>
-                                        <td>
-                                            <button type="button" class="btn btn-sm btn-outline-danger remove-row">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
+                        <!-- Tabla de Insumos -->
+                        <div class="form-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="form-section-title mb-0">
+                                    <i class="bi bi-tools me-2"></i>Insumos del Servicio
+                                </h5>
+                                <button type="button" id="addRow" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-plus-circle me-1"></i>Agregar Insumo
+                                </button>
+                            </div>
 
-                        </table>
+                            @if (Model.Count == 0)
+                            {
+                                <div class="text-center py-5">
+                                    <i class="bi bi-inbox display-4 text-muted mb-3"></i>
+                                    <h5 class="text-muted">No hay insumos asignados</h5>
+                                    <p class="text-muted">Agregue insumos utilizando el botón superior</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <!-- Cambiar table-responsive por servicio-table-container -->
+                                <div class="servicio-table-container rounded-3 border">
+                                    <table class="table table-hover align-middle mb-0" id="componentesTable">
+                                        <thead class="servicio-table-header">
+                                            <tr>
+                                                <th class="ps-4">Insumo</th>
+                                                <th class="text-center" style="width: 200px;">Cantidad por Servicio</th>
+                                                <th class="text-center" style="width: 80px;">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @for (int i = 0; i < Model.Count; i++)
+                                            {
+                                                var nombreInsumo = Model[i].ItemConsumido?.Nombre ?? "";
+                                                var codigoInsumo = Model[i].ItemConsumido?.Codigo ?? "";
+                                                <tr class="servicio-table-row">
+                                                    <td class="ps-4">
+                                                        <div class="position-relative">
+                                                            <div class="input-group">
+                                                                <span class="input-group-text bg-light border-end-0">
+                                                                    <i class="bi bi-search text-muted"></i>
+                                                                </span>
+                                                                <input type="text" name="[@i].NombreInsumo"
+                                                                       class="form-control buscarInsumo border-start-0"
+                                                                       value="@($"{nombreInsumo}{(string.IsNullOrEmpty(codigoInsumo) ? "" : " • " + codigoInsumo)}")"
+                                                                       placeholder="Buscar insumo..."
+                                                                       autocomplete="off" />
+                                                                <input type="hidden" name="[@i].Id_Item"
+                                                                       class="insumoIdHidden"
+                                                                       value="@Model[i].Id_Item" />
+                                                            </div>
+                                                            <!-- Eliminar el contenedor de sugerencias interno -->
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <input name="[@i].CantidadPorServicio"
+                                                               class="form-control text-center"
+                                                               type="number" min="0.01" step="0.01"
+                                                               value="@Model[i].CantidadPorServicio"
+                                                               placeholder="0.00" />
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <button type="button" class="btn btn-sm btn-outline-danger remove-row servicio-btn-action">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
 
-                        <div class="d-flex justify-content-between">
-                            <button type="button" id="addRow" class="btn btn-outline-secondary">
-                                <i class="bi bi-plus-circle"></i> Agregar insumo
-                            </button>
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Volver al Listado
+                            </a>
                             <div>
-                                <a asp-action="Index" class="btn btn-secondary">
-                                    <i class="bi bi-arrow-left"></i> Volver
-                                </a>
-                                <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-save"></i> Guardar cambios
+                                <button type="reset" class="btn btn-outline-warning me-2">
+                                    <i class="bi bi-arrow-clockwise me-2"></i>Restablecer
+                                </button>
+                                <button type="submit" class="btn btn-success px-4">
+                                    <i class="bi bi-save me-2"></i>Guardar Cambios
                                 </button>
                             </div>
                         </div>
                     </form>
                 </div>
             </div>
+
+            <!-- Información adicional -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="alert alert-info border-0">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-info-circle-fill fs-5 me-3"></i>
+                            <div>
+                                <h6 class="alert-heading mb-1">Información Importante</h6>
+                                <p class="mb-0 small">Los cambios realizados en los insumos afectarán a todas las futuras prestaciones de este servicio. Las cantidades deben ser mayores a cero.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
+<!-- Contenedor global para sugerencias de insumos -->
+<div id="globalSuggestionsContainer" style="position: absolute; z-index: 9999; display: none;"></div>
+
+@section Styles {
+    <style>
+        .servicio-info-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid var(--accent-yellow);
+        }
+
+        .servicio-header {
+            background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+        }
+
+        .servicio-card {
+            border-radius: 12px;
+            background: white;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .form-section-title {
+            color: var(--primary-dark-blue);
+            font-weight: 600;
+            font-size: 1.1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-yellow);
+        }
+
+        /* Contenedor personalizado para la tabla - SIN overflow que corte contenido */
+        .servicio-table-container {
+            overflow-x: auto;
+            background: white;
+            position: relative;
+        }
+
+        .servicio-table-header {
+            background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+            color: white;
+        }
+
+            .servicio-table-header th {
+                border: none;
+                font-weight: 600;
+                font-size: 0.9rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                padding: 1rem 0.75rem;
+                white-space: nowrap;
+            }
+
+        .servicio-table-row {
+            transition: all 0.2s ease;
+        }
+
+            .servicio-table-row:hover {
+                background-color: rgba(255, 195, 0, 0.05);
+            }
+
+            .servicio-table-row td {
+                padding: 1rem 0.75rem;
+                vertical-align: middle;
+                border-color: #f1f3f4;
+                white-space: nowrap;
+            }
+
+        .servicio-btn-action {
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+            .servicio-btn-action:hover {
+                transform: scale(1.05);
+            }
+
+        /* Sugerencias globales */
+        .global-suggestions {
+            position: fixed;
+            z-index: 9999;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            background: white;
+            display: none;
+        }
+
+            .global-suggestions .list-group-item {
+                border: none;
+                border-bottom: 1px solid #f1f3f4;
+                padding: 0.75rem 1rem;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                white-space: normal;
+            }
+
+                .global-suggestions .list-group-item:hover {
+                    background-color: rgba(255, 195, 0, 0.1);
+                    color: var(--primary-dark-blue);
+                }
+
+                .global-suggestions .list-group-item:last-child {
+                    border-bottom: none;
+                }
+
+        /* Estados de focus para formularios */
+        .form-control:focus {
+            border-color: var(--accent-yellow);
+            box-shadow: 0 0 0 0.2rem rgba(255, 195, 0, 0.15);
+        }
+
+        /* Responsive */
+        @@media (max-width: 767.98px) {
+            .servicio-header {
+                padding: 1.5rem !important;
+            }
+
+            .servicio-card .card-body {
+                padding: 1.5rem !important;
+            }
+
+            .servicio-table-header th,
+            .servicio-table-row td {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.85rem;
+            }
+
+            .servicio-btn-action {
+                width: 32px;
+                height: 32px;
+            }
+
+            .d-flex.justify-content-between {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+                .d-flex.justify-content-between .btn {
+                    width: 100%;
+                }
+
+            .servicio-info-card .card-body {
+                padding: 1rem !important;
+            }
+            /* Asegurar que la tabla sea scrollable horizontalmente en móvil */
+            .servicio-table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            /* Ancho mínimo para la tabla en móvil */
+            #componentesTable {
+                min-width: 600px;
+            }
+            /* Ajustar sugerencias globales para móvil */
+            .global-suggestions {
+                left: 10px !important;
+                right: 10px !important;
+                max-height: 200px;
+            }
+        }
+
+        @@media (max-width: 575.98px) {
+            .table-responsive {
+                font-size: 0.875rem;
+            }
+
+            .form-section-title {
+                font-size: 1rem;
+            }
+
+            .servicio-info-card .row {
+                text-align: center;
+            }
+
+            .servicio-info-card .col-md-4 {
+                margin-top: 0.5rem;
+            }
+            /* Ajustes adicionales para pantallas muy pequeñas */
+            #componentesTable {
+                min-width: 500px;
+            }
+        }
+    </style>
+}
+
 @section Scripts {
     <script>
-        (function () {
+        document.addEventListener('DOMContentLoaded', function () {
             let index = @Model.Count;
+            let currentInput = null;
 
-            // Agregar nueva fila con input predictivo
+            // Agregar nueva fila
             document.getElementById('addRow').addEventListener('click', function () {
-                const row = `
-                <tr>
-                    <td>
-                        <div class="position-relative">
-                            <input type="text" name="[${index}].NombreInsumo" class="form-control buscarInsumo"
-                                   placeholder="Buscar insumo..." autocomplete="off" />
-                            <input type="hidden" name="[${index}].Id_Item" class="insumoIdHidden" />
-                            <div class="list-group position-absolute w-100 sugerenciasInsumo" style="z-index:1050; display:none;"></div>
-                        </div>
-                    </td>
-                    <td>
-                        <input name="[${index}].CantidadPorServicio" class="form-control" type="number" min="0.01" step="0.01" value="1" />
-                    </td>
-                    <td>
-                        <button type="button" class="btn btn-sm btn-outline-danger remove-row">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                </tr>`;
-                document.querySelector('#componentesTable tbody').insertAdjacentHTML('beforeend', row);
+                const newRow = `
+                    <tr class="servicio-table-row">
+                        <td class="ps-4">
+                            <div class="position-relative">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="bi bi-search text-muted"></i>
+                                    </span>
+                                    <input type="text" name="[${index}].NombreInsumo"
+                                           class="form-control buscarInsumo border-start-0"
+                                           placeholder="Buscar insumo..."
+                                           autocomplete="off" />
+                                    <input type="hidden" name="[${index}].Id_Item"
+                                           class="insumoIdHidden" />
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <input name="[${index}].CantidadPorServicio"
+                                   class="form-control text-center"
+                                   type="number" min="0.01" step="0.01"
+                                   value="1"
+                                   placeholder="0.00" />
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-row servicio-btn-action">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+
+                const tbody = document.querySelector('#componentesTable tbody');
+                if (!tbody) {
+                    // Si no hay tabla (estado vacío), crear la estructura
+                    const tableSection = document.querySelector('.form-section');
+                    const emptyState = tableSection.querySelector('.text-center');
+                    if (emptyState) {
+                        emptyState.remove();
+                    }
+
+                    const tableHTML = `
+                        <div class="servicio-table-container rounded-3 border">
+                            <table class="table table-hover align-middle mb-0" id="componentesTable">
+                                <thead class="servicio-table-header">
+                                    <tr>
+                                        <th class="ps-4">Insumo</th>
+                                        <th class="text-center" style="width: 200px;">Cantidad por Servicio</th>
+                                        <th class="text-center" style="width: 80px;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${newRow}
+                                </tbody>
+                            </table>
+                        </div>`;
+                    tableSection.insertAdjacentHTML('beforeend', tableHTML);
+                } else {
+                    tbody.insertAdjacentHTML('beforeend', newRow);
+                }
                 index++;
             });
 
-            document.addEventListener('click', e => {
-                if (e.target.closest('.remove-row')) e.target.closest('tr').remove();
+            // Eliminar fila con animación
+            document.addEventListener('click', function (e) {
+                if (e.target.closest('.remove-row')) {
+                    const row = e.target.closest('tr');
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateX(-20px)';
+
+                    setTimeout(() => {
+                        row.remove();
+
+                        // Si no quedan filas, mostrar estado vacío
+                        const tbody = document.querySelector('#componentesTable tbody');
+                        if (tbody && tbody.children.length === 0) {
+                            const tableContainer = document.querySelector('.servicio-table-container');
+                            if (tableContainer) {
+                                tableContainer.remove();
+                                const tableSection = document.querySelector('.form-section');
+                                tableSection.insertAdjacentHTML('beforeend', `
+                                    <div class="text-center py-5">
+                                        <i class="bi bi-inbox display-4 text-muted mb-3"></i>
+                                        <h5 class="text-muted">No hay insumos asignados</h5>
+                                        <p class="text-muted">Agregue insumos utilizando el botón superior</p>
+                                    </div>
+                                `);
+                            }
+                        }
+                    }, 300);
+                }
             });
-        })();
 
-        // --- Texto predictivo para Insumos ---
-        const items = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(items ?? new object()));
+            // Autocompletado para Insumos - USANDO SISTEMA GLOBAL
+            const items = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(items ?? new object()));
 
-        document.addEventListener('input', function (e) {
-            if (!e.target.classList.contains('buscarInsumo')) return;
+            document.addEventListener('input', function (e) {
+                if (!e.target.classList.contains('buscarInsumo')) return;
 
-            const input = e.target;
-            const contenedor = input.closest('td');
-            const sugBox = contenedor.querySelector('.sugerenciasInsumo');
-            const q = input.value.trim().toLowerCase();
-            if (!q) { sugBox.style.display = 'none'; return; }
+                const input = e.target;
+                currentInput = input;
+                const container = input.closest('td');
+                const query = input.value.trim().toLowerCase();
 
-            const matches = items.filter(it =>
-                (it.Nombre && it.Nombre.toLowerCase().includes(q)) ||
-                (it.Codigo && it.Codigo.toLowerCase().includes(q))
-            ).slice(0, 10);
+                if (!query) {
+                    hideGlobalSuggestions();
+                    return;
+                }
 
-            sugBox.innerHTML = '';
-            if (matches.length === 0) { sugBox.style.display = 'none'; return; }
+                const matches = items.filter(item =>
+                    (item.Nombre && item.Nombre.toLowerCase().includes(query)) ||
+                    (item.Codigo && item.Codigo.toLowerCase().includes(query))
+                ).slice(0, 10);
 
-            matches.forEach(m => {
-                const el = document.createElement('button');
-                el.type = 'button';
-                el.className = 'list-group-item list-group-item-action';
-                el.innerHTML = `<div><strong>${m.Nombre}</strong><div class="small text-muted">${m.Codigo ?? ''}</div></div>`;
-                el.addEventListener('click', () => {
-                    input.value = `${m.Nombre}${m.Codigo ? ' • ' + m.Codigo : ''}`;
-                    contenedor.querySelector('.insumoIdHidden').value = m.Id_Item;
-                    sugBox.style.display = 'none';
+                if (matches.length === 0) {
+                    hideGlobalSuggestions();
+                    return;
+                }
+
+                showGlobalSuggestions(input, matches, container);
+            });
+
+            // Mostrar sugerencias globales
+            function showGlobalSuggestions(input, matches, container) {
+                const globalContainer = document.getElementById('globalSuggestionsContainer');
+                globalContainer.innerHTML = '';
+                globalContainer.className = 'global-suggestions';
+
+                matches.forEach(m => {
+                    const el = document.createElement('button');
+                    el.type = 'button';
+                    el.className = 'list-group-item list-group-item-action text-start';
+                    el.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong class="d-block">${m.Nombre}</strong>
+                                <small class="text-muted">${m.Codigo || 'Sin código'}</small>
+                            </div>
+                            <small class="badge bg-success">Producto</small>
+                        </div>
+                    `;
+                    el.addEventListener('click', function () {
+                        input.value = `${m.Nombre}${m.Codigo ? ' • ' + m.Codigo : ''}`;
+                        container.querySelector('.insumoIdHidden').value = m.Id_Item;
+                        hideGlobalSuggestions();
+                    });
+                    globalContainer.appendChild(el);
                 });
-                sugBox.appendChild(el);
-            });
-            sugBox.style.display = 'block';
-        });
 
-        // Ocultar sugerencias al hacer clic fuera
-        document.addEventListener('click', e => {
-            if (!e.target.closest('.list-group') && !e.target.classList.contains('buscarInsumo')) {
-                document.querySelectorAll('.list-group').forEach(l => l.style.display = 'none');
+                // Posicionar el contenedor global
+                const rect = input.getBoundingClientRect();
+                globalContainer.style.display = 'block';
+                globalContainer.style.top = (rect.bottom + window.scrollY) + 'px';
+                globalContainer.style.left = (rect.left + window.scrollX) + 'px';
+                globalContainer.style.width = (rect.width) + 'px';
             }
+
+            // Ocultar sugerencias globales
+            function hideGlobalSuggestions() {
+                const globalContainer = document.getElementById('globalSuggestionsContainer');
+                globalContainer.style.display = 'none';
+                globalContainer.innerHTML = '';
+            }
+
+            // Ocultar sugerencias al hacer clic fuera
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('.list-group') &&
+                    !e.target.classList.contains('buscarInsumo') &&
+                    !e.target.closest('#globalSuggestionsContainer')) {
+                    hideGlobalSuggestions();
+                }
+            });
+
+            // Validación de cantidad
+            document.addEventListener('blur', function (e) {
+                if (e.target.type === 'number' && e.target.name.includes('CantidadPorServicio')) {
+                    const value = parseFloat(e.target.value);
+                    if (isNaN(value) || value <= 0) {
+                        e.target.classList.add('is-invalid');
+                        showFieldError(e.target, 'La cantidad debe ser mayor a 0');
+                    } else {
+                        e.target.classList.remove('is-invalid');
+                        clearFieldValidation(e.target);
+                    }
+                }
+            });
+
+            function showFieldError(field, message) {
+                const formGroup = field.closest('.position-relative') || field.parentElement;
+                field.classList.add('is-invalid');
+
+                let errorElement = formGroup.querySelector('.field-error');
+                if (!errorElement) {
+                    errorElement = document.createElement('div');
+                    errorElement.className = 'field-error text-danger small mt-1';
+                    formGroup.appendChild(errorElement);
+                }
+                errorElement.textContent = message;
+            }
+
+            function clearFieldValidation(field) {
+                const formGroup = field.closest('.position-relative') || field.parentElement;
+                const errorElement = formGroup.querySelector('.field-error');
+                if (errorElement) {
+                    errorElement.remove();
+                }
+            }
+
+            // Efectos de focus para inputs
+            document.querySelectorAll('.form-control').forEach(input => {
+                input.addEventListener('focus', function () {
+                    this.parentElement.classList.add('focused');
+                });
+
+                input.addEventListener('blur', function () {
+                    this.parentElement.classList.remove('focused');
+                });
+            });
+
+            // Ajustar sugerencias al redimensionar
+            window.addEventListener('resize', function () {
+                hideGlobalSuggestions();
+            });
+
+            // Ajustar sugerencias al hacer scroll
+            window.addEventListener('scroll', function () {
+                if (currentInput && document.getElementById('globalSuggestionsContainer').style.display === 'block') {
+                    const rect = currentInput.getBoundingClientRect();
+                    const globalContainer = document.getElementById('globalSuggestionsContainer');
+                    globalContainer.style.top = (rect.bottom + window.scrollY) + 'px';
+                    globalContainer.style.left = (rect.left + window.scrollX) + 'px';
+                }
+            });
         });
     </script>
 }
-

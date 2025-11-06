@@ -5,74 +5,120 @@
     var items = ViewBag.Items as List<PropamaPOS.Models.Item>;
 }
 
-<div class="container mt-4">
+<div class="container-fluid mt-4">
     <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h3 class="card-title text-center mb-4">
-                        <i class="bi bi-diagram-3"></i> Agregar Insumos a un Servicio
-                    </h3>
+        <div class="col-12 col-lg-10">
+            <!-- Header de la página -->
+            <div class="servicio-header bg-primary-dark-blue text-white rounded-3 p-4 mb-4">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-diagram-3 fs-2 me-3 text-accent-yellow"></i>
+                    <div>
+                        <h1 class="h3 mb-1 fw-bold">Agregar Insumos a un Servicio</h1>
+                        <p class="mb-0 opacity-75">Asigne los productos necesarios para la prestación del servicio</p>
+                    </div>
+                </div>
+            </div>
 
-                    <form asp-action="CrearMultiple" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <!-- Card principal -->
+            <div class="card servicio-card border-0 shadow-lg">
+                <div class="card-body p-4">
+                    <form asp-action="CrearMultiple" method="post" class="servicio-form">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                        <!-- Servicio (texto predictivo) -->
-                        <div class="mb-4 position-relative">
-                            <label asp-for="Id_Servicio" class="form-label">Servicio</label>
-                            <input type="text" id="buscarServicio" class="form-control" placeholder="Buscar servicio por nombre o código..." autocomplete="off" />
-                            <input type="hidden" asp-for="Id_Servicio" id="servicioIdHidden" />
-                            <div id="suggestionsServicio" class="list-group position-absolute w-100"
-                                 style="z-index:1050; display:none; max-height:250px; overflow:auto;"></div>
-                            <span asp-validation-for="Id_Servicio" class="text-danger"></span>
+                        <!-- Selección de Servicio -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="form-section">
+                                    <h5 class="form-section-title mb-3">
+                                        <i class="bi bi-gear-fill me-2"></i>Servicio
+                                    </h5>
+                                    <div class="position-relative">
+                                        <label asp-for="Id_Servicio" class="form-label fw-semibold">Seleccionar Servicio</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-end-0">
+                                                <i class="bi bi-search text-muted"></i>
+                                            </span>
+                                            <input type="text" id="buscarServicio" class="form-control border-start-0"
+                                                   placeholder="Buscar servicio por nombre o código..."
+                                                   autocomplete="off" />
+                                        </div>
+                                        <input type="hidden" asp-for="Id_Servicio" id="servicioIdHidden" />
+                                        <div id="suggestionsServicio" class="servicio-suggestions list-group position-absolute w-100"></div>
+                                        <span asp-validation-for="Id_Servicio" class="text-danger small mt-1"></span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Tabla de componentes -->
-                        <h5 class="mb-3"><i class="bi bi-tools"></i> Insumos del Servicio</h5>
-                        <table class="table table-bordered align-middle" id="componentesTable">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Insumo</th>
-                                    <th style="width: 200px;">Cantidad por Servicio</th>
-                                    <th style="width: 100px;"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @for (int i = 0; i < Model.Lineas.Count; i++)
-                                {
-                                    <tr>
-                                        <td>
-                                            <div class="position-relative">
-                                                <input type="text" name="Lineas[@i].NombreInsumo" class="form-control buscarInsumo" placeholder="Buscar insumo..." autocomplete="off" />
-                                                <input type="hidden" name="Lineas[@i].Id_Item" class="insumoIdHidden" value="@Model.Lineas[i].Id_Item" />
-                                                <div class="list-group position-absolute w-100 sugerenciasInsumo" style="z-index: 1050; display:none;"></div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <input name="Lineas[@i].CantidadPorServicio" class="form-control" value="@Model.Lineas[i].CantidadPorServicio" type="number" min="0.01" step="0.01" />
-                                        </td>
-                                        <td>
-                                            <button type="button" class="btn btn-sm btn-outline-danger remove-row">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-
-                        <div class="d-flex justify-content-between">
-                            <button type="button" id="addRow" class="btn btn-outline-secondary">
-                                <i class="bi bi-plus-circle"></i> Agregar insumo
-                            </button>
-                            <div>
-                                <a asp-action="Index" class="btn btn-secondary">
-                                    <i class="bi bi-arrow-left"></i> Volver
-                                </a>
-                                <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-save"></i> Guardar todos
+                        <!-- Tabla de Insumos -->
+                        <div class="form-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="form-section-title mb-0">
+                                    <i class="bi bi-tools me-2"></i>Insumos del Servicio
+                                </h5>
+                                <button type="button" id="addRow" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-plus-circle me-1"></i>Agregar Insumo
                                 </button>
                             </div>
+
+                            <!-- Tabla sin table-responsive para evitar problemas con autocompletado -->
+                            <div class="servicio-table-container rounded-3 border">
+                                <table class="table table-hover align-middle mb-0" id="componentesTable">
+                                    <thead class="servicio-table-header">
+                                        <tr>
+                                            <th class="ps-4">Insumo</th>
+                                            <th class="text-center" style="width: 200px;">Cantidad por Servicio</th>
+                                            <th class="text-center" style="width: 80px;">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.Lineas.Count; i++)
+                                        {
+                                            <tr class="servicio-table-row">
+                                                <td class="ps-4">
+                                                    <div class="position-relative">
+                                                        <div class="input-group">
+                                                            <span class="input-group-text bg-light border-end-0">
+                                                                <i class="bi bi-search text-muted"></i>
+                                                            </span>
+                                                            <input type="text" name="Lineas[@i].NombreInsumo"
+                                                                   class="form-control buscarInsumo border-start-0"
+                                                                   placeholder="Buscar insumo..."
+                                                                   autocomplete="off" />
+                                                            <input type="hidden" name="Lineas[@i].Id_Item"
+                                                                   class="insumoIdHidden"
+                                                                   value="@Model.Lineas[i].Id_Item" />
+                                                        </div>
+                                                        <!-- El contenedor de sugerencias se manejará dinámicamente -->
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <input name="Lineas[@i].CantidadPorServicio"
+                                                           class="form-control text-center"
+                                                           value="@Model.Lineas[i].CantidadPorServicio"
+                                                           type="number" min="0.01" step="0.01"
+                                                           placeholder="0.00" />
+                                                </td>
+                                                <td class="text-center">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger remove-row servicio-btn-action">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Volver al Listado
+                            </a>
+                            <button type="submit" class="btn btn-success px-4">
+                                <i class="bi bi-save me-2"></i>Guardar Todos los Insumos
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -81,119 +127,406 @@
     </div>
 </div>
 
+<!-- Contenedor global para sugerencias de insumos -->
+<div id="globalSuggestionsContainer" style="position: absolute; z-index: 9999; display: none;"></div>
+
+@section Styles {
+    <style>
+        .servicio-header {
+            background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+        }
+
+        .servicio-card {
+            border-radius: 12px;
+            background: white;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .form-section-title {
+            color: var(--primary-dark-blue);
+            font-weight: 600;
+            font-size: 1.1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-yellow);
+        }
+
+        /* Contenedor personalizado para la tabla - SIN overflow que corte contenido */
+        .servicio-table-container {
+            overflow-x: auto;
+            background: white;
+            position: relative; /* Para contexto de posicionamiento */
+        }
+
+        .servicio-table-header {
+            background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+            color: white;
+        }
+
+            .servicio-table-header th {
+                border: none;
+                font-weight: 600;
+                font-size: 0.9rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                padding: 1rem 0.75rem;
+                white-space: nowrap;
+            }
+
+        .servicio-table-row {
+            transition: all 0.2s ease;
+        }
+
+            .servicio-table-row:hover {
+                background-color: rgba(255, 195, 0, 0.05);
+            }
+
+            .servicio-table-row td {
+                padding: 1rem 0.75rem;
+                vertical-align: middle;
+                border-color: #f1f3f4;
+                white-space: nowrap;
+            }
+
+        .servicio-btn-action {
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+            .servicio-btn-action:hover {
+                transform: scale(1.05);
+            }
+
+        /* Sugerencias de autocompletado - COMPLETAMENTE FUERA del flujo normal */
+        .servicio-suggestions {
+            z-index: 9999;
+            display: none;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 0 0 0.375rem 0.375rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background: white;
+        }
+
+        .global-suggestions {
+            position: fixed;
+            z-index: 9999;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            background: white;
+            display: none;
+        }
+
+            .servicio-suggestions .list-group-item,
+            .global-suggestions .list-group-item {
+                border: none;
+                border-bottom: 1px solid #f1f3f4;
+                padding: 0.75rem 1rem;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                white-space: normal;
+            }
+
+                .servicio-suggestions .list-group-item:hover,
+                .global-suggestions .list-group-item:hover {
+                    background-color: rgba(255, 195, 0, 0.1);
+                    color: var(--primary-dark-blue);
+                }
+
+                .servicio-suggestions .list-group-item:last-child,
+                .global-suggestions .list-group-item:last-child {
+                    border-bottom: none;
+                }
+
+        /* Estados de focus para formularios */
+        .form-control:focus {
+            border-color: var(--accent-yellow);
+            box-shadow: 0 0 0 0.2rem rgba(255, 195, 0, 0.15);
+        }
+
+        /* Responsive mejorado para móvil */
+        @@media (max-width: 767.98px) {
+            .servicio-header {
+                padding: 1.5rem !important;
+            }
+
+            .servicio-card .card-body {
+                padding: 1.5rem !important;
+            }
+
+            .servicio-table-header th,
+            .servicio-table-row td {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.8rem;
+            }
+
+            .servicio-btn-action {
+                width: 32px;
+                height: 32px;
+            }
+
+            .d-flex.justify-content-between {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+                .d-flex.justify-content-between .btn {
+                    width: 100%;
+                }
+            /* Asegurar que la tabla sea scrollable horizontalmente en móvil */
+            .servicio-table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            /* Ancho mínimo para la tabla en móvil */
+            #componentesTable {
+                min-width: 600px;
+            }
+            /* Ajustar sugerencias globales para móvil */
+            .global-suggestions {
+                left: 10px !important;
+                right: 10px !important;
+                max-height: 200px;
+            }
+        }
+
+        @@media (max-width: 575.98px) {
+            .form-section-title {
+                font-size: 1rem;
+            }
+            /* Ajustes adicionales para pantallas muy pequeñas */
+            #componentesTable {
+                min-width: 500px;
+            }
+        }
+
+        /* Para tablets */
+        @@media (max-width: 991.98px) and (min-width: 768px) {
+            #componentesTable {
+                min-width: 700px;
+            }
+        }
+    </style>
+}
+
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
     <script>
         (function () {
-        let index = @Model.Lineas.Count;
+            let index = @Model.Lineas.Count;
+            let currentInput = null;
 
-        // Agregar nueva fila con input predictivo
-        document.getElementById('addRow').addEventListener('click', () => {
-            const newRow = `
-                <tr>
-                    <td>
-                        <div class="position-relative">
-                            <input type="text" name="Lineas[${index}].NombreInsumo" class="form-control buscarInsumo" placeholder="Buscar insumo..." autocomplete="off" />
-                            <input type="hidden" name="Lineas[${index}].Id_Item" class="insumoIdHidden" />
-                            <div class="list-group position-absolute w-100 sugerenciasInsumo" style="z-index:1050; display:none;"></div>
-                        </div>
-                    </td>
-                    <td>
-                        <input name="Lineas[${index}].CantidadPorServicio" class="form-control" type="number" min="0.01" step="0.01" value="1" />
-                    </td>
-                    <td>
-                        <button type="button" class="btn btn-sm btn-outline-danger remove-row">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                </tr>`;
-            document.querySelector('#componentesTable tbody').insertAdjacentHTML('beforeend', newRow);
-            index++;
-        });
+            // Agregar nueva fila con input predictivo
+            document.getElementById('addRow').addEventListener('click', function () {
+                const newRow = `
+                    <tr class="servicio-table-row">
+                        <td class="ps-4">
+                            <div class="position-relative">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="bi bi-search text-muted"></i>
+                                    </span>
+                                    <input type="text" name="Lineas[${index}].NombreInsumo"
+                                           class="form-control buscarInsumo border-start-0"
+                                           placeholder="Buscar insumo..."
+                                           autocomplete="off" />
+                                    <input type="hidden" name="Lineas[${index}].Id_Item"
+                                           class="insumoIdHidden" />
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <input name="Lineas[${index}].CantidadPorServicio"
+                                   class="form-control text-center"
+                                   type="number" min="0.01" step="0.01"
+                                   value="1"
+                                   placeholder="0.00" />
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-row servicio-btn-action">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                document.querySelector('#componentesTable tbody').insertAdjacentHTML('beforeend', newRow);
+                index++;
+            });
 
-
-        document.addEventListener('click', e => {
-            if (e.target.closest('.remove-row')) e.target.closest('tr').remove();
-        });
-    })();
+            // Eliminar fila con animación
+            document.addEventListener('click', function (e) {
+                if (e.target.closest('.remove-row')) {
+                    const row = e.target.closest('tr');
+                    row.style.opacity = '0';
+                    setTimeout(() => {
+                        row.remove();
+                    }, 300);
+                }
+            });
+        })();
 
         // --- Texto predictivo para Servicio e Insumos ---
         const servicios = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(servicios ?? new object()));
         const items = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(items ?? new object()));
 
-
-    // Servicio: autocompletado
-    const sugServEl = document.getElementById('suggestionsServicio');
-    document.getElementById('buscarServicio').addEventListener('input', function () {
-        const q = this.value.trim().toLowerCase();
-        if (!q) { sugServEl.style.display = 'none'; return; }
-
-        const matches = servicios.filter(s =>
-            (s.Nombre && s.Nombre.toLowerCase().includes(q)) ||
-            (s.Codigo && s.Codigo.toLowerCase().includes(q))
-        ).slice(0, 10);
-
-
-        sugServEl.innerHTML = '';
-        if (matches.length === 0) { sugServEl.style.display = 'none'; return; }
-
-        matches.forEach(m => {
-            const el = document.createElement('button');
-            el.type = 'button';
-            el.className = 'list-group-item list-group-item-action';
-            el.innerHTML = `<div><strong>${m.Nombre}</strong><div class="small text-muted">${m.Codigo ?? ''}</div></div>`;
-            el.addEventListener('click', () => {
-                document.getElementById('buscarServicio').value = `${m.Nombre}${m.Codigo ? ' • ' + m.Codigo : ''}`;
-                document.getElementById('servicioIdHidden').value = m.Id_Item;
+        // Servicio: autocompletado
+        const sugServEl = document.getElementById('suggestionsServicio');
+        document.getElementById('buscarServicio').addEventListener('input', function () {
+            const q = this.value.trim().toLowerCase();
+            if (!q) {
                 sugServEl.style.display = 'none';
+                return;
+            }
+
+            const matches = servicios.filter(s =>
+                (s.Nombre && s.Nombre.toLowerCase().includes(q)) ||
+                (s.Codigo && s.Codigo.toLowerCase().includes(q))
+            ).slice(0, 10);
+
+            sugServEl.innerHTML = '';
+            if (matches.length === 0) {
+                sugServEl.style.display = 'none';
+                return;
+            }
+
+            matches.forEach(m => {
+                const el = document.createElement('button');
+                el.type = 'button';
+                el.className = 'list-group-item list-group-item-action text-start';
+                el.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong class="d-block">${m.Nombre}</strong>
+                            <small class="text-muted">${m.Codigo ?? 'Sin código'}</small>
+                        </div>
+                        <small class="badge bg-primary">Servicio</small>
+                    </div>
+                `;
+                el.addEventListener('click', function () {
+                    document.getElementById('buscarServicio').value = `${m.Nombre}${m.Codigo ? ' • ' + m.Codigo : ''}`;
+                    document.getElementById('servicioIdHidden').value = m.Id_Item;
+                    sugServEl.style.display = 'none';
+                });
+                sugServEl.appendChild(el);
+            });
+            sugServEl.style.display = 'block';
+        });
+
+        // Insumo: autocompletado por fila - COMPLETAMENTE MEJORADO
+        document.addEventListener('input', function (e) {
+            if (!e.target.classList.contains('buscarInsumo')) return;
+
+            const input = e.target;
+            currentInput = input;
+            const container = input.closest('td');
+            const query = input.value.trim().toLowerCase();
+
+            if (!query) {
+                hideGlobalSuggestions();
+                return;
+            }
+
+            const matches = items.filter(it =>
+                (it.Nombre && it.Nombre.toLowerCase().includes(query)) ||
+                (it.Codigo && it.Codigo.toLowerCase().includes(query))
+            ).slice(0, 10);
+
+            if (matches.length === 0) {
+                hideGlobalSuggestions();
+                return;
+            }
+
+            showGlobalSuggestions(input, matches, container);
+        });
+
+        // Mostrar sugerencias globales
+        function showGlobalSuggestions(input, matches, container) {
+            const globalContainer = document.getElementById('globalSuggestionsContainer');
+            globalContainer.innerHTML = '';
+            globalContainer.className = 'global-suggestions';
+
+            matches.forEach(m => {
+                const el = document.createElement('button');
+                el.type = 'button';
+                el.className = 'list-group-item list-group-item-action text-start';
+                el.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong class="d-block">${m.Nombre}</strong>
+                            <small class="text-muted">${m.Codigo || 'Sin código'}</small>
+                        </div>
+                        <small class="badge bg-success">Producto</small>
+                    </div>
+                `;
+                el.addEventListener('click', function () {
+                    input.value = `${m.Nombre}${m.Codigo ? ' • ' + m.Codigo : ''}`;
+                    container.querySelector('.insumoIdHidden').value = m.Id_Item;
+                    hideGlobalSuggestions();
+                });
+                globalContainer.appendChild(el);
             });
 
-            sugServEl.appendChild(el);
-        });
-        sugServEl.style.display = 'block';
-    });
-
-    // Insumo: autocompletado por fila
-    document.addEventListener('input', function (e) {
-        if (!e.target.classList.contains('buscarInsumo')) return;
-
-        const input = e.target;
-        const contenedor = input.closest('td');
-        const sugBox = contenedor.querySelector('.sugerenciasInsumo');
-        const q = input.value.trim().toLowerCase();
-        if (!q) { sugBox.style.display = 'none'; return; }
-
-        const matches = items.filter(it =>
-            (it.Nombre && it.Nombre.toLowerCase().includes(q)) ||
-            (it.Codigo && it.Codigo.toLowerCase().includes(q))
-        ).slice(0, 10);
-
-
-        sugBox.innerHTML = '';
-        if (matches.length === 0) { sugBox.style.display = 'none'; return; }
-
-        matches.forEach(m => {
-            const el = document.createElement('button');
-            el.type = 'button';
-            el.className = 'list-group-item list-group-item-action';
-            el.innerHTML = `<div><strong>${m.Nombre}</strong><div class="small text-muted">${m.Codigo ?? ''}</div></div>`;
-            el.addEventListener('click', () => {
-                input.value = `${m.Nombre}${m.Codigo ? ' • ' + m.Codigo : ''}`;
-                contenedor.querySelector('.insumoIdHidden').value = m.Id_Item;
-                sugBox.style.display = 'none';
-            });
-
-            sugBox.appendChild(el);
-        });
-        sugBox.style.display = 'block';
-    });
-
-    // Ocultar sugerencias al hacer clic fuera
-    document.addEventListener('click', e => {
-        if (!e.target.closest('.list-group') && !e.target.classList.contains('buscarInsumo') && e.target.id !== 'buscarServicio') {
-            document.querySelectorAll('.list-group').forEach(l => l.style.display = 'none');
+            // Posicionar el contenedor global
+            const rect = input.getBoundingClientRect();
+            globalContainer.style.display = 'block';
+            globalContainer.style.top = (rect.bottom + window.scrollY) + 'px';
+            globalContainer.style.left = (rect.left + window.scrollX) + 'px';
+            globalContainer.style.width = (rect.width) + 'px';
         }
-    });
 
-</script>
+        // Ocultar sugerencias globales
+        function hideGlobalSuggestions() {
+            const globalContainer = document.getElementById('globalSuggestionsContainer');
+            globalContainer.style.display = 'none';
+            globalContainer.innerHTML = '';
+        }
+
+        // Ocultar sugerencias al hacer clic fuera
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.list-group') &&
+                !e.target.classList.contains('buscarInsumo') &&
+                e.target.id !== 'buscarServicio' &&
+                !e.target.closest('#globalSuggestionsContainer')) {
+                hideGlobalSuggestions();
+                if (sugServEl) sugServEl.style.display = 'none';
+            }
+        });
+
+        // Efectos de focus para inputs
+        document.querySelectorAll('.form-control').forEach(input => {
+            input.addEventListener('focus', function () {
+                this.parentElement.classList.add('focused');
+            });
+
+            input.addEventListener('blur', function () {
+                this.parentElement.classList.remove('focused');
+            });
+        });
+
+        // Ajustar sugerencias al redimensionar
+        window.addEventListener('resize', function () {
+            hideGlobalSuggestions();
+            if (sugServEl) sugServEl.style.display = 'none';
+        });
+
+        // Ajustar sugerencias al hacer scroll
+        window.addEventListener('scroll', function () {
+            if (currentInput && document.getElementById('globalSuggestionsContainer').style.display === 'block') {
+                const rect = currentInput.getBoundingClientRect();
+                const globalContainer = document.getElementById('globalSuggestionsContainer');
+                globalContainer.style.top = (rect.bottom + window.scrollY) + 'px';
+                globalContainer.style.left = (rect.left + window.scrollX) + 'px';
+            }
+        });
+    </script>
 }

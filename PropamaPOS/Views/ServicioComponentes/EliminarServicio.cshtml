@@ -3,48 +3,364 @@
     ViewData["Title"] = "Eliminar Componentes del Servicio";
 }
 
-<div class="container mt-5">
+<div class="container-fluid mt-4">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card border-danger shadow">
-                <div class="card-header bg-danger text-white text-center">
-                    <h4><i class="bi bi-exclamation-triangle"></i> Confirmar Eliminación</h4>
+        <div class="col-12 col-lg-8 col-xl-6">
+            <!-- Header de la página -->
+            <div class="servicio-header bg-danger text-white rounded-3 p-4 mb-4">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill fs-2 me-3"></i>
+                    <div>
+                        <h1 class="h3 mb-1 fw-bold">Eliminar Componentes del Servicio</h1>
+                        <p class="mb-0 opacity-75">Confirmar eliminación de todos los insumos asociados</p>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <p class="lead text-center">
-                        ¿Estás seguro que deseas eliminar <strong>todos los componentes</strong> del servicio
-                        <b>@Model.Nombre</b>?
-                    </p>
-                    <p class="text-muted text-center mb-4">Esta acción no se puede deshacer.</p>
+            </div>
 
-                    @if (Model.ServicioComponentes != null && Model.ServicioComponentes.Any())
-                    {
-                        <ul class="list-group mb-4">
-                            @foreach (var sc in Model.ServicioComponentes)
-                            {
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    @sc.ItemConsumido?.Nombre
-                                    <span class="badge bg-secondary">@sc.CantidadPorServicio</span>
-                                </li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        <p class="text-muted fst-italic text-center">Este servicio no tiene insumos asociados.</p>
-                    }
+            <!-- Card de confirmación -->
+            <div class="card border-danger shadow-lg">
+                <div class="card-header bg-danger text-white py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-trash-fill me-2 fs-5"></i>
+                        <h4 class="mb-0 fw-semibold">Confirmar Eliminación</h4>
+                    </div>
+                </div>
 
-                    <form asp-action="EliminarServicio" method="post" class="d-flex justify-content-between">
+                <div class="card-body p-4">
+                    <!-- Información del servicio -->
+                    <div class="alert alert-warning border-warning mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-circle-fill me-3 fs-5"></i>
+                            <div>
+                                <h5 class="alert-heading mb-2">¿Está seguro de continuar?</h5>
+                                <p class="mb-0">
+                                    Está a punto de eliminar <strong>todos los componentes</strong> del servicio
+                                    <span class="fw-bold text-danger">"@Model.Nombre"</span>. Esta acción es irreversible.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detalles del servicio -->
+                    <div class="servicio-info-card bg-light rounded-3 p-3 mb-4">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h6 class="text-muted mb-1">Servicio a Modificar</h6>
+                                <h5 class="text-primary-dark-blue fw-bold mb-0">
+                                    <i class="bi bi-gear-fill me-2"></i>@Model.Nombre
+                                </h5>
+                                @if (!string.IsNullOrEmpty(Model.Codigo))
+                                {
+                                    <small class="text-muted">Código: @Model.Codigo</small>
+                                }
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <span class="badge bg-secondary fs-6">ID: @Model.Id_Item</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de componentes a eliminar -->
+                    <div class="componentes-section mb-4">
+                        <h5 class="form-section-title mb-3">
+                            <i class="bi bi-list-check me-2"></i>Componentes que serán eliminados
+                        </h5>
+
+                        @if (Model.ServicioComponentes != null && Model.ServicioComponentes.Any())
+                        {
+                            <div class="table-responsive rounded-3 border">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="servicio-table-header">
+                                        <tr>
+                                            <th class="ps-4">Insumo</th>
+                                            <th class="text-center" style="width: 150px;">Cantidad por Servicio</th>
+                                            <th class="text-center" style="width: 100px;">Tipo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var sc in Model.ServicioComponentes)
+                                        {
+                                            <tr class="servicio-table-row">
+                                                <td class="ps-4">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="bi bi-box-seam me-2 text-muted"></i>
+                                                        <div>
+                                                            <strong class="d-block">@sc.ItemConsumido?.Nombre</strong>
+                                                            @if (!string.IsNullOrEmpty(sc.ItemConsumido?.Codigo))
+                                                            {
+                                                                <small class="text-muted">@sc.ItemConsumido.Codigo</small>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-primary fs-6">@sc.CantidadPorServicio</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-success">Producto</span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="mt-3 text-center">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Total de componentes: <strong>@Model.ServicioComponentes.Count</strong>
+                                </small>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <i class="bi bi-inbox display-4 text-muted mb-3"></i>
+                                <h5 class="text-muted">No hay insumos asociados</h5>
+                                <p class="text-muted">Este servicio no tiene componentes asignados para eliminar</p>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Advertencia final -->
+                    <div class="alert alert-danger border-danger">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-shield-exclamation me-3 fs-5"></i>
+                            <div>
+                                <h6 class="alert-heading mb-1">Advertencia Importante</h6>
+                                <p class="mb-0 small">
+                                    Esta acción eliminará permanentemente todos los insumos asociados al servicio.
+                                    Los registros históricos de ventas que utilizaron estos componentes no se verán afectados,
+                                    pero las futuras prestaciones del servicio requerirán una nueva configuración.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de eliminación -->
+                    <form asp-action="EliminarServicio" method="post">
                         <input type="hidden" name="id" value="@Model.Id_Item" />
-                        <a asp-action="Index" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left"></i> Cancelar
-                        </a>
-                        <button type="submit" class="btn btn-danger">
-                            <i class="bi bi-trash"></i> Eliminar todos
-                        </button>
+
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Cancelar y Volver
+                            </a>
+                            <button type="submit" class="btn btn-danger px-4"
+                                    @(Model.ServicioComponentes == null || !Model.ServicioComponentes.Any() ? "disabled" : "")>
+                                <i class="bi bi-trash-fill me-2"></i>Eliminar Todos los Componentes
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Styles {
+    <style>
+        .servicio-header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .servicio-info-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid var(--accent-yellow);
+        }
+
+        .servicio-table-header {
+            background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+            color: white;
+        }
+
+            .servicio-table-header th {
+                border: none;
+                font-weight: 600;
+                font-size: 0.9rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                padding: 1rem 0.75rem;
+            }
+
+        .servicio-table-row {
+            transition: all 0.2s ease;
+        }
+
+            .servicio-table-row:hover {
+                background-color: rgba(220, 53, 69, 0.05);
+            }
+
+            .servicio-table-row td {
+                padding: 1rem 0.75rem;
+                vertical-align: middle;
+                border-color: #f1f3f4;
+            }
+
+        .form-section-title {
+            color: var(--primary-dark-blue);
+            font-weight: 600;
+            font-size: 1.1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-yellow);
+        }
+
+        /* Estados de botones deshabilitados */
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Responsive */
+        @@media (max-width: 767.98px) {
+            .servicio-header {
+                padding: 1.5rem !important;
+            }
+
+            .card-body {
+                padding: 1.5rem !important;
+            }
+
+            .servicio-table-header th,
+            .servicio-table-row td {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.85rem;
+            }
+
+            .d-flex.justify-content-between {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+                .d-flex.justify-content-between .btn {
+                    width: 100%;
+                }
+
+            .servicio-info-card .row {
+                text-align: center;
+            }
+
+            .servicio-info-card .col-md-4 {
+                margin-top: 0.5rem;
+            }
+        }
+
+        @@media (max-width: 575.98px) {
+            .table-responsive {
+                font-size: 0.875rem;
+            }
+
+            .alert .d-flex {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .alert .me-3 {
+                margin-right: 0 !important;
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        /* Animaciones para elementos de peligro */
+        .card-header.bg-danger {
+            animation: pulse-danger 2s infinite;
+        }
+
+        @@keyframes pulse-danger {
+            0% {
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Confirmación adicional antes de enviar el formulario
+            const deleteForm = document.querySelector('form[asp-action="EliminarServicio"]');
+            const deleteButton = deleteForm.querySelector('button[type="submit"]');
+
+            if (deleteButton && !deleteButton.disabled) {
+                deleteForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+
+                    const servicioNombre = '@Model.Nombre';
+                    const componentesCount = @(Model.ServicioComponentes?.Count ?? 0);
+
+                    Swal.fire({
+                        title: '¿Está completamente seguro?',
+                        html: `
+                            <div class="text-start">
+                                <p>Está a punto de eliminar <strong>${componentesCount} componentes</strong> del servicio:</p>
+                                <div class="alert alert-danger mt-3">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                    <strong>"${servicioNombre}"</strong>
+                                </div>
+                                <p class="text-muted small mt-3">Esta acción no se puede deshacer.</p>
+                            </div>
+                        `,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc3545',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, eliminar todos',
+                        cancelButtonText: 'Cancelar',
+                        reverseButtons: true,
+                        customClass: {
+                            confirmButton: 'btn btn-danger',
+                            cancelButton: 'btn btn-secondary'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Mostrar loading state
+                            deleteButton.innerHTML = '<i class="bi bi-trash-fill me-2"></i>Eliminando...';
+                            deleteButton.disabled = true;
+
+                            // Enviar formulario después de un breve delay para mostrar el estado de loading
+                            setTimeout(() => {
+                                deleteForm.submit();
+                            }, 500);
+                        }
+                    });
+                });
+            }
+
+            // Efecto hover para la card de peligro
+            const dangerCard = document.querySelector('.card.border-danger');
+            if (dangerCard) {
+                dangerCard.addEventListener('mouseenter', function () {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.transition = 'all 0.3s ease';
+                });
+
+                dangerCard.addEventListener('mouseleave', function () {
+                    this.style.transform = 'translateY(0)';
+                });
+            }
+
+            // Validación para botón deshabilitado
+            if (deleteButton && deleteButton.disabled) {
+                deleteButton.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    Swal.fire({
+                        title: 'Sin componentes para eliminar',
+                        text: 'Este servicio no tiene insumos asociados para eliminar.',
+                        icon: 'info',
+                        confirmButtonColor: '#007bff'
+                    });
+                });
+            }
+        });
+    </script>
+
+    <!-- SweetAlert2 para mejores alertas -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+}

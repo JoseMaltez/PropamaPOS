@@ -3269,3 +3269,224 @@ img, video, iframe, table, canvas {
         margin-bottom: 1rem;
     }
 }
+
+
+
+
+
+/* ===== VISTAS DE SERVICIO COMPONENTES MEJORADAS ===== */
+
+/* Header específico para servicio componentes */
+.servicio-header {
+    background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+
+.servicio-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    background: white;
+    margin-bottom: 1.5rem;
+}
+
+.form-section {
+    margin-bottom: 2rem;
+}
+
+.form-section-title {
+    color: var(--primary-dark-blue);
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--accent-yellow);
+}
+
+/* Contenedor personalizado para tablas - SIN table-responsive */
+.servicio-table-container {
+    overflow-x: auto;
+    background: white;
+    border-radius: 0.375rem;
+}
+
+/* Tablas de servicio componentes */
+.servicio-table-header {
+    background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+    color: white;
+    border: none;
+}
+
+    .servicio-table-header th {
+        border: none;
+        padding: 1.25rem 1rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+
+.servicio-table-row {
+    transition: all 0.2s ease;
+}
+
+    .servicio-table-row:hover {
+        background-color: rgba(255, 195, 0, 0.05);
+    }
+
+    .servicio-table-row td {
+        padding: 1.25rem 1rem;
+        vertical-align: middle;
+        border-color: #f1f3f4;
+        font-size: 0.95rem;
+        white-space: nowrap;
+    }
+
+/* Botones de acción para servicio componentes */
+.servicio-btn-action {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+    .servicio-btn-action:hover {
+        transform: scale(1.05);
+    }
+
+/* Sugerencias de autocompletado - MEJORADO */
+.servicio-suggestions {
+    z-index: 1060;
+    display: none;
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 0 0 0.375rem 0.375rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: white;
+}
+
+.sugerenciasInsumo-container {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1060;
+}
+
+.sugerenciasInsumo {
+    display: none;
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 0 0 0.375rem 0.375rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: white;
+}
+
+    .servicio-suggestions .list-group-item,
+    .sugerenciasInsumo .list-group-item {
+        border: none;
+        border-bottom: 1px solid #f1f3f4;
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: normal;
+    }
+
+        .servicio-suggestions .list-group-item:hover,
+        .sugerenciasInsumo .list-group-item:hover {
+            background-color: rgba(255, 195, 0, 0.1);
+            color: var(--primary-dark-blue);
+        }
+
+        .servicio-suggestions .list-group-item:last-child,
+        .sugerenciasInsumo .list-group-item:last-child {
+            border-bottom: none;
+        }
+
+/* Estados de focus para formularios */
+.form-control:focus {
+    border-color: var(--accent-yellow);
+    box-shadow: 0 0 0 0.2rem rgba(255, 195, 0, 0.15);
+}
+
+.input-group.focused {
+    box-shadow: 0 0 0 0.2rem rgba(255, 195, 0, 0.1);
+    border-radius: 0.375rem;
+}
+
+/* Responsive para servicio componentes - MEJORADO */
+@media (max-width: 767.98px) {
+    .servicio-header {
+        padding: 1.5rem !important;
+    }
+
+    .servicio-card .card-body {
+        padding: 1.5rem !important;
+    }
+
+    .servicio-table-header th,
+    .servicio-table-row td {
+        padding: 1rem 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    .servicio-btn-action {
+        width: 32px;
+        height: 32px;
+    }
+
+    .form-section-title {
+        font-size: 1rem;
+    }
+
+    /* Tabla scrollable horizontalmente en móvil */
+    .servicio-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Ancho mínimo para mantener la estructura */
+    #componentesTable {
+        min-width: 600px;
+    }
+
+    /* Sugerencias en móvil - posición fija */
+    .sugerenciasInsumo-container {
+        position: fixed;
+        top: auto;
+        left: 10px;
+        right: 10px;
+        z-index: 1070;
+    }
+
+    .sugerenciasInsumo {
+        max-height: 200px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .servicio-table-row td {
+        padding: 0.75rem 0.5rem;
+    }
+
+    /* Ancho mínimo ajustado para pantallas muy pequeñas */
+    #componentesTable {
+        min-width: 500px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Para tablets */
+@media (max-width: 991.98px) and (min-width: 768px) {
+    #componentesTable {
+        min-width: 700px;
+    }
+}

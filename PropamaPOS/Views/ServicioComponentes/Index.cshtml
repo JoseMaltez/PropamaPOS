@@ -15,147 +15,515 @@
     int totalItems = ViewBag.TotalItems ?? 0;
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-diagram-3"></i> Componentes de Servicios</h2>
-        @if (isAdmin)
-        {
-            <a asp-action="CrearMultiple" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Agregar insumos a un servicio
-            </a>
-        }
-    </div>
-
-    @await Html.PartialAsync("_AlertsPartial")
-
-    <!-- Filtros -->
-    <form method="get" class="card shadow-sm mb-4 p-3">
-        <div class="row g-3 align-items-end">
-            <div class="col-md-8">
-                <label class="form-label">Buscar</label>
-                <input type="text" name="q" value="@q" class="form-control"
-                       placeholder="Buscar por nombre de servicio o insumo..." />
-            </div>
-            <div class="col-md-4 d-flex gap-2">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="bi bi-search"></i> Buscar
-                </button>
-                <a asp-action="Index" class="btn btn-outline-secondary w-100">
-                    <i class="bi bi-x-circle"></i> Limpiar
-                </a>
-            </div>
-        </div>
-    </form>
-
-    <!-- Tabla -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-list"></i> Lista de Servicios con sus Insumos</h5>
-            <small>Total: @totalItems servicios</small>
-        </div>
-
-        <div class="card-body">
-            @if (!Model.Any())
-            {
-                <div class="text-center py-4 text-muted">
-                    <i class="bi bi-diagram-3 display-1 text-muted"></i>
-                    <h5>No hay servicios registrados o no coinciden con los filtros.</h5>
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header de la página -->
+            <div class="servicio-header bg-primary-dark-blue text-white rounded-3 p-4 mb-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-diagram-3 fs-2 me-3 text-accent-yellow"></i>
+                        <div>
+                            <h1 class="h3 mb-1 fw-bold">Componentes de Servicios</h1>
+                            <p class="mb-0 opacity-75">Gestione los insumos necesarios para cada servicio</p>
+                        </div>
+                    </div>
+                    @if (isAdmin)
+                    {
+                        <a asp-action="CrearMultiple" class="btn btn-success">
+                            <i class="bi bi-plus-circle me-2"></i>Agregar Insumos
+                        </a>
+                    }
                 </div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th style="width: 25%">Servicio</th>
-                                <th>Insumos y Cantidades</th>
-                                @if (isAdmin)
-                                {
-                                    <th class="text-center" style="width: 180px;">Acciones</th>
-                                }
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var servicio in Model)
+            </div>
+
+            @await Html.PartialAsync("_AlertsPartial")
+
+            <!-- Card de filtros -->
+            <div class="card servicio-filter-card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h5 class="form-section-title mb-3">
+                        <i class="bi bi-funnel me-2"></i>Filtros de Búsqueda
+                    </h5>
+                    <form method="get" class="servicio-filter-form">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-8">
+                                <label class="form-label fw-semibold">Buscar Servicios o Insumos</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="bi bi-search text-muted"></i>
+                                    </span>
+                                    <input type="text" name="q" value="@q" class="form-control border-start-0"
+                                           placeholder="Buscar por nombre de servicio o insumo..." />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary flex-fill">
+                                        <i class="bi bi-search me-2"></i>Buscar
+                                    </button>
+                                    <a asp-action="Index" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle me-2"></i>Limpiar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Card principal -->
+            <div class="card servicio-card border-0 shadow-lg">
+                <div class="card-header servicio-card-header py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-semibold text-white">
+                            <i class="bi bi-list-check me-2"></i>Servicios con sus Insumos
+                        </h5>
+                        <span class="badge bg-accent-yellow text-dark fs-6">Total: @totalItems servicios</span>
+                    </div>
+                </div>
+
+                <div class="card-body p-0">
+                    @if (!Model.Any())
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-diagram-3 display-1 text-muted mb-3 opacity-50"></i>
+                            <h4 class="text-muted mb-3">No se encontraron servicios</h4>
+                            <p class="text-muted mb-4">No hay servicios registrados o no coinciden con los filtros aplicados.</p>
+                            @if (isAdmin)
                             {
-                                <tr>
-                                    <td class="fw-bold">
-                                        <i class="bi bi-gear-fill text-primary"></i> @servicio.Nombre
-                                    </td>
-                                    <td>
-                                        @if (servicio.ServicioComponentes != null && servicio.ServicioComponentes.Any())
+                                <a asp-action="CrearMultiple" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle me-2"></i>Agregar Nuevo
+                                </a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0 servicio-index-table">
+                                <thead class="servicio-table-header">
+                                    <tr>
+                                        <th class="ps-4" style="width: 25%;">Servicio</th>
+                                        <th>Insumos y Cantidades</th>
+                                        @if (isAdmin)
                                         {
-                                            <ul class="list-unstyled mb-0">
-                                                @foreach (var comp in servicio.ServicioComponentes)
+                                            <th class="text-center" style="width: 180px;">Acciones</th>
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var servicio in Model)
+                                    {
+                                        <tr class="servicio-table-row">
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="servicio-icon me-3">
+                                                        <i class="bi bi-gear-fill text-primary"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="fw-bold mb-1 text-primary-dark-blue">@servicio.Nombre</h6>
+                                                        @if (!string.IsNullOrEmpty(servicio.Codigo))
+                                                        {
+                                                            <small class="text-muted">Código: @servicio.Codigo</small>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                @if (servicio.ServicioComponentes != null && servicio.ServicioComponentes.Any())
                                                 {
-                                                    <li class="mb-1">
-                                                        <i class="bi bi-caret-right-fill text-muted"></i>
-                                                        <strong>@comp.ItemConsumido?.Nombre</strong>
-                                                        <span class="text-muted">
-                                                            — Cantidad: 
-                                                            <span class="fw-bold">@comp.CantidadPorServicio</span>
-                                                        </span>
+                                                    <div class="insumos-container">
+                                                        @foreach (var comp in servicio.ServicioComponentes)
+                                                        {
+                                                            <div class="insumo-item d-flex align-items-center mb-2 p-2 rounded-2 bg-light">
+                                                                <i class="bi bi-box-seam text-success me-2"></i>
+                                                                <div class="flex-grow-1">
+                                                                    <strong class="d-block">@comp.ItemConsumido?.Nombre</strong>
+                                                                    @if (!string.IsNullOrEmpty(comp.ItemConsumido?.Codigo))
+                                                                    {
+                                                                        <small class="text-muted">@comp.ItemConsumido.Codigo</small>
+                                                                    }
+                                                                </div>
+                                                                <div class="insumo-cantidad text-end">
+                                                                    <span class="badge bg-primary fs-6">@comp.CantidadPorServicio</span>
+                                                                    <small class="d-block text-muted">por servicio</small>
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                        <div class="mt-2">
+                                                            <small class="text-muted">
+                                                                <i class="bi bi-info-circle me-1"></i>
+                                                                Total insumos: <strong>@servicio.ServicioComponentes.Count</strong>
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </td>
+                                            @if (isAdmin)
+                                            {
+                                                <td class="text-center">
+                                                    <div class="btn-group servicio-btn-group">
+                                                        <a asp-action="EditarServicio" asp-route-id="@servicio.Id_Item"
+                                                           class="btn btn-sm btn-outline-primary servicio-btn-action"
+                                                           data-bs-toggle="tooltip" title="Editar insumos">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </a>
+                                                        <a asp-action="EliminarServicio" asp-route-id="@servicio.Id_Item"
+                                                           class="btn btn-sm btn-outline-danger servicio-btn-action"
+                                                           data-bs-toggle="tooltip" title="Eliminar todos los insumos">
+                                                            <i class="bi bi-trash"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            }
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Paginación -->
+                        @if (totalPages > 1)
+                        {
+                            <div class="servicio-pagination border-top">
+                                <div class="d-flex justify-content-between align-items-center p-4">
+                                    <div>
+                                        <small class="text-muted">
+                                            Mostrando página <strong>@currentPage</strong> de <strong>@totalPages</strong>
+                                            — Total: <strong>@totalItems</strong> servicios
+                                        </small>
+                                    </div>
+                                    <nav>
+                                        <ul class="pagination pagination-sm mb-0 servicio-pagination">
+                                            @if (currentPage > 1)
+                                            {
+                                                <li class="page-item">
+                                                    <a class="page-link" href="?page=@(currentPage - 1)&q=@q&servicioId=@currentServicio">
+                                                        <i class="bi bi-chevron-left"></i> Anterior
+                                                    </a>
+                                                </li>
+                                            }
+                                            @for (int i = 1; i <= totalPages; i++)
+                                            {
+                                                if (i >= currentPage - 2 && i <= currentPage + 2)
+                                                {
+                                                    <li class="page-item @(i == currentPage ? "active" : "")">
+                                                        <a class="page-link" href="?page=@i&q=@q&servicioId=@currentServicio">@i</a>
                                                     </li>
                                                 }
-                                            </ul>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted fst-italic">Sin insumos registrados</span>
-                                        }
-                                    </td>
-                                    @if (isAdmin)
-                                    {
-                                        <td class="text-center">
-                                            <div class="btn-group">
-                                                <a asp-action="EditarServicio" asp-route-id="@servicio.Id_Item"
-                                                   class="btn btn-sm btn-outline-primary" title="Editar">
-                                                    <i class="bi bi-pencil"></i>
-                                                </a>
-                                                <a asp-action="EliminarServicio" asp-route-id="@servicio.Id_Item"
-                                                   class="btn btn-sm btn-outline-danger" title="Eliminar">
-                                                    <i class="bi bi-trash"></i>
-                                                </a>
-                                            </div>
-                                        </td>
-                                    }
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                                            }
+                                            @if (currentPage < totalPages)
+                                            {
+                                                <li class="page-item">
+                                                    <a class="page-link" href="?page=@(currentPage + 1)&q=@q&servicioId=@currentServicio">
+                                                        Siguiente <i class="bi bi-chevron-right"></i>
+                                                    </a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                        }
+                    }
                 </div>
-
-                <!-- Paginación -->
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                    <small>Mostrando página @currentPage de @totalPages — Total: @totalItems servicios</small>
-                    <nav>
-                        <ul class="pagination pagination-sm mb-0">
-                            @if (currentPage > 1)
-                            {
-                                <li class="page-item">
-                                    <a class="page-link" href="?page=@(currentPage - 1)&q=@q&servicioId=@currentServicio">Anterior</a>
-                                </li>
-                            }
-                            @for (int i = 1; i <= totalPages; i++)
-                            {
-                                if (i >= currentPage - 2 && i <= currentPage + 2)
-                                {
-                                    <li class="page-item @(i == currentPage ? "active" : "")">
-                                        <a class="page-link" href="?page=@i&q=@q&servicioId=@currentServicio">@i</a>
-                                    </li>
-                                }
-                            }
-                            @if (currentPage < totalPages)
-                            {
-                                <li class="page-item">
-                                    <a class="page-link" href="?page=@(currentPage + 1)&q=@q&servicioId=@currentServicio">Siguiente</a>
-                                </li>
-                            }
-                        </ul>
-                    </nav>
-                </div>
-            }
+            </div>
         </div>
     </div>
 </div>
+
+@section Styles {
+    <style>
+        .servicio-header {
+            background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+        }
+
+        .servicio-filter-card {
+            border-radius: 12px;
+            background: white;
+        }
+
+        .servicio-card {
+            border-radius: 12px;
+            background: white;
+            overflow: hidden;
+        }
+
+        .servicio-card-header {
+            background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+            color: white;
+            border: none;
+        }
+
+        .form-section-title {
+            color: var(--primary-dark-blue);
+            font-weight: 600;
+            font-size: 1.1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-yellow);
+        }
+
+        .servicio-index-table {
+            margin-bottom: 0;
+        }
+
+        .servicio-table-header {
+            background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+            color: white;
+        }
+
+            .servicio-table-header th {
+                border: none;
+                font-weight: 600;
+                font-size: 0.9rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                padding: 1.25rem 1rem;
+            }
+
+        .servicio-table-row {
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+            .servicio-table-row:hover {
+                background-color: rgba(255, 195, 0, 0.05);
+                transform: translateX(2px);
+            }
+
+            .servicio-table-row td {
+                padding: 1.5rem 1rem;
+                vertical-align: top;
+                border: none;
+            }
+
+        .servicio-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 53, 102, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .insumos-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .insumo-item {
+            transition: all 0.2s ease;
+            border: 1px solid #e9ecef;
+        }
+
+            .insumo-item:hover {
+                background-color: rgba(255, 195, 0, 0.1) !important;
+                border-color: var(--accent-yellow);
+            }
+
+        .insumo-cantidad {
+            min-width: 80px;
+        }
+
+        .servicio-btn-group {
+            gap: 0.5rem;
+        }
+
+        .servicio-btn-action {
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+            .servicio-btn-action:hover {
+                transform: scale(1.05);
+            }
+
+        .servicio-pagination {
+            background: #f8f9fa;
+        }
+
+            .servicio-pagination .page-link {
+                border: none;
+                color: var(--primary-blue);
+                padding: 0.75rem 1rem;
+                margin: 0 0.25rem;
+                border-radius: 8px;
+                transition: all 0.3s ease;
+                font-weight: 500;
+            }
+
+                .servicio-pagination .page-link:hover {
+                    background-color: var(--accent-yellow);
+                    color: var(--primary-dark);
+                    transform: translateY(-1px);
+                }
+
+            .servicio-pagination .page-item.active .page-link {
+                background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark-blue));
+                color: white;
+                border: none;
+            }
+
+        /* Estados vacíos mejorados */
+        .text-center.py-5 {
+            padding: 3rem 2rem !important;
+        }
+
+        /* Responsive */
+        @@media (max-width: 767.98px) {
+            .servicio-header {
+                padding: 1.5rem !important;
+            }
+
+            .servicio-header .d-flex {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .servicio-filter-card .card-body {
+                padding: 1.5rem !important;
+            }
+
+            .servicio-table-header th,
+            .servicio-table-row td {
+                padding: 1rem 0.75rem;
+                font-size: 0.85rem;
+            }
+
+            .servicio-btn-action {
+                width: 32px;
+                height: 32px;
+            }
+
+            .servicio-table-row td:first-child {
+                border-bottom: 1px solid #f1f3f4;
+            }
+
+            .servicio-pagination .d-flex {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .insumos-container {
+                max-height: 200px;
+            }
+
+            .insumo-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.5rem;
+            }
+
+            .insumo-cantidad {
+                text-align: center !important;
+            }
+        }
+
+        @@media (max-width: 575.98px) {
+            .servicio-index-table {
+                font-size: 0.875rem;
+            }
+
+            .servicio-table-row td {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .servicio-btn-group {
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+
+            .servicio-pagination .pagination {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .servicio-pagination .page-link {
+                padding: 0.5rem 0.75rem;
+                margin: 0.125rem;
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Inicializar tooltips
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            if (tooltipTriggerList.length > 0 && typeof bootstrap !== 'undefined') {
+                [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+            }
+
+            // Efectos de hover para las filas
+            const tableRows = document.querySelectorAll('.servicio-table-row');
+            tableRows.forEach(row => {
+                row.addEventListener('mouseenter', function () {
+                    this.style.transition = 'all 0.3s ease';
+                });
+            });
+
+            // Animación de entrada para la tabla
+            const tableBody = document.querySelector('.servicio-index-table tbody');
+            if (tableBody) {
+                const rows = tableBody.querySelectorAll('.servicio-table-row');
+                rows.forEach((row, index) => {
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateY(20px)';
+                    
+                    setTimeout(() => {
+                        row.style.transition = 'all 0.5s ease';
+                        row.style.opacity = '1';
+                        row.style.transform = 'translateY(0)';
+                    }, index * 100);
+                });
+            }
+
+            // Confirmación para eliminaciones
+            const deleteButtons = document.querySelectorAll('a[asp-action="EliminarServicio"]');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const href = this.getAttribute('href');
+                    
+                    Swal.fire({
+                        title: '¿Eliminar todos los insumos?',
+                        text: 'Esta acción eliminará todos los componentes del servicio. ¿Desea continuar?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc3545',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, eliminar',
+                        cancelButtonText: 'Cancelar',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = href;
+                        }
+                    });
+                });
+            });
+
+            // Scroll suave para la tabla
+            const insumosContainers = document.querySelectorAll('.insumos-container');
+            insumosContainers.forEach(container => {
+                if (container.scrollHeight > 300) {
+                    container.style.overflowY = 'auto';
+                    container.style.scrollbarWidth = 'thin';
+                }
+            });
+        });
+    </script>
+
+    <!-- SweetAlert2 para confirmaciones -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+}
