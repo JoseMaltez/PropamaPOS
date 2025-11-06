@@ -487,3 +487,115 @@ window.AdminUtils = {
     initializeAdminTooltips,
     initializeFormValidation
 };
+
+
+
+// ===== FUNCIONALIDADES ESPECÍFICAS PARA AJUSTES =====
+
+// Inicialización de tooltips
+function initializeTooltips() {
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    if (tooltipTriggerList.length > 0 && typeof bootstrap !== 'undefined') {
+        [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+    }
+}
+
+// Validación de formularios mejorada
+function initializeFormValidation() {
+    const forms = document.querySelectorAll('.needs-validation');
+
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                // Mostrar todos los mensajes de error
+                const invalidFields = form.querySelectorAll(':invalid');
+                invalidFields.forEach(field => {
+                    field.classList.add('is-invalid');
+                });
+
+                // Scroll al primer campo inválido
+                const firstInvalid = form.querySelector(':invalid');
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                }
+            }
+
+            form.classList.add('was-validated');
+        }, false);
+    });
+}
+
+// Manejo de alertas dinámicas
+function showAlert(type, message, container = null) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+    alertDiv.innerHTML = `
+        <i class="bi ${getAlertIcon(type)} me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    const targetContainer = container || document.querySelector('.container-fluid') || document.body;
+    targetContainer.prepend(alertDiv);
+
+    // Auto-remover después de 5 segundos
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            const bsAlert = new bootstrap.Alert(alertDiv);
+            bsAlert.close();
+        }
+    }, 5000);
+}
+
+function getAlertIcon(type) {
+    const icons = {
+        'success': 'bi-check-circle',
+        'warning': 'bi-exclamation-triangle',
+        'danger': 'bi-x-circle',
+        'info': 'bi-info-circle'
+    };
+    return icons[type] || 'bi-info-circle';
+}
+
+// Manejo de estados vacíos en tablas
+function toggleEmptyState(tableId, emptyStateId) {
+    const table = document.getElementById(tableId);
+    const emptyState = document.getElementById(emptyStateId);
+
+    if (table && emptyState) {
+        const hasRows = table.querySelector('tbody tr') !== null;
+        if (hasRows) {
+            emptyState.classList.add('d-none');
+        } else {
+            emptyState.classList.remove('d-none');
+        }
+    }
+}
+
+// Inicialización cuando el DOM está listo
+document.addEventListener('DOMContentLoaded', function () {
+    initializeTooltips();
+    initializeFormValidation();
+
+    // Inicializar estados vacíos
+    const tables = document.querySelectorAll('table[data-empty-state]');
+    tables.forEach(table => {
+        const emptyStateId = table.getAttribute('data-empty-state');
+        toggleEmptyState(table.id, emptyStateId);
+    });
+});
+
+// Exportar funciones para uso global
+window.PropamaPOS = {
+    ...window.PropamaPOS,
+    showAlert,
+    initializeTooltips,
+    initializeFormValidation,
+    toggleEmptyState
+};

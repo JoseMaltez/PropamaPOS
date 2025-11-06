@@ -1,216 +1,342 @@
 ﻿@model PropamaPOS.Models.ViewModels.AjusteCrearViewModel
 @using System.Text.Json
 @{
-    ViewData["Title"] = "Registrar ajuste";
+    ViewData["Title"] = "Registrar Ajuste de Inventario";
     var itemsJson = JsonSerializer.Serialize(ViewBag.Items ?? new object[] { });
 }
 
-<div class="container mt-4">
-    <div class="card shadow-sm">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Registrar ajuste de inventario</h5>
-            <a asp-action="Index" class="btn btn-light btn-sm">Volver</a>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 text-dark mb-1">Registrar Ajuste de Inventario</h2>
+            <p class="text-muted mb-0">Complete los detalles del ajuste de inventario</p>
         </div>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Volver al Listado
+        </a>
+    </div>
 
-        <div class="card-body">
-            <form asp-action="Crear" method="post" id="formAjuste">
-                <div class="row mb-3">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white py-3">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-clipboard-plus me-2"></i>Información del Ajuste
+            </h5>
+        </div>
+        
+        <div class="card-body p-4">
+            <form asp-action="Crear" method="post" id="formAjuste" class="needs-validation" novalidate>
+                <!-- Información General -->
+                <div class="row g-4 mb-4">
                     <div class="col-md-4">
-                        <label class="form-label">Tipo</label>
-                        <select asp-for="Tipo" class="form-select" id="tipoSelect">
+                        <label class="form-label fw-semibold text-dark">Tipo de Ajuste</label>
+                        <select asp-for="Tipo" class="form-select form-select-lg" id="tipoSelect" required>
                             <option value="Entrada" selected>Entrada</option>
                             <option value="Salida">Salida</option>
                         </select>
+                        <div class="invalid-feedback">Por favor seleccione el tipo de ajuste</div>
                     </div>
+                    
                     <div class="col-md-4">
-                        <label class="form-label">Fecha</label>
-                        <input asp-for="Fecha" class="form-control" type="datetime-local" />
+                        <label class="form-label fw-semibold text-dark">Fecha</label>
+                        <input asp-for="Fecha" class="form-control form-control-lg" type="datetime-local" required />
+                        <div class="invalid-feedback">Por favor ingrese la fecha del ajuste</div>
                     </div>
+                    
                     <div class="col-md-4">
-                        <label class="form-label">Motivo</label>
-                        <input asp-for="Motivo" class="form-control" required
+                        <label class="form-label fw-semibold text-dark">Motivo</label>
+                        <input asp-for="Motivo" class="form-control form-control-lg" required 
                                placeholder="Ej: Donación, robo, corrección por conteo, etc." />
+                        <div class="invalid-feedback">Por favor ingrese el motivo del ajuste</div>
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Observaciones (opcional)</label>
-                    <textarea asp-for="Observaciones" class="form-control"></textarea>
+                <!-- Observaciones -->
+                <div class="mb-4">
+                    <label class="form-label fw-semibold text-dark">Observaciones (Opcional)</label>
+                    <textarea asp-for="Observaciones" class="form-control" rows="3" 
+                              placeholder="Ingrese observaciones adicionales sobre el ajuste..."></textarea>
                 </div>
 
-                <hr />
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6>Líneas del ajuste</h6>
-                    <button type="button" id="btnAgregar" class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-plus"></i> Agregar
-                    </button>
+                <!-- Líneas del Ajuste -->
+                <div class="border-top pt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="text-dark mb-1">Líneas del Ajuste</h5>
+                            <p class="text-muted mb-0">Agregue los productos a ajustar en el inventario</p>
+                        </div>
+                        <button type="button" id="btnAgregar" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i>Agregar Producto
+                        </button>
+                    </div>
+
+                    <div class="table-responsive rounded">
+                        <table class="table table-hover align-middle mb-0" id="tablaLineas">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th class="ps-3">Producto</th>
+                                    <th>Presentación</th>
+                                    <th class="text-center">Cant. Presentaciones</th>
+                                    <th class="text-center">Cant. Unidades</th>
+                                    <th>Nota</th>
+                                    <th class="text-center pe-3">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    
+                    <div id="emptyState" class="text-center py-5 d-none">
+                        <i class="bi bi-inbox display-4 text-muted mb-3"></i>
+                        <h5 class="text-muted">No hay productos agregados</h5>
+                        <p class="text-muted">Haga clic en "Agregar Producto" para comenzar</p>
+                    </div>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle" id="tablaLineas">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Producto</th>
-                                <th>Presentación</th>
-                                <th>Cantidad (presentaciones)</th>
-                                <th>Cantidad (unidades)</th>
-                                <th>Nota</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-
-                <div class="text-end mt-3">
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-check-circle"></i> Guardar ajuste
-                    </button>
+                <!-- Botón de Envío -->
+                <div class="border-top pt-4 mt-4">
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-success btn-lg px-5">
+                            <i class="bi bi-check-circle me-2"></i>Guardar Ajuste
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<style>
-    /* 🔹 Evita que el cuadro de sugerencias se corte */
-    .table-responsive {
-        overflow: visible !important;
-    }
-
-    /* 🔹 Caja de sugerencias predictivas */
-    .sugerenciasProducto {
-        position: absolute !important;
-        top: 100%;
-        left: 0;
-        width: 100%;
-        z-index: 2000;
-        display: none;
-        background: #fff;
-        border: 1px solid #ced4da;
-        border-radius: 0.25rem;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-        max-height: 250px;
-        overflow-y: auto;
-    }
-
-        /* Hover bonito para las sugerencias */
-        .sugerenciasProducto .list-group-item:hover {
-            background-color: #f1f1f1;
-            cursor: pointer;
+@section Styles {
+    <style>
+        /* CORRECCIÓN PARA SUGERENCIAS PREDICTIVAS - EVITAR QUE SE CORTEN */
+        .table-responsive {
+            overflow: visible !important;
         }
-</style>
+
+        .sugerencias-container {
+            position: relative;
+        }
+
+        .sugerencias-lista {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            z-index: 1050;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .sugerencia-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f8f9fa;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+            .sugerencia-item:hover {
+                background-color: #f8f9fa;
+            }
+
+            .sugerencia-item:last-child {
+                border-bottom: none;
+            }
+
+        .sugerencia-codigo {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        .table th {
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .cantidad-input {
+            max-width: 120px;
+            margin: 0 auto;
+        }
+
+        .unidades-badge {
+            background-color: #e9ecef;
+            color: #495057;
+            font-weight: 500;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+        }
+
+        /* Asegurar que la tabla mantenga su funcionalidad responsive en móvil */
+        @@media (max-width: 768px) {
+            .table-responsive
+
+        {
+            overflow-x: auto !important;
+        }
+
+        .sugerencias-lista {
+            min-width: 300px;
+            left: 0;
+            right: auto;
+        }
+
+        }
+    </style>
+}
 
 @section Scripts {
     <script>
         const items = @Html.Raw(itemsJson);
         let idx = 0;
 
+        function toggleEmptyState() {
+            const tbody = document.querySelector("#tablaLineas tbody");
+            const emptyState = document.getElementById("emptyState");
+            if (tbody.children.length === 0) {
+                emptyState.classList.remove("d-none");
+            } else {
+                emptyState.classList.add("d-none");
+            }
+        }
+
         function agregarFila() {
             const tbody = document.querySelector("#tablaLineas tbody");
             const tr = document.createElement("tr");
+            tr.className = "fade-in";
 
             tr.innerHTML = `
-                <td>
-                    <div class="position-relative">
-                        <input type="text" class="form-control form-control-sm buscarProducto" placeholder="Buscar producto..." autocomplete="off" />
-                        <input type="hidden" name="Lineas[${idx}].Id_Item" class="productoIdHidden" />
-                        <div class="list-group position-absolute w-100 sugerenciasProducto"></div>
+                <td class="ps-3">
+                    <div class="sugerencias-container">
+                        <input type="text" class="form-control buscar-producto" 
+                               placeholder="Buscar producto por nombre o código..." 
+                               autocomplete="off" required />
+                        <input type="hidden" name="Lineas[${idx}].Id_Item" class="producto-id" />
+                        <div class="sugerencias-lista"></div>
                     </div>
+                    <div class="invalid-feedback">Debe seleccionar un producto</div>
                 </td>
                 <td>
-                    <select name="Lineas[${idx}].Id_ItemPresentacion" class="form-select form-select-sm pres-select" required>
-                        <option value="">-- Presentación --</option>
+                    <select name="Lineas[${idx}].Id_ItemPresentacion" class="form-select pres-select" required>
+                        <option value="">Seleccione presentación</option>
                     </select>
+                    <div class="invalid-feedback">Debe seleccionar una presentación</div>
+                </td>
+                <td class="text-center">
+                    <input type="number" name="Lineas[${idx}].CantidadPresentaciones" 
+                           value="1" min="1" class="form-control cantidad-input cantidad" required />
+                    <div class="invalid-feedback">La cantidad debe ser mayor a 0</div>
+                </td>
+                <td class="text-center">
+                    <span class="unidades-badge unidades-cell">0</span>
                 </td>
                 <td>
-                    <input type="number" name="Lineas[${idx}].CantidadPresentaciones" value="1" min="1" class="form-control form-control-sm cantidad" required />
+                    <input type="text" name="Lineas[${idx}].Nota" class="form-control" 
+                           placeholder="Nota opcional..." />
                 </td>
-                <td class="unidades-cell">0</td>
-                <td>
-                    <input type="text" name="Lineas[${idx}].Nota" class="form-control form-control-sm" />
-                </td>
-                <td>
-                    <button type="button" class="btn btn-danger btn-sm eliminar"><i class="bi bi-trash"></i></button>
+                <td class="text-center pe-3">
+                    <button type="button" class="btn btn-outline-danger btn-sm eliminar">
+                        <i class="bi bi-trash"></i>
+                    </button>
                 </td>
             `;
 
             tbody.appendChild(tr);
             idx++;
+            toggleEmptyState();
+            initializeRowEvents(tr);
         }
 
-        document.getElementById("btnAgregar").addEventListener("click", agregarFila);
+        function initializeRowEvents(row) {
+            const input = row.querySelector('.buscar-producto');
+            const sugBox = row.querySelector('.sugerencias-lista');
+            const presSelect = row.querySelector('.pres-select');
+            const cantidadInput = row.querySelector('.cantidad');
+            const unidadesCell = row.querySelector('.unidades-cell');
 
-        // --- Texto predictivo para productos ---
-        document.addEventListener('input', function (e) {
-            if (!e.target.classList.contains('buscarProducto')) return;
+            // Búsqueda predictiva
+            input.addEventListener('input', function() {
+                const q = this.value.trim().toLowerCase();
+                if (!q) { 
+                    sugBox.style.display = 'none'; 
+                    return; 
+                }
 
-            const input = e.target;
-            const contenedor = input.closest('td');
-            const sugBox = contenedor.querySelector('.sugerenciasProducto');
-            const q = input.value.trim().toLowerCase();
-            if (!q) { sugBox.style.display = 'none'; return; }
+                const matches = items.filter(it =>
+                    (it.nombre && it.nombre.toLowerCase().includes(q)) ||
+                    (it.codigo && it.codigo.toLowerCase().includes(q))
+                ).slice(0, 8);
 
-            const matches = items.filter(it =>
-                (it.nombre && it.nombre.toLowerCase().includes(q)) ||
-                (it.codigo && it.codigo.toLowerCase().includes(q))
-            ).slice(0, 10);
+                sugBox.innerHTML = '';
+                if (matches.length === 0) { 
+                    sugBox.style.display = 'none'; 
+                    return; 
+                }
 
-            sugBox.innerHTML = '';
-            if (matches.length === 0) { sugBox.style.display = 'none'; return; }
+                matches.forEach(m => {
+                    const item = document.createElement('div');
+                    item.className = 'sugerencia-item';
+                    item.innerHTML = `
+                        <div class="fw-semibold">${m.nombre}</div>
+                        ${m.codigo ? `<div class="sugerencia-codigo">Código: ${m.codigo}</div>` : ''}
+                    `;
+                    item.addEventListener('click', () => {
+                        input.value = m.nombre;
+                        row.querySelector('.producto-id').value = m.id_Item;
 
-            matches.forEach(m => {
-                const el = document.createElement('button');
-                el.type = 'button';
-                el.className = 'list-group-item list-group-item-action';
-                el.innerHTML = `<div><strong>${m.nombre}</strong><div class="small text-muted">${m.codigo ?? ''}</div></div>`;
-                el.addEventListener('click', () => {
-                    input.value = `${m.nombre}${m.codigo ? ' • ' + m.codigo : ''}`;
-                    contenedor.querySelector('.productoIdHidden').value = m.id_Item;
+                        // Llenar select de presentaciones
+                        presSelect.innerHTML = '<option value="">Seleccione presentación</option>';
+                        if (m.presentaciones && m.presentaciones.length > 0) {
+                            m.presentaciones.forEach(p => {
+                                const option = document.createElement('option');
+                                option.value = p.id_ItemPresentacion;
+                                option.textContent = `${p.cantidad} ${p.unidadMedida.nombre}`;
+                                option.dataset.cantidad = p.cantidad;
+                                presSelect.appendChild(option);
+                            });
+                        } else {
+                            presSelect.innerHTML = '<option value="">Sin presentaciones</option>';
+                        }
 
-                    const row = input.closest('tr');
-                    const presSelect = row.querySelector('.pres-select');
-                    presSelect.innerHTML = '<option value="">-- Presentación --</option>';
-
-                    if (m.presentaciones && m.presentaciones.length > 0) {
-                        presSelect.innerHTML += m.presentaciones.map(p =>
-                            `<option value="${p.id_ItemPresentacion}" data-cantidad="${p.cantidad}">
-                                ${p.cantidad} ${p.unidadMedida.nombre}
-                             </option>`
-                        ).join('');
-                    } else {
-                        presSelect.innerHTML = `<option value="">-- Sin presentaciones --</option>`;
-                    }
-
-                    sugBox.style.display = 'none';
-                    calcularFila(row);
+                        sugBox.style.display = 'none';
+                        calcularUnidades(row);
+                        validateRow(row);
+                    });
+                    sugBox.appendChild(item);
                 });
-                sugBox.appendChild(el);
+                sugBox.style.display = 'block';
             });
-            sugBox.style.display = 'block';
-        });
 
-        // Ocultar sugerencias al hacer clic fuera
-        document.addEventListener('click', e => {
-            if (!e.target.closest('.list-group') && !e.target.classList.contains('buscarProducto')) {
-                document.querySelectorAll('.list-group').forEach(l => l.style.display = 'none');
-            }
-        });
+            // Ocultar sugerencias al hacer clic fuera
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.sugerencias-container')) {
+                    sugBox.style.display = 'none';
+                }
+            });
 
-        // --- Calcular unidades ---
-        document.querySelector("#tablaLineas tbody").addEventListener("input", function (e) {
-            if (e.target.classList.contains("cantidad")) {
-                calcularFila(e.target.closest("tr"));
-            }
-        });
+            // Calcular unidades cuando cambia presentación o cantidad
+            presSelect.addEventListener('change', () => {
+                calcularUnidades(row);
+                validateRow(row);
+            });
+            
+            cantidadInput.addEventListener('input', () => {
+                calcularUnidades(row);
+                validateRow(row);
+            });
 
-        document.querySelector("#tablaLineas tbody").addEventListener("change", function (e) {
-            if (e.target.classList.contains("pres-select")) {
-                calcularFila(e.target.closest("tr"));
-            }
-        });
+            // Eliminar fila
+            row.querySelector('.eliminar').addEventListener('click', function() {
+                row.remove();
+                toggleEmptyState();
+            });
+        }
 
-        function calcularFila(row) {
+        function calcularUnidades(row) {
             const presSelect = row.querySelector(".pres-select");
             const cantidadInput = row.querySelector(".cantidad");
             const unidadesCell = row.querySelector(".unidades-cell");
@@ -224,36 +350,63 @@
             const factor = parseInt(selectedOption.dataset.cantidad);
             const cantidadPres = parseInt(cantidadInput.value || "0");
             const unidades = factor * cantidadPres;
-            unidadesCell.textContent = unidades.toString();
+            unidadesCell.textContent = unidades.toLocaleString();
         }
 
-        // Eliminar fila
-        document.querySelector("#tablaLineas tbody").addEventListener("click", function (e) {
-            if (e.target.closest(".eliminar")) e.target.closest("tr").remove();
-        });
+        function validateRow(row) {
+            const inputs = row.querySelectorAll('input[required], select[required]');
+            let isValid = true;
+            
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    isValid = false;
+                    input.classList.add('is-invalid');
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            });
+            
+            return isValid;
+        }
 
-        // Validar antes de enviar
-                document.getElementById("formAjuste").addEventListener("submit", function (e) {
+        // Event Listeners
+        document.getElementById("btnAgregar").addEventListener("click", agregarFila);
+
+        document.getElementById("formAjuste").addEventListener("submit", function (e) {
             const rows = document.querySelectorAll("#tablaLineas tbody tr");
-
-            // Validar que haya al menos una línea
+            
             if (rows.length === 0) {
                 e.preventDefault();
-
-                const alerta = document.createElement("div");
-                alerta.className = "alert alert-warning alert-dismissible fade show mt-3";
-                alerta.role = "alert";
-                alerta.innerHTML = `
-                    <i class="bi bi-exclamation-triangle"></i>
-                    Debe agregar al menos una línea al ajuste antes de guardarlo.
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-                `;
-                const form = document.getElementById("formAjuste");
-                form.prepend(alerta);
-
+                showAlert('warning', 'Debe agregar al menos un producto al ajuste antes de guardar.');
                 return;
+            }
+
+            // Validar todas las filas
+            let allValid = true;
+            rows.forEach(row => {
+                if (!validateRow(row)) {
+                    allValid = false;
+                }
+            });
+
+            if (!allValid) {
+                e.preventDefault();
+                showAlert('warning', 'Por favor complete todos los campos requeridos en las líneas del ajuste.');
             }
         });
 
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+            alertDiv.innerHTML = `
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.card-body').prepend(alertDiv);
+        }
+
+        // Inicializar primera fila vacía
+        toggleEmptyState();
     </script>
 }

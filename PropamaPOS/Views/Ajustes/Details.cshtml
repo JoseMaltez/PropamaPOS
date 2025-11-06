@@ -1,53 +1,184 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model PropamaPOS.Models.AjusteInventario
+﻿@model PropamaPOS.Models.AjusteInventario
 @{
-    ViewData["Title"] = "Detalle del ajuste";
+    ViewData["Title"] = "Detalle del Ajuste";
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4>Detalle ajuste #@Model.Id_Ajuste</h4>
-        <a asp-action="Index" class="btn btn-light btn-sm">Volver</a>
-    </div>
-
-    <div class="card mb-3">
-        <div class="card-body">
-            <p><strong>Fecha:</strong> @Model.Fecha.ToLocalTime().ToString("g")</p>
-            <p><strong>Tipo:</strong> @Model.Tipo</p>
-            <p><strong>Motivo:</strong> @Model.Motivo</p>
-            <p><strong>Empleado:</strong> @(Model.Empleado != null ? Model.Empleado.Nombre + " " + Model.Empleado.Apellido : Model.CreadoPor)</p>
-            <p><strong>Observaciones:</strong> @Model.Observaciones</p>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 text-dark mb-1">Detalle del Ajuste</h2>
+            <p class="text-muted mb-0">Ajuste #@Model.Id_Ajuste</p>
+        </div>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-arrow-left me-2"></i>Volver al Listado
+            </a>
         </div>
     </div>
 
-    <table class="table table-sm">
-        <thead class="table-light">
-            <tr>
-                <th>Producto</th>
-                <th>Presentación</th>
-                <th>Cant. present.</th>
-                <th>Cant. unidades</th>
-                <th>Stock antes</th>
-                <th>Stock después</th>
-                <th>Nota</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var d in Model.Detalles)
+    <!-- Información General -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle me-2"></i>Información General
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold text-muted mb-1">Fecha del Ajuste</label>
+                            <p class="fs-6 text-dark mb-0">@Model.Fecha.ToLocalTime().ToString("f")</p>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold text-muted mb-1">Tipo</label>
+                            <div>
+                                @if (Model.Tipo == PropamaPOS.Models.TipoMovimientoAjuste.Entrada)
+                                {
+                                    <span class="badge bg-success fs-6">Entrada</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger fs-6">Salida</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold text-muted mb-1">Motivo</label>
+                            <p class="fs-6 text-dark mb-0">@Model.Motivo</p>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold text-muted mb-1">Registrado por</label>
+                            <p class="fs-6 text-dark mb-0">
+                                @(Model.Empleado != null ? $"{Model.Empleado.Nombre} {Model.Empleado.Apellido}" : Model.CreadoPor)
+                            </p>
+                        </div>
+                    </div>
+                    
+                    @if (!string.IsNullOrEmpty(Model.Observaciones))
+                    {
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <label class="form-label fw-semibold text-muted mb-1">Observaciones</label>
+                                <p class="text-dark mb-0">@Model.Observaciones</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalles del Ajuste -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white py-3">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-list-ul me-2"></i>Productos Ajustados
+                <span class="badge bg-light text-dark ms-2">@(Model.Detalles?.Count ?? 0) items</span>
+            </h5>
+        </div>
+        
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Producto</th>
+                            <th>Presentación</th>
+                            <th class="text-center">Cant. Presentaciones</th>
+                            <th class="text-center">Cant. Unidades</th>
+                            <th class="text-center">Stock Antes</th>
+                            <th class="text-center">Stock Después</th>
+                            <th class="pe-4">Nota</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var d in Model.Detalles)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="ms-3">
+                                            <p class="fw-semibold text-dark mb-0">@d.Item?.Nombre</p>
+                                            @if (!string.IsNullOrEmpty(d.Item?.Codigo))
+                                            {
+                                                <small class="text-muted">Código: @d.Item.Codigo</small>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (d.Presentacion != null)
+                                    {
+                                        <span class="badge bg-light text-dark">
+                                            @d.Presentacion.Cantidad @d.Presentacion.UnidadMedida?.Nombre
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <span class="fw-semibold text-dark">@d.CantidadPresentaciones</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary">@d.CantidadUnidades</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="fw-semibold @(d.StockAntes < 10 ? "text-warning" : "text-dark")">
+                                        @d.StockAntes
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="fw-semibold @(d.StockDespues < 10 ? "text-warning" : "text-dark")">
+                                        @d.StockDespues
+                                    </span>
+                                </td>
+                                <td class="pe-4">
+                                    @if (!string.IsNullOrEmpty(d.Nota))
+                                    {
+                                        <span class="text-muted">@d.Nota</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            
+            @if (!Model.Detalles.Any())
             {
-                <tr>
-                    <td>@d.Item?.Nombre</td>
-                    <td>@(d.Presentacion != null ? $"{d.Presentacion.Cantidad} {d.Presentacion.UnidadMedida?.Nombre}" : "-")</td>
-                    <td>@d.CantidadPresentaciones</td>
-                    <td>@d.CantidadUnidades</td>
-                    <td>@d.StockAntes</td>
-                    <td>@d.StockDespues</td>
-                    <td>@d.Nota</td>
-                </tr>
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox display-4 text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay detalles de ajuste</h5>
+                </div>
             }
-        </tbody>
-    </table>
+        </div>
+    </div>
 </div>
 
+<style>
+    .table th {
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .table td {
+        padding: 1rem 0.75rem;
+        vertical-align: middle;
+    }
+    
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+    }
+</style>
