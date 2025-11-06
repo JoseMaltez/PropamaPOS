@@ -3,142 +3,233 @@
     ViewData["Title"] = "Detalle de Venta";
 }
 
-<div class="container mt-4">
+<div class="container-fluid py-4">
     @await Html.PartialAsync("_AlertsPartial")
-    <div class="card shadow-sm">
-        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0"><i class="bi bi-receipt"></i> Factura @Model.NumeroVenta</h4>
-            <a asp-action="Index" class="btn btn-light btn-sm">
-                <i class="bi bi-arrow-left"></i> Regresar
-            </a>
+
+    <!-- Header de página -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-2 text-primary"><i class="bi bi-receipt me-2"></i>Factura @Model.NumeroVenta</h1>
+                    <p class="text-muted mb-0">Detalle completo de la venta realizada.</p>
+                </div>
+                <a asp-action="Index" class="btn btn-outline-secondary d-inline-flex align-items-center gap-2 px-3 py-2">
+                    <i class="bi bi-arrow-left fs-5"></i>
+                    <span class="fw-semibold">Volver al listado</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card principal de factura -->
+    <div class="venta-card">
+        <div class="factura-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-1 text-white"><i class="bi bi-receipt me-2"></i>Factura @Model.NumeroVenta</h4>
+                    <p class="mb-0 text-light opacity-75">Fecha: @Model.Fecha.ToString("dd/MM/yyyy HH:mm")</p>
+                </div>
+                <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                    @Model.MetodoPago
+                </span>
+            </div>
         </div>
 
-        <div class="card-body">
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <h5>Información del Cliente</h5>
-                    @if (Model.Cliente != null)
-                    {
-                        <p><strong>NIT:</strong> @Model.Cliente.NIT</p>
-                        <p><strong>Nombre:</strong> @Model.Cliente.Nombre @Model.Cliente.Apellido</p>
-                        <p><strong>Dirección:</strong> @Model.Cliente.Direccion</p>
-                    }
-                    else
-                    {
-                        <p><strong>Consumidor Final:</strong> @Model.NombreConsumidor</p>
-                    }
+        <div class="factura-body">
+            <!-- Información del cliente y general -->
+            <div class="row mb-4">
+                <div class="col-lg-6 mb-3">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0 text-primary"><i class="bi bi-person me-2"></i>Información del Cliente</h6>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.Cliente != null)
+                            {
+                                <div class="mb-2">
+                                    <strong class="text-dark">NIT:</strong>
+                                    <span class="ms-2">@Model.Cliente.NIT</span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong class="text-dark">Nombre:</strong>
+                                    <span class="ms-2">@Model.Cliente.Nombre @Model.Cliente.Apellido</span>
+                                </div>
+                                <div class="mb-0">
+                                    <strong class="text-dark">Dirección:</strong>
+                                    <span class="ms-2">@Model.Cliente.Direccion</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-3">
+                                    <i class="bi bi-person-x display-4 text-muted mb-3"></i>
+                                    <p class="text-muted mb-0"><strong>Consumidor Final:</strong> @Model.NombreConsumidor</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <h5>Información General</h5>
-                    <p><strong>Fecha:</strong> @Model.Fecha.ToString("dd/MM/yyyy HH:mm")</p>
-                    <p><strong>Método de pago:</strong> @Model.MetodoPago</p>
-                    <p><strong>Empleado:</strong> @(Model.Empleado != null ? Model.Empleado.Nombre + " " + Model.Empleado.Apellido : "No registrado")</p>
+
+                <div class="col-lg-6 mb-3">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0 text-primary"><i class="bi bi-info-circle me-2"></i>Información General</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <strong class="text-dark">Fecha:</strong>
+                                <span class="ms-2">@Model.Fecha.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                            <div class="mb-2">
+                                <strong class="text-dark">Método de pago:</strong>
+                                <span class="ms-2 badge @(Model.MetodoPago == PropamaPOS.Models.MetodoPagoVenta.Efectivo ? "badge-pago-efectivo" : "badge-pago-tarjeta")">
+                                    @Model.MetodoPago
+                                </span>
+                            </div>
+                            <div class="mb-0">
+                                <strong class="text-dark">Empleado:</strong>
+                                <span class="ms-2">@(Model.Empleado != null ? Model.Empleado.Nombre + " " + Model.Empleado.Apellido : "No registrado")</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <hr />
-            <h5>Detalle de Productos y Servicios</h5>
-            <table class="table table-bordered table-striped align-middle">
-                <thead class="table-success">
-                    <tr>
-                        <th>Producto / Servicio</th>
-                        <th>Presentación</th>
-                        <th>Cant.</th>
-                        <th>Precio (Q)</th>
-                        <th>Descuento (Q)</th>
-                        <th>Subtotal (Q)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var det in Model.Detalles)
-                    {
-                        <tr>
-                            <td>@det.Item?.Nombre</td>
-                            <td>@(det.Presentacion != null ? $"{det.Presentacion.UnidadMedida.Nombre} ({det.Presentacion.Cantidad})" : "-")</td>
-                            <td>@det.CantidadPresentaciones</td>
-                            @{
-                                var ivaRate = 0.12m;
-                                var precioConIva = Math.Round(det.PrecioVentaPorPresentacion * (1 + ivaRate), 2);
-                                var subtotalConIva = Math.Round((precioConIva * det.CantidadPresentaciones) - det.Descuento, 2);
-                            }
-                            <td>@precioConIva.ToString("F2")</td>
-                            <td>@det.Descuento.ToString("F2")</td>
-                            <td>@subtotalConIva.ToString("F2")</td>
-                        </tr>
-                    }
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <th></th>
-                        <th colspan="4" class="text-end">Subtotal (sin IVA):</th>
-                        <th>@Model.Subtotal.ToString("F2")</th>
-                    </tr>
-                    <tr>
-                        <th></th>
-                        <th colspan="4" class="text-end">Descuentos (Q):</th>
-                        <th>@Model.Descuentos.ToString("F2")</th>
-                    </tr>
-                    <tr>
-                        <th></th>
-                        <th colspan="4" class="text-end">IVA:</th>
-                        <th>@Model.IVA.ToString("F2")</th>
-                    </tr>
-                    @if (Math.Abs(Model.AjusteRedondeo) >= 0.01m)
-                    {
-                        <tr>
-                            <th></th>
-                            <th colspan="4" class="text-end">Ajuste por redondeo:</th>
-                            <th>@Model.AjusteRedondeo.ToString("F2")</th>
-                        </tr>
-                    }
-                    <tr>
-                        <th></th>
-                        <th colspan="4" class="text-end">Total (Q):</th>
-                        <th>@Model.Total.ToString("F2")</th>
-                    </tr>
+            <!-- Detalle de productos y servicios -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0 text-primary"><i class="bi bi-cart me-2"></i>Detalle de Productos y Servicios</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Producto / Servicio</th>
+                                    <th>Presentación</th>
+                                    <th class="text-center">Cant.</th>
+                                    <th class="text-end">Precio (Q)</th>
+                                    <th class="text-end">Descuento (Q)</th>
+                                    <th class="text-end pe-4">Subtotal (Q)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var det in Model.Detalles)
+                                {
+                                    <tr>
+                                        <td class="ps-4 fw-semibold text-dark">@det.Item?.Nombre</td>
+                                        <td class="text-muted">
+                                            @(det.Presentacion != null ? $"{det.Presentacion.UnidadMedida.Nombre} ({det.Presentacion.Cantidad})" : "-")
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-light text-dark border">@det.CantidadPresentaciones</span>
+                                        </td>
+                                        @{
+                                            var ivaRate = 0.12m;
+                                            var precioConIva = Math.Round(det.PrecioVentaPorPresentacion * (1 + ivaRate), 2);
+                                            var subtotalConIva = Math.Round((precioConIva * det.CantidadPresentaciones) - det.Descuento, 2);
+                                        }
+                                        <td class="text-end text-success fw-semibold">@precioConIva.ToString("F2")</td>
+                                        <td class="text-end text-danger">@det.Descuento.ToString("F2")</td>
+                                        <td class="text-end pe-4 fw-bold text-primary">@subtotalConIva.ToString("F2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <td colspan="5" class="text-end fw-semibold ps-4">Subtotal (sin IVA):</td>
+                                    <td class="text-end fw-bold pe-4">@Model.Subtotal.ToString("F2")</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5" class="text-end fw-semibold ps-4">Descuentos (Q):</td>
+                                    <td class="text-end fw-bold text-danger pe-4">@Model.Descuentos.ToString("F2")</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5" class="text-end fw-semibold ps-4">IVA:</td>
+                                    <td class="text-end fw-bold pe-4">@Model.IVA.ToString("F2")</td>
+                                </tr>
+                                @if (Math.Abs(Model.AjusteRedondeo) >= 0.01m)
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-end fw-semibold ps-4">Ajuste por redondeo:</td>
+                                        <td class="text-end fw-bold @(Model.AjusteRedondeo < 0 ? "text-danger" : "text-success") pe-4">
+                                            @Model.AjusteRedondeo.ToString("F2")
+                                        </td>
+                                    </tr>
+                                }
+                                <tr class="table-success">
+                                    <td colspan="5" class="text-end fw-bold fs-5 ps-4">Total (Q):</td>
+                                    <td class="text-end fw-bold fs-5 pe-4">@Model.Total.ToString("F2")</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
-                </tfoot>
+            <!-- Información de pagos -->
+            @if (Model.Pagos.Any())
+            {
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 text-primary"><i class="bi bi-credit-card me-2"></i>Información de Pagos</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Fecha</th>
+                                        <th>Método</th>
+                                        <th class="text-end">Monto (Q)</th>
+                                        <th class="pe-4">Nota</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var pago in Model.Pagos)
+                                    {
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="text-dark">@pago.Fecha.ToString("dd/MM/yyyy")</div>
+                                                <div class="text-muted small">@pago.Fecha.ToString("HH:mm")</div>
+                                            </td>
+                                            <td>
+                                                <span class="badge @(pago.Metodo == PropamaPOS.Models.MetodoPagoVenta.Efectivo ? "badge-pago-efectivo" : "badge-pago-tarjeta")">
+                                                    @pago.Metodo
+                                                </span>
+                                            </td>
+                                            <td class="text-end fw-semibold text-success">@pago.Monto.ToString("F2")</td>
+                                            <td class="pe-4 text-muted">@pago.Nota</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
 
-            </table>
-
-            <hr />
-            <h5>Pago</h5>
-            <table class="table table-sm table-hover">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Método</th>
-                        <th>Monto (Q)</th>
-                        <th>Nota</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var pago in Model.Pagos)
-                    {
-                        <tr>
-                            <td>@pago.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td>@pago.Metodo</td>
-                            <td>@pago.Monto.ToString("F2")</td>
-                            <td>@pago.Nota</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-
+            <!-- Botones de acción -->
             <div class="mt-4 d-flex justify-content-end gap-2">
                 <a asp-action="Index"
-                   class="btn btn-secondary d-inline-flex align-items-center gap-2 px-3 py-2 shadow-sm">
+                   class="btn btn-outline-secondary d-inline-flex align-items-center gap-2 px-4 py-2">
                     <i class="bi bi-arrow-left fs-5"></i>
                     <span class="fw-semibold">Volver al listado</span>
                 </a>
 
                 <a asp-action="DownloadPdf" asp-route-id="@Model.Id_Venta"
-                   class="btn btn-primary d-inline-flex align-items-center gap-2 px-3 py-2 shadow-sm">
+                   class="btn btn-primary d-inline-flex align-items-center gap-2 px-4 py-2 shadow-sm">
                     <i class="bi bi-download fs-5"></i>
                     <span class="fw-semibold">Descargar PDF</span>
                 </a>
             </div>
-
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
