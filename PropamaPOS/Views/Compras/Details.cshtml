@@ -1,100 +1,180 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model PropamaPOS.Models.Compra
+﻿@model PropamaPOS.Models.Compra
 @{
     ViewData["Title"] = "Detalle de Compra";
 }
 
-
-
-<div class="container mt-4">
-    <div class="card shadow-sm">
-        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0"><i class="bi bi-receipt"></i> Detalle de Compra</h4>
-            <a asp-action="Index" class="btn btn-light btn-sm">
-                <i class="bi bi-arrow-left"></i> Volver
-            </a>
-        </div>
-
-        <div class="card-body">
-            <div class="row mb-3">
-                <div class="col-md-4">
-                    <strong>Número de Compra:</strong> @Model.NumeroCompra
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-info text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-receipt fs-4 me-3"></i>
+                            <h4 class="mb-0 fw-bold">Detalle de Compra</h4>
+                        </div>
+                        <a asp-action="Index" class="btn btn-light btn-sm d-flex align-items-center">
+                            <i class="bi bi-arrow-left me-2"></i> Volver
+                        </a>
+                    </div>
                 </div>
 
-                <div class="col-md-4">
-                    <strong>Proveedor:</strong> @Model.Proveedor.Nombre
-                </div>
-                <div class="col-md-4">
-                    <strong>Fecha:</strong> @Model.Fecha.ToString("dd/MM/yyyy HH:mm")
-                </div>
-                <div class="col-md-4">
-                    <strong>Registrada por:</strong> @Model.CreadoPor
-                </div>
-                <div class="col-md-4">
-                    <strong>Estado:</strong> @Model.Estado
-                </div>
-            </div>
+                <div class="card-body p-4">
+                    <!-- Información General -->
+                    <div class="row mb-4">
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-light border-0 h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title text-muted mb-2">Número de Compra</h6>
+                                    <p class="card-text h5 text-dark fw-bold">@Model.NumeroCompra</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-light border-0 h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title text-muted mb-2">Proveedor</h6>
+                                    <p class="card-text h6 text-dark">@Model.Proveedor.Nombre</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-light border-0 h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title text-muted mb-2">Fecha</h6>
+                                    <p class="card-text h6 text-dark">@Model.Fecha.ToString("dd/MM/yyyy HH:mm")</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-light border-0 h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title text-muted mb-2">Estado</h6>
+                                    <span class="badge bg-@(Model.Estado == PropamaPOS.Models.CompraEstado.Borrador ? "secondary" :
+                                                                                    Model.Estado == PropamaPOS.Models.CompraEstado.Pendiente ? "warning" :
+                                                                                    Model.Estado == PropamaPOS.Models.CompraEstado.Cancelada ? "danger" : "success") fs-6">
+                                        @Model.Estado
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-            @if (!string.IsNullOrEmpty(Model.Nota))
-            {
-                <div class="mb-3">
-                    <strong>Nota:</strong> @Model.Nota
+                    <!-- Información Adicional -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card border-0 h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title text-muted mb-2">Registrada por</h6>
+                                    <p class="card-text h6 text-dark">@Model.CreadoPor</p>
+                                </div>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.Nota))
+                        {
+                            <div class="col-md-6">
+                                <div class="card border-0 h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-muted mb-2">Nota</h6>
+                                        <p class="card-text text-dark">@Model.Nota</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Detalles de la Compra -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-light py-3">
+                            <h5 class="mb-0 text-dark">
+                                <i class="bi bi-list-check me-2"></i>Productos de la Compra
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="border-0 ps-4">Producto</th>
+                                            <th class="border-0">Presentación</th>
+                                            <th class="border-0 text-center">Cantidad</th>
+                                            <th class="border-0 text-end">Precio Compra (Q)</th>
+                                            <th class="border-0 text-end pe-4">Subtotal (Q)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var det in Model.Detalles)
+                                        {
+                                            <tr>
+                                                <td class="ps-4">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="ms-3">
+                                                            <p class="fw-bold mb-0">@det.Item.Nombre</p>
+                                                            <p class="text-muted mb-0 small">@det.Item.Codigo</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-primary">@det.Presentacion.UnidadMedida.Nombre (@det.Presentacion.Cantidad)</span>
+                                                </td>
+                                                <td class="text-center fw-semibold">@det.CantidadPresentaciones</td>
+                                                <td class="text-end fw-semibold">@det.PrecioCostoPorPresentacion.ToString("F2")</td>
+                                                <td class="text-end fw-bold pe-4">@det.Subtotal.ToString("F2")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot class="table-light">
+                                        <tr>
+                                            <td colspan="3" class="border-0"></td>
+                                            <td class="text-end fw-bold border-0">Subtotal (sin IVA):</td>
+                                            <td class="text-end fw-bold border-0 pe-4">@Model.Subtotal.ToString("F2")</td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="3" class="border-0"></td>
+                                            <td class="text-end fw-bold border-0">IVA:</td>
+                                            <td class="text-end fw-bold border-0 pe-4">@Model.IVA.ToString("F2")</td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="3" class="border-0"></td>
+                                            <td class="text-end fw-bold border-0 h5 text-primary">Total:</td>
+                                            <td class="text-end fw-bold border-0 h5 text-primary pe-4">@Model.Total.ToString("F2")</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+                        <a asp-action="Index" class="btn btn-outline-secondary d-flex align-items-center px-4">
+                            <i class="bi bi-arrow-left me-2"></i> Volver al Listado
+                        </a>
+                        <a asp-action="DownloadPdf" asp-route-id="@Model.Id_Compra"
+                           class="btn btn-primary d-flex align-items-center px-4">
+                            <i class="bi bi-download me-2"></i> Descargar PDF
+                        </a>
+                    </div>
                 </div>
-            }
-
-            <table class="table table-striped table-sm align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Producto</th>
-                        <th>Presentación</th>
-                        <th>Cantidad</th>
-                        <th>Precio Compra (Q)</th>
-                        <th>Subtotal (Q)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var det in Model.Detalles)
-                    {
-                        <tr>
-                            <td>@det.Item.Nombre</td>
-                            <td>@det.Presentacion.UnidadMedida.Nombre (@det.Presentacion.Cantidad)</td>
-                            <td>@det.CantidadPresentaciones</td>
-                            <td>@det.PrecioCostoPorPresentacion.ToString("F2")</td>
-                            <td>@det.Subtotal.ToString("F2")</td>
-                        </tr>
-                    }
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <th colspan="4" class="text-end">Subtotal (sin IVA):</th>
-                        <th>@Model.Subtotal.ToString("F2")</th>
-                    </tr>
-                    <tr>
-                        <th colspan="4" class="text-end">IVA:</th>
-                        <th>@Model.IVA.ToString("F2")</th>
-                    </tr>
-                    <tr>
-                        <th colspan="4" class="text-end">Total (Q):</th>
-                        <th>@Model.Total.ToString("F2")</th>
-                    </tr>
-                </tfoot>
-            </table>
-            <div class="mt-4 d-flex justify-content-end gap-2">
-                <a asp-action="Index"
-                   class="btn btn-secondary d-inline-flex align-items-center gap-2 px-3 py-2 shadow-sm">
-                    <i class="bi bi-arrow-left fs-5"></i>
-                    <span class="fw-semibold">Volver al listado</span>
-                </a>
-
-                <a asp-action="DownloadPdf" asp-route-id="@Model.Id_Compra"
-                   class="btn btn-primary d-inline-flex align-items-center gap-2 px-3 py-2 shadow-sm">
-                    <i class="bi bi-download fs-5"></i>
-                    <span class="fw-semibold">Descargar PDF</span>
-                </a>
             </div>
         </div>
     </div>
 </div>
 
+<style>
+    .card {
+        border-radius: 0.75rem;
+    }
+
+    .table th {
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+    }
+</style>

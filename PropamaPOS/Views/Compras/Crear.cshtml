@@ -6,88 +6,124 @@
     var proveedores = ViewBag.Proveedores as List<PropamaPOS.Models.Proveedor> ?? new();
 }
 
-<div class="container mt-4">
+<div class="container-fluid py-4">
     @await Html.PartialAsync("_AlertsPartial")
-    <div class="card shadow-sm">
-        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0"><i class="bi bi-cart-plus"></i> Registrar Compra</h4>
-            <a asp-action="Index" class="btn btn-light btn-sm">
-                <i class="bi bi-arrow-left"></i> Volver
-            </a>
-        </div>
 
-        <div class="card-body">
-            <form asp-action="Crear" method="post" id="formCompra">
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Proveedor</label>
-                        <select asp-for="Id_Proveedor" class="form-select" required>
-                            <option value="">-- Seleccione proveedor --</option>
-                            @foreach (var p in proveedores)
-                            {
-                                <option value="@p.Id_Proveedor">@p.Nombre</option>
-                            }
-                        </select>
-                        <span asp-validation-for="Id_Proveedor" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold">Nota (opcional)</label>
-                        <input asp-for="Nota" class="form-control" />
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-cart-plus fs-4 me-3"></i>
+                            <h4 class="mb-0 fw-bold">Registrar Compra</h4>
+                        </div>
+                        <a asp-action="Index" class="btn btn-light btn-sm d-flex align-items-center">
+                            <i class="bi bi-arrow-left me-2"></i> Volver
+                        </a>
                     </div>
                 </div>
 
-                <hr />
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h5 class="mb-0">Detalles de la compra</h5>
-                    <button type="button" id="btnAgregar" class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-plus"></i> Agregar producto
-                    </button>
-                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Crear" method="post" id="formCompra">
+                        <!-- Información General -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label fw-semibold text-dark">Proveedor *</label>
+                                    <select asp-for="Id_Proveedor" class="form-select form-select-lg" required>
+                                        <option value="">-- Seleccione proveedor --</option>
+                                        @foreach (var p in proveedores)
+                                        {
+                                            <option value="@p.Id_Proveedor">@p.Nombre</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="Id_Proveedor" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label fw-semibold text-dark">Nota (opcional)</label>
+                                    <input asp-for="Nota" class="form-control form-control-lg" placeholder="Ingrese una nota si es necesario" />
+                                </div>
+                            </div>
+                        </div>
 
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle" id="tablaLineas">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Producto</th>
-                                <th>Presentación</th>
-                                <th>Cantidad</th>
-                                <th>Precio compra (Q)</th>
-                                <th>Subtotal (Q)</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+                        <hr class="my-4">
 
-                <div class="mt-3 text-end">
-                    <div>Subtotal (sin IVA): <strong id="subtotalText">Q0.00</strong></div>
-                    <div>IVA: <strong id="ivaText">Q0.00</strong></div>
-                    <div class="h5">Total (con IVA): <strong id="totalText">Q0.00</strong></div>
-                </div>
+                        <!-- Detalles de Compra -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="text-dark mb-0">
+                                <i class="bi bi-list-check me-2"></i>Detalles de la Compra
+                            </h5>
+                            <button type="button" id="btnAgregar" class="btn btn-primary d-flex align-items-center">
+                                <i class="bi bi-plus-circle me-2"></i> Agregar Producto
+                            </button>
+                        </div>
 
-                <!-- Opcional: inputs hidden para enviar los valores al servidor (pero servidor recalculará igualmente) -->
-                <input type="hidden" name="Subtotal" id="subtotalHidden" />
-                <input type="hidden" name="IVA" id="ivaHidden" />
-                <input type="hidden" name="Total" id="totalHidden" />
+                        <!-- Tabla de Productos -->
+                        <div class="table-responsive rounded-3 border">
+                            <table class="table table-hover align-middle mb-0" id="tablaLineas">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="border-0 ps-4">Producto</th>
+                                        <th class="border-0">Presentación</th>
+                                        <th class="border-0 text-center">Cantidad</th>
+                                        <th class="border-0 text-end">Precio Compra (Q)</th>
+                                        <th class="border-0 text-end">Subtotal (Q)</th>
+                                        <th class="border-0 text-center pe-4">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
 
-                <div class="mt-4 text-end">
-                    <button type="submit" class="btn btn-success px-4">
-                        <i class="bi bi-check-circle"></i> Registrar Compra
-                    </button>
+                        <!-- Resumen de Totales -->
+                        <div class="row justify-content-end mt-4">
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="text-muted">Subtotal (sin IVA):</span>
+                                            <strong id="subtotalText" class="text-dark">Q0.00</strong>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="text-muted">IVA:</span>
+                                            <strong id="ivaText" class="text-dark">Q0.00</strong>
+                                        </div>
+                                        <hr class="my-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="fw-bold text-dark">Total (con IVA):</span>
+                                            <strong id="totalText" class="h5 text-primary">Q0.00</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hidden Fields -->
+                        <input type="hidden" name="Subtotal" id="subtotalHidden" />
+                        <input type="hidden" name="IVA" id="ivaHidden" />
+                        <input type="hidden" name="Total" id="totalHidden" />
+
+                        <!-- Botón de Envío -->
+                        <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+                            <button type="submit" class="btn btn-success btn-lg px-5 d-flex align-items-center">
+                                <i class="bi bi-check-circle me-2"></i> Registrar Compra
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
 
 <style>
-    /* Permite que el cuadro de sugerencias se vea fuera del contenedor con overflow */
     .table-responsive {
         overflow: visible !important;
     }
 
-    /* Asegura que el contenedor de sugerencias se muestre sobre otros elementos */
     .sugerenciasProducto {
         position: absolute !important;
         top: 100%;
@@ -97,19 +133,43 @@
         display: none;
         background: #fff;
         border: 1px solid #ced4da;
-        border-radius: 0.25rem;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        border-radius: 0.375rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         max-height: 250px;
         overflow-y: auto;
     }
 
-        /* Opcional: resalta el hover de los resultados */
-        .sugerenciasProducto .list-group-item:hover {
-            background-color: #f1f1f1;
-            cursor: pointer;
+        .sugerenciasProducto .list-group-item {
+            border: none;
+            border-bottom: 1px solid #f1f3f4;
+            padding: 0.75rem 1rem;
+            transition: background-color 0.2s ease;
+        }
+
+            .sugerenciasProducto .list-group-item:hover {
+                background-color: #f8f9fa;
+                cursor: pointer;
+            }
+
+            .sugerenciasProducto .list-group-item:last-child {
+                border-bottom: none;
+            }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #003566;
+        box-shadow: 0 0 0 0.2rem rgba(0, 53, 102, 0.25);
+    }
+
+    .btn-primary {
+        background-color: #003566;
+        border-color: #003566;
+    }
+
+        .btn-primary:hover {
+            background-color: #001d3d;
+            border-color: #001d3d;
         }
 </style>
-
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
@@ -118,10 +178,9 @@
         const items = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Items ?? new object[] { }));
         let index = 0;
 
-                function calcularTotal() {
+        function calcularTotal() {
             const ivaRate = parseFloat('@(Configuration.GetValue<decimal?>("Tax:IVA")?.ToString(CultureInfo.InvariantCulture) ?? "0.12")') || 0.12;
 
-            // sumar filas
             let totalWithIva = 0;
             document.querySelectorAll('#tablaLineas tbody tr').forEach(tr => {
                 const cantidad = parseFloat(tr.querySelector('.cantidad').value || tr.dataset.cantidad || 0);
@@ -133,7 +192,7 @@
             const ivaTotal = +(totalWithIva - subtotalWithoutIva).toFixed(2);
             const total = +totalWithIva.toFixed(2);
 
-            // actualizar UI
+            // Actualizar UI
             document.getElementById('subtotalText').innerText = 'Q' + subtotalWithoutIva.toFixed(2);
             document.getElementById('ivaText').innerText = 'Q' + ivaTotal.toFixed(2);
             document.getElementById('totalText').innerText = 'Q' + total.toFixed(2);
@@ -143,33 +202,37 @@
             document.getElementById('totalHidden').value = total;
         }
 
-
-                function agregarFila() {
+        function agregarFila() {
             const tbody = document.querySelector("#tablaLineas tbody");
             const tr = document.createElement("tr");
+            tr.className = 'fade-in';
 
             tr.innerHTML = `
-                <td>
+                <td class="ps-4">
                     <div class="position-relative">
-                        <input type="text" class="form-control form-control-sm buscarProducto" placeholder="Buscar producto..." autocomplete="off" />
+                        <input type="text" class="form-control buscarProducto" placeholder="Buscar producto..." autocomplete="off" />
                         <input type="hidden" name="Lineas[${index}].Id_Item" class="productoIdHidden" />
-                        <div class="list-group position-absolute w-100 sugerenciasProducto" style="z-index:1050; display:none; max-height:250px; overflow:auto;"></div>
+                        <div class="list-group position-absolute w-100 sugerenciasProducto" style="display:none;"></div>
                     </div>
                 </td>
                 <td>
-                    <select name="Lineas[${index}].Id_ItemPresentacion" class="form-select form-select-sm pres-select" required>
-                        <option value="">-- Seleccione presentación --</option>
+                    <select name="Lineas[${index}].Id_ItemPresentacion" class="form-select pres-select" required>
+                        <option value="">-- Seleccione --</option>
                     </select>
                 </td>
                 <td>
-                    <input type="number" name="Lineas[${index}].CantidadPresentaciones" value="1" min="1" class="form-control form-control-sm cantidad" required />
+                    <input type="number" name="Lineas[${index}].CantidadPresentaciones" value="1" min="1"
+                           class="form-control text-center cantidad" required />
                 </td>
                 <td>
-                    <input type="number" step="0.01" name="Lineas[${index}].PrecioCostoPorPresentacion" value="0" min="0.01" class="form-control form-control-sm precio" required />
+                    <input type="number" step="0.01" name="Lineas[${index}].PrecioCostoPorPresentacion" value="0" min="0.01"
+                           class="form-control text-end precio" required />
                 </td>
-                <td class="subtotal-cell">0.00</td>
-                <td>
-                    <button type="button" class="btn btn-danger btn-sm eliminar"><i class="bi bi-trash"></i></button>
+                <td class="text-end subtotal-cell fw-semibold">0.00</td>
+                <td class="text-center pe-4">
+                    <button type="button" class="btn btn-outline-danger btn-sm eliminar">
+                        <i class="bi bi-trash"></i>
+                    </button>
                 </td>
             `;
 
@@ -177,10 +240,10 @@
             index++;
         }
 
+        // Event Listeners
         document.getElementById("btnAgregar").addEventListener("click", agregarFila);
 
-
-                // --- Texto predictivo para productos ---
+        // Búsqueda predictiva de productos
         document.addEventListener('input', function (e) {
             if (!e.target.classList.contains('buscarProducto')) return;
 
@@ -188,26 +251,33 @@
             const contenedor = input.closest('td');
             const sugBox = contenedor.querySelector('.sugerenciasProducto');
             const q = input.value.trim().toLowerCase();
-            if (!q) { sugBox.style.display = 'none'; return; }
+
+            if (!q) {
+                sugBox.style.display = 'none';
+                return;
+            }
 
             const matches = items.filter(it =>
-                (it.nombre && it.nombre.toLowerCase().includes(q)) ||
-                (it.codigo && it.codigo.toLowerCase().includes(q))
-            ).slice(0, 10);
+                (it.nombre && it.nombre.toLowerCase().includes(q))
+            ).slice(0, 8);
 
             sugBox.innerHTML = '';
-            if (matches.length === 0) { sugBox.style.display = 'none'; return; }
+            if (matches.length === 0) {
+                sugBox.style.display = 'none';
+                return;
+            }
 
             matches.forEach(m => {
                 const el = document.createElement('button');
                 el.type = 'button';
-                el.className = 'list-group-item list-group-item-action';
-                el.innerHTML = `<div><strong>${m.nombre}</strong><div class="small text-muted">${m.codigo ?? ''}</div></div>`;
+                el.className = 'list-group-item list-group-item-action text-start';
+                el.innerHTML = `
+                    <div class="fw-semibold">${m.nombre}</div>
+                `;
                 el.addEventListener('click', () => {
-                    input.value = `${m.nombre}${m.codigo ? ' • ' + m.codigo : ''}`;
+                    input.value = m.nombre;
                     contenedor.querySelector('.productoIdHidden').value = m.id_Item;
 
-                    // llenar el select de presentaciones del mismo tr
                     const row = input.closest('tr');
                     const presSelect = row.querySelector('.pres-select');
                     presSelect.innerHTML = '';
@@ -231,11 +301,12 @@
 
         // Ocultar sugerencias al hacer clic fuera
         document.addEventListener('click', e => {
-            if (!e.target.closest('.list-group') && !e.target.classList.contains('buscarProducto')) {
-                document.querySelectorAll('.list-group').forEach(l => l.style.display = 'none');
+            if (!e.target.closest('.sugerenciasProducto') && !e.target.classList.contains('buscarProducto')) {
+                document.querySelectorAll('.sugerenciasProducto').forEach(l => l.style.display = 'none');
             }
         });
 
+        // Cálculos en tiempo real
         document.querySelector("#tablaLineas tbody").addEventListener("input", function (e) {
             if (e.target.classList.contains("cantidad") || e.target.classList.contains("precio")) {
                 const row = e.target.closest("tr");
@@ -247,6 +318,7 @@
             }
         });
 
+        // Eliminar fila
         document.querySelector("#tablaLineas tbody").addEventListener("click", function (e) {
             if (e.target.closest(".eliminar")) {
                 e.target.closest("tr").remove();
@@ -254,6 +326,7 @@
             }
         });
 
+        // Validación antes de enviar
         document.getElementById("formCompra").addEventListener("submit", function (e) {
             if (document.querySelectorAll("#tablaLineas tbody tr").length === 0) {
                 e.preventDefault();
@@ -261,5 +334,9 @@
             }
         });
 
+        // Agregar primera fila automáticamente
+        document.addEventListener('DOMContentLoaded', function() {
+            agregarFila();
+        });
     </script>
 }

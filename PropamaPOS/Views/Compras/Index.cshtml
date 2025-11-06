@@ -1,206 +1,309 @@
 ﻿@model IEnumerable<PropamaPOS.Models.Compra>
 @{
-    ViewData["Title"] = "Historial de Compras";
-    string q = ViewBag.CurrentQuery as string ?? "";
-    var estado = ViewBag.CurrentEstado as PropamaPOS.Models.CompraEstado?;
-    string desde = ViewBag.Desde as string;
-    string hasta = ViewBag.Hasta as string;
-    int currentPage = ViewBag.CurrentPage ?? 1;
-    int totalPages = ViewBag.TotalPages ?? 1;
-    int totalItems = ViewBag.TotalItems ?? 0;
+    ViewData["Title"] = "Compras";
 }
 
-<div class="container mt-4">
-    @await Html.PartialAsync("_AlertsPartial")
-
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2><i class="bi bi-basket"></i> Historial de Compras</h2>
-        <a asp-action="Crear" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Nueva Compra
-        </a>
-    </div>
-
-    <!-- Filtros -->
-    <form method="get" class="card shadow-sm mb-4 p-3">
-        <div class="row g-3 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label">N° Compra</label>
-                <input type="text" name="numero" value="@ViewBag.Numero" class="form-control" placeholder="Ej: CMP-000045" />
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Proveedor</label>
-                <input type="text" name="proveedor" value="@ViewBag.Proveedor" class="form-control" placeholder="Nombre del proveedor" />
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Empleado</label>
-                <input type="text" name="empleado" value="@ViewBag.Empleado" class="form-control" placeholder="Nombre del empleado" />
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Estado</label>
-                <select name="estado" class="form-select">
-                    <option value="">Todos</option>
-                    @foreach (var e in Enum.GetValues(typeof(PropamaPOS.Models.CompraEstado)))
-                    {
-                        <option value="@((int)e)" selected="@(ViewBag.CurrentEstado != null && ViewBag.CurrentEstado == (PropamaPOS.Models.CompraEstado)e)">
-                            @e
-                        </option>
-                    }
-                </select>
-            </div>
-        </div>
-
-        <div class="row g-3 align-items-end mt-2">
-            <div class="col-md-3">
-                <label class="form-label">Desde</label>
-                <input type="date" name="desde" value="@ViewBag.Desde" class="form-control" />
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Hasta</label>
-                <input type="date" name="hasta" value="@ViewBag.Hasta" class="form-control" />
-            </div>
-            <div class="col-md-3 d-flex gap-2 mt-2">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="bi bi-search"></i> Buscar
-                </button>
-                <a asp-action="Index" class="btn btn-outline-secondary w-100">
-                    <i class="bi bi-x-circle"></i> Limpiar
-                </a>
-            </div>
-        </div>
-    </form>
-
-    <!-- Tabla -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-list"></i> Resultados</h5>
-            <small>Total: @totalItems registros</small>
-        </div>
-
-        <div class="card-body">
-            @if (!Model.Any())
-            {
-                <div class="text-center py-4 text-muted">
-                    <i class="bi bi-basket display-1 text-muted"></i>
-                    <h5>No se encontraron compras con los filtros aplicados.</h5>
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-cart-check fs-4 me-3"></i>
+                            <h4 class="mb-0 fw-bold">Historial de Compras</h4>
+                        </div>
+                        <a asp-action="Crear" class="btn btn-light d-flex align-items-center">
+                            <i class="bi bi-plus-circle me-2"></i> Nueva Compra
+                        </a>
+                    </div>
                 </div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Número</th>
-                                <th>Fecha</th>
-                                <th>Proveedor</th>
-                                <th>Empleado</th>
-                                <th>Líneas</th>
-                                <th>Total</th>
-                                <th>Estado</th>
-                                <th class="text-center">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var c in Model)
-                            {
+                @await Html.PartialAsync("_AlertsPartial")
+                <div class="card-body p-4">
+                    <!-- Filtros -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label fw-semibold text-dark">Estado</label>
+                                <select id="filtroEstado" class="form-select">
+                                    <option value="">Todos los estados</option>
+                                    <option value="Borrador">Borrador</option>
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="Completada">Completada</option>
+                                    <option value="Cancelada">Cancelada</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label fw-semibold text-dark">Fecha Desde</label>
+                                <input type="date" id="filtroFechaDesde" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label fw-semibold text-dark">Fecha Hasta</label>
+                                <input type="date" id="filtroFechaHasta" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label fw-semibold text-dark">Proveedor</label>
+                                <input type="text" id="filtroProveedor" class="form-control" placeholder="Buscar proveedor..." />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Compras -->
+                    <div class="table-responsive rounded-3 border">
+                        <table class="table table-hover align-middle mb-0" id="tablaCompras">
+                            <thead class="table-light">
                                 <tr>
-                                    <td>@c.NumeroCompra</td>
-                                    <td>@c.Fecha.ToString("g")</td>
-                                    <td>@(c.Proveedor?.Nombre ?? "-")</td>
-                                    <td>@(c.Empleado?.Nombre + " " + c.Empleado.Apellido ?? c.CreadoPor ?? "-")</td>
-                                    <td>@(c.Detalles?.Count ?? 0)</td>
-                                    <td class="fw-bold">Q@(c.Total.ToString("F2"))</td>
-                                    <td>
-                                        <span class="badge bg-@(
-                                              c.Estado == PropamaPOS.Models.CompraEstado.Borrador ? "secondary" :
-                                              c.Estado == PropamaPOS.Models.CompraEstado.Pendiente ? "info" :
-                                              c.Estado == PropamaPOS.Models.CompraEstado.Cancelada ? "danger" : "success")">
-                                    @c.Estado
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <div class="btn-group">
-                                    @if (c.Estado == PropamaPOS.Models.CompraEstado.Borrador)
-                                            {
-                                                <a asp-action="Editar" asp-route-id="@c.Id_Compra" class="btn btn-sm btn-outline-primary">
-                                                    <i class="bi bi-pencil"></i>
-                                                </a>
-                                                <form asp-action="MarcarPendiente" method="post" class="d-inline">
-                                                    <input type="hidden" name="id" value="@c.Id_Compra" />
-                                                    <button type="submit" class="btn btn-sm btn-outline-info">
-                                                        <i class="bi bi-send"></i>
-                                                    </button>
-                                                </form>
-                                                <form asp-action="Cancelar" method="post" class="d-inline ms-1">
-                                                    <input type="hidden" name="id" value="@c.Id_Compra" />
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                        <i class="bi bi-x-circle"></i>
-                                                    </button>
-                                                </form>
-                                            }
-                                            else if (c.Estado == PropamaPOS.Models.CompraEstado.Pendiente)
-                                            {
-                                                <a asp-action="Details" asp-route-id="@c.Id_Compra" class="btn btn-sm btn-outline-secondary">
-                                                    <i class="bi bi-eye"></i>
-                                                </a>
-                                                <form asp-action="MarcarRecibida" method="post" class="d-inline">
-                                                    <input type="hidden" name="id" value="@c.Id_Compra" />
-                                                    <button type="submit" class="btn btn-sm btn-outline-success">
-                                                        <i class="bi bi-box-seam"></i>
-                                                    </button>
-                                                </form>
-                                                <form asp-action="Cancelar" method="post" class="d-inline ms-1">
-                                                    <input type="hidden" name="id" value="@c.Id_Compra" />
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                        <i class="bi bi-x-circle"></i>
-                                                    </button>
-                                                </form>
-                                            }
-                                            else
-                                            {
-                                                <a asp-action="Details" asp-route-id="@c.Id_Compra" class="btn btn-sm btn-outline-secondary">
-                                                    <i class="bi bi-eye"></i>
-                                                </a>
-                                            }
-                                        </div>
-                                    </td>
+                                    <th class="border-0 ps-4">Número</th>
+                                    <th class="border-0">Proveedor</th>
+                                    <th class="border-0 text-center">Fecha</th>
+                                    <th class="border-0 text-end">Total (Q)</th>
+                                    <th class="border-0 text-center">Estado</th>
+                                    <th class="border-0 text-center pe-4">Acciones</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
-
-                </div>
-
-                <!-- Paginación -->
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                    <small>Mostrando página @currentPage de @totalPages — Total: @totalItems</small>
-                    <nav>
-                        <ul class="pagination pagination-sm mb-0">
-                            @if (currentPage > 1)
-                            {
-                                <li class="page-item">
-                                    <a class="page-link" href="?page=@(currentPage - 1)&q=@q&estado=@estado&desde=@desde&hasta=@hasta">Anterior</a>
-                                </li>
-                            }
-                            @for (int i = 1; i <= totalPages; i++)
-                            {
-                                if (i >= currentPage - 2 && i <= currentPage + 2)
+                            </thead>
+                            <tbody>
+                                @foreach (var compra in Model)
                                 {
-                                    <li class="page-item @(i == currentPage ? "active" : "")">
-                                        <a class="page-link" href="?page=@i&q=@q&estado=@estado&desde=@desde&hasta=@hasta">@i</a>
-                                    </li>
+                                    <tr class="compra-row">
+                                        <td class="ps-4">
+                                            <div class="fw-bold text-primary">@compra.NumeroCompra</div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="ms-2">
+                                                    <p class="fw-semibold mb-0">@compra.Proveedor.Nombre</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="text-muted">@compra.Fecha.ToString("dd/MM/yyyy HH:mm")</span>
+                                        </td>
+                                        <td class="text-end fw-bold text-success">@compra.Total.ToString("F2")</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-@(compra.Estado == PropamaPOS.Models.CompraEstado.Borrador ? "secondary" :
+                                                                                                    compra.Estado == PropamaPOS.Models.CompraEstado.Pendiente ? "warning" :
+                                                                                                    compra.Estado == PropamaPOS.Models.CompraEstado.Cancelada ? "danger" : "success")">
+                                            @compra.Estado
+                                        </span>
+                                    </td>
+                                    <td class="text-center pe-4">
+                                        <div class="d-flex justify-content-center gap-1 acciones-compras">
+                                            @if (compra.Estado == PropamaPOS.Models.CompraEstado.Borrador)
+                                                {
+                                                    <a asp-action="Editar" asp-route-id="@compra.Id_Compra"
+                                                       class="btn btn-outline-primary btn-sm btn-accion"
+                                                       data-bs-toggle="tooltip" title="Editar">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                    <form asp-action="MarcarPendiente" method="post" class="d-inline">
+                                                        <input type="hidden" name="id" value="@compra.Id_Compra" />
+                                                        <button type="submit" class="btn btn-outline-info btn-sm btn-accion"
+                                                                data-bs-toggle="tooltip" title="Marcar como Pendiente">
+                                                            <i class="bi bi-send"></i>
+                                                        </button>
+                                                    </form>
+                                                    <form asp-action="Cancelar" method="post" class="d-inline">
+                                                        <input type="hidden" name="id" value="@compra.Id_Compra" />
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm btn-accion"
+                                                                data-bs-toggle="tooltip" title="Cancelar Compra">
+                                                            <i class="bi bi-x-circle"></i>
+                                                        </button>
+                                                    </form>
+                                                }
+                                                else if (compra.Estado == PropamaPOS.Models.CompraEstado.Pendiente)
+                                                {
+                                                    <a asp-action="Details" asp-route-id="@compra.Id_Compra"
+                                                       class="btn btn-outline-secondary btn-sm btn-accion"
+                                                       data-bs-toggle="tooltip" title="Ver Detalles">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    <form asp-action="MarcarRecibida" method="post" class="d-inline">
+                                                        <input type="hidden" name="id" value="@compra.Id_Compra" />
+                                                        <button type="submit" class="btn btn-outline-success btn-sm btn-accion"
+                                                                data-bs-toggle="tooltip" title="Marcar como Recibida">
+                                                            <i class="bi bi-box-seam"></i>
+                                                        </button>
+                                                    </form>
+                                                    <form asp-action="Cancelar" method="post" class="d-inline">
+                                                        <input type="hidden" name="id" value="@compra.Id_Compra" />
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm btn-accion"
+                                                                data-bs-toggle="tooltip" title="Cancelar Compra">
+                                                            <i class="bi bi-x-circle"></i>
+                                                        </button>
+                                                    </form>
+                                                }
+                                                else
+                                                {
+                                                    <a asp-action="Details" asp-route-id="@compra.Id_Compra"
+                                                       class="btn btn-outline-secondary btn-sm btn-accion"
+                                                       data-bs-toggle="tooltip" title="Ver Detalles">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
                                 }
-                            }
-                            @if (currentPage < totalPages)
-                            {
-                                <li class="page-item">
-                                    <a class="page-link" href="?page=@(currentPage + 1)&q=@q&estado=@estado&desde=@desde&hasta=@hasta">Siguiente</a>
-                                </li>
-                            }
-                        </ul>
-                    </nav>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Mensaje cuando no hay resultados -->
+                    <div id="noResults" class="text-center py-5 d-none">
+                        <i class="bi bi-search display-4 text-muted mb-3"></i>
+                        <h5 class="text-muted">No se encontraron compras</h5>
+                        <p class="text-muted">Intenta ajustar los filtros de búsqueda</p>
+                    </div>
                 </div>
-            }
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    .table th {
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    /* Contenedor de acciones - tamaño fijo */
+    .acciones-compras {
+        min-width: 140px;
+        justify-content: center;
+        flex-wrap: nowrap;
+        gap: 0.25rem;
+    }
+
+    /* Botones de acción - tamaño fijo */
+    .btn-accion {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.375rem;
+        flex-shrink: 0;
+    }
+
+    .compra-row:hover {
+        background-color: #f8f9fa;
+    }
+
+    /* Forms dentro de acciones */
+    .acciones-compras form {
+        display: inline;
+        margin: 0;
+    }
+
+    /* Responsive para botones en móvil */
+    @@media (max-width: 768px) {
+        .acciones-compras {
+            min-width: auto;
+            flex-direction: column;
+            gap: 0.125rem;
+        }
+
+        .btn-accion {
+            width: 28px;
+            height: 28px;
+            font-size: 0.7rem;
+        }
+    }
+
+    /* Para una sola acción, mantener el mismo tamaño */
+    .acciones-compras:has(.btn-accion:only-child) {
+        min-width: 32px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            const filtroEstado = document.getElementById('filtroEstado');
+            const filtroFechaDesde = document.getElementById('filtroFechaDesde');
+            const filtroFechaHasta = document.getElementById('filtroFechaHasta');
+            const filtroProveedor = document.getElementById('filtroProveedor');
+            const tablaCompras = document.getElementById('tablaCompras');
+            const noResults = document.getElementById('noResults');
+            const compraRows = document.querySelectorAll('.compra-row');
+
+            function aplicarFiltros() {
+                let visibleCount = 0;
+                const estadoFiltro = filtroEstado.value.toLowerCase();
+                const fechaDesde = filtroFechaDesde.value ? new Date(filtroFechaDesde.value) : null;
+                const fechaHasta = filtroFechaHasta.value ? new Date(filtroFechaHasta.value) : null;
+                const proveedorFiltro = filtroProveedor.value.toLowerCase();
+
+                compraRows.forEach(row => {
+                    const estado = row.querySelector('.badge').textContent.toLowerCase();
+                    const fechaText = row.cells[2].textContent.trim();
+                    const fecha = new Date(fechaText.split(' ')[0].split('/').reverse().join('-') + ' ' + fechaText.split(' ')[1]);
+                    const proveedor = row.cells[1].textContent.toLowerCase();
+
+                    let mostrar = true;
+
+                    if (estadoFiltro && !estado.includes(estadoFiltro)) {
+                        mostrar = false;
+                    }
+
+                    if (fechaDesde && fecha < fechaDesde) {
+                        mostrar = false;
+                    }
+
+                    if (fechaHasta && fecha > fechaHasta) {
+                        mostrar = false;
+                    }
+
+                    if (proveedorFiltro && !proveedor.includes(proveedorFiltro)) {
+                        mostrar = false;
+                    }
+
+                    row.style.display = mostrar ? '' : 'none';
+                    if (mostrar) visibleCount++;
+                });
+
+                if (visibleCount === 0) {
+                    tablaCompras.style.display = 'none';
+                    noResults.classList.remove('d-none');
+                } else {
+                    tablaCompras.style.display = '';
+                    noResults.classList.add('d-none');
+                }
+            }
+
+            // Confirmación para acciones destructivas
+            document.querySelectorAll('form[asp-action="Cancelar"]').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    if (!confirm('¿Está seguro de que desea cancelar esta compra? Esta acción no se puede deshacer.')) {
+                        e.preventDefault();
+                    }
+                });
+            });
+
+            filtroEstado.addEventListener('change', aplicarFiltros);
+            filtroFechaDesde.addEventListener('change', aplicarFiltros);
+            filtroFechaHasta.addEventListener('change', aplicarFiltros);
+            filtroProveedor.addEventListener('input', aplicarFiltros);
+        });
+    </script>
+}
