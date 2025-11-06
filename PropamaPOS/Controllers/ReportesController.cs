@@ -700,7 +700,7 @@ namespace PropamaPOS.Controllers
                                 var pres = i.Presentaciones?.FirstOrDefault();
                                 var precio = pres?.PrecioVenta ?? 0m;
 
-                                var valorInv = Math.Round(i.Stock * costo, 2);
+                                var valorInv = Math.Round(i.Stock * precio, 2);
                                 var utilidadPot = Math.Round((precio - costo) * i.Stock, 2);
 
                                 totalValorInv += valorInv;

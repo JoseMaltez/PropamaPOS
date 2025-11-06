@@ -116,7 +116,7 @@
                                 var costo = i.CostoPromedioUnidad;
                                 var pres = i.Presentaciones?.FirstOrDefault();
                                 var precioRef = pres?.PrecioVenta ?? 0m;
-                                var valorInv = Math.Round(i.Stock * costo, 2);
+                                var valorInv = Math.Round(i.Stock * precioRef, 2);
                                 var utilidadPot = Math.Round((precioRef - costo) * i.Stock, 2);
                                 bool bajoStock = i.Stock <= (i.StockMinimo ?? 0);
 
