@@ -1,54 +1,81 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model PropamaPOS.Models.ViewModels.ProveedorViewModel
+﻿@model PropamaPOS.Models.ViewModels.ProveedorViewModel
 
 @{
     ViewData["Title"] = "Crear Proveedor";
 }
 
-<div class="container mt-4">
+<div class="container-fluid mt-4 proveedor-fade-in">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h3 class="card-title text-center mb-4">Crear Nuevo Proveedor</h3>
+        <div class="col-xl-8 col-lg-10">
+            <!-- Header -->
+            <div class="proveedor-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="proveedor-title">
+                            <i class="bi bi-plus-circle me-3"></i>Crear Nuevo Proveedor
+                        </h1>
+                        <p class="proveedor-subtitle mb-0">
+                            Completa la información para registrar un nuevo proveedor en el sistema
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <a asp-action="Index" class="btn btn-outline-light">
+                            <i class="bi bi-arrow-left me-2"></i>Volver al Listado
+                        </a>
+                    </div>
+                </div>
+            </div>
 
-                    <form asp-action="Crear" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <!-- Formulario -->
+            <div class="proveedor-card">
+                <div class="card-body">
+                    <form asp-action="Crear" method="post" class="proveedor-form">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="Nombre" class="form-label"></label>
-                                <input asp-for="Nombre" class="form-control" placeholder="Ingrese el nombre del proveedor" />
-                                <span asp-validation-for="Nombre" class="text-danger"></span>
+                                <label asp-for="Nombre" class="form-label">
+                                    <i class="bi bi-building me-1"></i>Nombre del Proveedor *
+                                </label>
+                                <input asp-for="Nombre" class="form-control"
+                                       placeholder="Ingrese el nombre completo del proveedor" />
+                                <span asp-validation-for="Nombre" class="text-danger small"></span>
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label asp-for="Telefono" class="form-label"></label>
-                                <input asp-for="Telefono" type="number" class="form-control" placeholder="Ingrese el teléfono" />
-                                <span asp-validation-for="Telefono" class="text-danger"></span>
+                                <label asp-for="Telefono" class="form-label">
+                                    <i class="bi bi-telephone me-1"></i>Teléfono
+                                </label>
+                                <input asp-for="Telefono" type="tel" class="form-control"
+                                       placeholder="Ingrese el número de teléfono" />
+                                <span asp-validation-for="Telefono" class="text-danger small"></span>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="Correo" class="form-label"></label>
-                            <input asp-for="Correo" type="email" class="form-control" placeholder="ejemplo@correo.com" />
-                            <span asp-validation-for="Correo" class="text-danger"></span>
+                            <label asp-for="Correo" class="form-label">
+                                <i class="bi bi-envelope me-1"></i>Correo Electrónico
+                            </label>
+                            <input asp-for="Correo" type="email" class="form-control"
+                                   placeholder="ejemplo@correo.com" />
+                            <span asp-validation-for="Correo" class="text-danger small"></span>
                         </div>
 
-                        <div class="mb-3">
-                            <label asp-for="Direccion" class="form-label"></label>
-                            <textarea asp-for="Direccion" class="form-control" rows="3" placeholder="Ingrese la dirección completa"></textarea>
-                            <span asp-validation-for="Direccion" class="text-danger"></span>
+                        <div class="mb-4">
+                            <label asp-for="Direccion" class="form-label">
+                                <i class="bi bi-geo-alt me-1"></i>Dirección
+                            </label>
+                            <textarea asp-for="Direccion" class="form-control" rows="4"
+                                      placeholder="Ingrese la dirección completa del proveedor..."></textarea>
+                            <span asp-validation-for="Direccion" class="text-danger small"></span>
                         </div>
 
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                            <a asp-action="Index" class="btn btn-secondary me-md-2">
-                                <i class="bi bi-arrow-left"></i> Cancelar
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Cancelar
                             </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-circle"></i> Crear Proveedor
+                            <button type="submit" class="btn btn-primary btn-lg px-4">
+                                <i class="bi bi-check-circle me-2"></i>Crear Proveedor
                             </button>
                         </div>
                     </form>

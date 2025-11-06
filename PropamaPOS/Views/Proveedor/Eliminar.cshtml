@@ -1,70 +1,133 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model PropamaPOS.Models.Proveedor
+﻿@model PropamaPOS.Models.Proveedor
 
 @{
     ViewData["Title"] = "Eliminar Proveedor";
 }
 
-<div class="container mt-4">
+<div class="container-fluid mt-4 proveedor-fade-in">
     <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
+        <div class="col-xl-6 col-lg-8">
+            <!-- Header -->
+            <div class="proveedor-header bg-danger">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="proveedor-title">
+                            <i class="bi bi-exclamation-triangle-fill me-3"></i>Eliminar Proveedor
+                        </h1>
+                        <p class="proveedor-subtitle mb-0">
+                            Confirmación requerida para eliminar proveedor
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <a asp-action="Index" class="btn btn-outline-light">
+                            <i class="bi bi-arrow-left me-2"></i>Volver al Listado
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confirmación -->
+            <div class="proveedor-card border-danger">
                 <div class="card-body">
-                    <h3 class="card-title text-center mb-4 text-danger">
-                        <i class="bi bi-exclamation-triangle-fill"></i> Eliminar Proveedor
-                    </h3>
+                    <div class="proveedor-delete-confirmation">
+                        <i class="bi bi-exclamation-triangle-fill proveedor-delete-confirmation-icon text-danger"></i>
 
-                    <div class="alert alert-danger" role="alert">
-                        <h5 class="alert-heading">¿Estás seguro de que quieres eliminar este proveedor?</h5>
-                        <p class="mb-0">Esta acción no se puede deshacer. Se eliminarán todos los datos asociados al proveedor.</p>
-                    </div>
-
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <h6 class="card-subtitle mb-2 text-muted">Información del Proveedor</h6>
-                            <dl class="row">
-                                <dt class="col-sm-4">ID:</dt>
-                                <dd class="col-sm-8">@Model.Id_Proveedor</dd>
-
-                                <dt class="col-sm-4">Nombre:</dt>
-                                <dd class="col-sm-8">@Model.Nombre</dd>
-
-                                <dt class="col-sm-4">Correo:</dt>
-                                <dd class="col-sm-8">@Model.Correo</dd>
-
-                                <dt class="col-sm-4">Teléfono:</dt>
-                                <dd class="col-sm-8">@Model.Telefono</dd>
-
-                                <dt class="col-sm-4">Dirección:</dt>
-                                <dd class="col-sm-8">@Model.Direccion</dd>
-
-                                <dt class="col-sm-4">Estado:</dt>
-                                <dd class="col-sm-8">
-                                    <span class="badge bg-@(Model.Activo ? "success" : "danger")">
-                                        @(Model.Activo ? "Activo" : "Inactivo")
-                                    </span>
-                                </dd>
-                            </dl>
+                        <div class="alert alert-danger border-0 bg-light-danger" role="alert">
+                            <h5 class="alert-heading text-danger mb-3">
+                                <i class="bi bi-shield-exclamation me-2"></i>Confirmar Eliminación
+                            </h5>
+                            <p class="mb-2">
+                                <strong>¿Estás seguro de que quieres eliminar este proveedor?</strong>
+                            </p>
+                            <p class="mb-0">
+                                Esta acción no se puede deshacer. Se eliminarán todos los datos asociados al proveedor
+                                y podría afectar a compras relacionadas.
+                            </p>
                         </div>
-                    </div>
 
-                    <form asp-action="Eliminar" method="post">
-                        <input type="hidden" asp-for="Id_Proveedor" />
-
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a asp-action="Index" class="btn btn-secondary me-md-2">
-                                <i class="bi bi-arrow-left"></i> Cancelar
-                            </a>
-                            <button type="submit" class="btn btn-danger"
-                                    onclick="return confirm('¿Estás seguro de que quieres eliminar este proveedor? Esta acción no se puede deshacer.')">
-                                <i class="bi bi-trash"></i> Eliminar Definitivamente
-                            </button>
+                        <div class="proveedor-delete-confirmation-details">
+                            <h6 class="fw-semibold mb-3 text-primary">
+                                <i class="bi bi-info-circle me-2"></i>Información del Proveedor
+                            </h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <strong class="text-muted">ID:</strong>
+                                    <div class="fw-semibold">#@Model.Id_Proveedor</div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <strong class="text-muted">Estado:</strong>
+                                    <div>
+                                        <span class="badge @(Model.Activo ? "badge-activo" : "badge-inactivo") estado-badge">
+                                            @(Model.Activo ? "Activo" : "Inactivo")
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-12 mb-2">
+                                    <strong class="text-muted">Nombre:</strong>
+                                    <div class="fw-semibold">@Model.Nombre</div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <strong class="text-muted">Correo:</strong>
+                                    <div>@(string.IsNullOrEmpty(Model.Correo) ? "No especificado" : Model.Correo)</div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <strong class="text-muted">Teléfono:</strong>
+                                    <div>@(string.IsNullOrEmpty(Model.Telefono) ? "No especificado" : Model.Telefono)</div>
+                                </div>
+                                <div class="col-12 mb-2">
+                                    <strong class="text-muted">Dirección:</strong>
+                                    <div>@(string.IsNullOrEmpty(Model.Direccion) ? "No especificada" : Model.Direccion)</div>
+                                </div>
+                            </div>
                         </div>
-                    </form>
+
+                        <form asp-action="Eliminar" method="post" id="deleteForm">
+                            <input type="hidden" asp-for="Id_Proveedor" />
+
+                            <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                                <a asp-action="Index" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left me-2"></i>Cancelar
+                                </a>
+                                <button type="button" class="btn btn-danger btn-lg px-4"
+                                        onclick="confirmDelete()">
+                                    <i class="bi bi-trash me-2"></i>Eliminar Definitivamente
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        function confirmDelete() {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "¡Esta acción no se puede deshacer! Se eliminará permanentemente el proveedor: @Model.Nombre",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('deleteForm').submit();
+                }
+            });
+        }
+
+        // Fallback si no existe SweetAlert
+        if (typeof Swal === 'undefined') {
+            window.confirmDelete = function() {
+                if (confirm('¿Estás seguro de que quieres eliminar este proveedor? Esta acción no se puede deshacer.')) {
+                    document.getElementById('deleteForm').submit();
+                }
+            };
+        }
+    </script>
+}
