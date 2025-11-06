@@ -22,10 +22,10 @@ namespace PropamaPOS.Controllers
         // GET: Admin/Dashboard
         public async Task<IActionResult> Dashboard()
         {
-            var totalEmpleados = await _context.Empleados.CountAsync();
+            var totalEmpleados = await _context.Empleados.Where(e => e.Activo).CountAsync();
             var totalProveedores = await _context.Proveedores.Where(p => p.Activo).CountAsync();
-            var totalClientes = await _context.Clientes.CountAsync();
-            var totalItems = await _context.Items.CountAsync();
+            var totalClientes = await _context.Clientes.Where(c => c.Activo).CountAsync();
+            var totalItems = await _context.Items.Where(i => i.Activo).CountAsync();
             var comprasPendientes = await _context.Compras.CountAsync(c => c.Estado == CompraEstado.Pendiente);
             var ventasHoy = await _context.Ventas.CountAsync(v => v.Fecha.Date == DateTime.Now.Date);
 

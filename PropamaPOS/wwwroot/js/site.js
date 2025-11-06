@@ -712,3 +712,71 @@ window.CategoryUtils = {
     initializeCategoryComponents,
     validateCategoryField
 };
+
+
+
+
+// Agregar al final del FILE: PropamaPOS/wwwroot/js/site.js
+
+// ===== FUNCIONALIDADES ESPECÍFICAS PARA DASHBOARD EMPLEADO =====
+
+function initializeDashboardComponents() {
+    // Animación de entrada para las cards
+    const dashboardCards = document.querySelectorAll('.dashboard-card');
+    dashboardCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+
+    // Tooltips para elementos del dashboard
+    const dashboardTooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    if (dashboardTooltips.length > 0 && typeof bootstrap !== 'undefined') {
+        [...dashboardTooltips].map(el => new bootstrap.Tooltip(el));
+    }
+
+    // Actualización automática del reloj
+    updateLiveClock();
+
+    // Efectos hover mejorados para botones de acción rápida
+    const quickActionButtons = document.querySelectorAll('.btn[asp-controller]');
+    quickActionButtons.forEach(btn => {
+        btn.addEventListener('mouseenter', function () {
+            this.style.transform = 'translateY(-2px)';
+        });
+
+        btn.addEventListener('mouseleave', function () {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+}
+
+function updateLiveClock() {
+    const clockElement = document.getElementById('liveClock');
+    if (clockElement) {
+        setInterval(() => {
+            const now = new Date();
+            clockElement.textContent = now.toLocaleTimeString('es-GT', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }, 1000);
+    }
+}
+
+// Inicializar componentes del dashboard cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function () {
+    initializeDashboardComponents();
+});
+
+// Exportar funciones para uso global
+window.DashboardUtils = {
+    initializeDashboardComponents,
+    updateLiveClock
+};
