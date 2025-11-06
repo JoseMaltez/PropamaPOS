@@ -599,3 +599,116 @@ window.PropamaPOS = {
     initializeFormValidation,
     toggleEmptyState
 };
+
+
+
+
+
+
+
+
+// ===== FUNCIONALIDADES ESPECÍFICAS PARA CATEGORÍAS =====
+
+// Inicialización de componentes de categoría
+function initializeCategoryComponents() {
+    // Tooltips para acciones
+    const categoryTooltips = document.querySelectorAll('.btn-category-action[data-bs-toggle="tooltip"]');
+    if (categoryTooltips.length > 0 && typeof bootstrap !== 'undefined') {
+        [...categoryTooltips].map(el => new bootstrap.Tooltip(el));
+    }
+
+    // Confirmación mejorada para eliminaciones
+    const deleteButtons = document.querySelectorAll('.btn-category-delete');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function (e) {
+            const categoryName = this.closest('tr').querySelector('.fw-semibold').textContent;
+            if (!confirm(`¿Estás seguro de que quieres eliminar la categoría "${categoryName.trim()}"? Esta acción no se puede deshacer.`)) {
+                e.preventDefault();
+            }
+        });
+    });
+
+    // Mejoras para formularios de categoría
+    const categoryForms = document.querySelectorAll('.category-form');
+    categoryForms.forEach(form => {
+        // Validación en tiempo real
+        const inputs = form.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('blur', function () {
+                validateCategoryField(this);
+            });
+
+            input.addEventListener('input', function () {
+                clearFieldValidation(this);
+            });
+        });
+
+        // Submit con loading state
+        form.addEventListener('submit', function (e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn && this.checkValidity()) {
+                setButtonLoading(submitBtn, true);
+            }
+        });
+    });
+}
+
+// Validación de campos de categoría
+function validateCategoryField(field) {
+    const value = field.value.trim();
+    const formGroup = field.closest('.mb-3');
+
+    // Limpiar estados previos
+    clearFieldValidation(field);
+
+    // Validar campo requerido
+    if (field.hasAttribute('required') && !value) {
+        showFieldError(field, 'Este campo es requerido');
+        return false;
+    }
+
+    // Validar longitud mínima para nombre
+    if (field.name === 'Nombre' && value.length < 2) {
+        showFieldError(field, 'El nombre debe tener al menos 2 caracteres');
+        return false;
+    }
+
+    return true;
+}
+
+// Mostrar error en campo
+function showFieldError(field, message) {
+    const formGroup = field.closest('.mb-3');
+    field.classList.add('is-invalid');
+
+    let errorElement = formGroup.querySelector('.field-error');
+    if (!errorElement) {
+        errorElement = document.createElement('div');
+        errorElement.className = 'field-error text-danger small mt-1';
+        formGroup.appendChild(errorElement);
+    }
+    errorElement.textContent = message;
+}
+
+// Limpiar validación de campo
+function clearFieldValidation(field) {
+    field.classList.remove('is-invalid');
+    field.classList.remove('is-valid');
+
+    const formGroup = field.closest('.mb-3');
+    const errorElement = formGroup.querySelector('.field-error');
+    if (errorElement) {
+        errorElement.remove();
+    }
+}
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function () {
+    initializeCategoryComponents();
+});
+
+// Exportar funciones para uso global
+window.CategoryUtils = {
+    initializeCategoryComponents,
+    validateCategoryField
+};

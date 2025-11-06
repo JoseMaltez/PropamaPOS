@@ -1,25 +1,82 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model PropamaPOS.Models.Categoria
+﻿@model PropamaPOS.Models.Categoria
 @{
     ViewData["Title"] = "Crear Categoría";
 }
 
-<div class="container mt-4">
-    <h2>Crear Categoría</h2>
-    <form asp-action="Crear" method="post">
-        <div class="mb-3">
-            <label asp-for="Nombre" class="form-label"></label>
-            <input asp-for="Nombre" class="form-control" />
-            <span asp-validation-for="Nombre" class="text-danger"></span>
+<div class="container-fluid py-4 category-fade-in">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="Index">Categorías</a></li>
+                    <li class="breadcrumb-item active">Crear</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0 text-primary">
+                <i class="bi bi-plus-circle me-2"></i>Crear Categoría
+            </h1>
         </div>
-        <div class="mb-3">
-            <label asp-for="Descripcion" class="form-label"></label>
-            <textarea asp-for="Descripcion" class="form-control"></textarea>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+
+    @await Html.PartialAsync("_AlertsPartial")
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="category-card">
+                <div class="card-header">
+                    <h5 class="mb-0 text-white">
+                        <i class="bi bi-info-circle me-2"></i>Información de la Categoría
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Crear" method="post" class="category-form">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label asp-for="Nombre" class="form-label">Nombre de la Categoría *</label>
+                                <input asp-for="Nombre" class="form-control"
+                                       placeholder="Ingresa el nombre de la categoría" />
+                                <span asp-validation-for="Nombre" class="text-danger small mt-1"></span>
+                                <div class="form-text">El nombre debe ser único y descriptivo.</div>
+                            </div>
+
+                            <div class="col-md-12 mb-4">
+                                <label asp-for="Descripcion" class="form-label">Descripción</label>
+                                <textarea asp-for="Descripcion" class="form-control"
+                                          rows="4"
+                                          placeholder="Describe brevemente esta categoría (opcional)"></textarea>
+                                <span asp-validation-for="Descripcion" class="text-danger small mt-1"></span>
+                                <div class="form-text">Proporciona información adicional sobre esta categoría.</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>Guardar Categoría
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-        <button type="submit" class="btn btn-primary">Guardar</button>
-        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
-    </form>
+    </div>
 </div>
 
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Focus en el primer campo
+            document.querySelector('input[name="Nombre"]').focus();
+        });
+    </script>
+}

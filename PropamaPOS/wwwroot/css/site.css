@@ -1414,3 +1414,320 @@ img, video, iframe, table, canvas {
     display: inline-block;
     min-width: 60px;
 }
+
+
+
+
+/* ===== VISTAS DE CATEGORÍA MEJORADAS ===== */
+
+/* Cards de categoría mejoradas */
+.category-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    background: white;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+    .category-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    .category-card .card-header {
+        background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+        color: white;
+        border-bottom: none;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .category-card .card-body {
+        padding: 1.5rem;
+    }
+
+/* Formularios de categoría */
+.category-form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+    .category-form .form-label {
+        color: var(--primary-dark-blue);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .category-form .form-control,
+    .category-form .form-select {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 0.875rem;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background-color: #fafbfc;
+    }
+
+        .category-form .form-control:focus,
+        .category-form .form-select:focus {
+            border-color: var(--accent-yellow);
+            background-color: white;
+            box-shadow: 0 0 0 0.2rem rgba(255, 195, 0, 0.15);
+        }
+
+/* Tabla de categorías mejorada */
+.categories-table {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+}
+
+    .categories-table thead th {
+        background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+        color: white;
+        border: none;
+        padding: 1.25rem 1rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .categories-table tbody td {
+        padding: 1.25rem 1rem;
+        vertical-align: middle;
+        border-color: #f1f3f4;
+        font-size: 0.95rem;
+    }
+
+    .categories-table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+        .categories-table tbody tr:hover {
+            background-color: rgba(255, 195, 0, 0.05);
+        }
+
+/* Estados de descripción */
+.description-text {
+    color: #6c757d;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.description-empty {
+    color: #adb5bd;
+    font-style: italic;
+}
+
+/* Badges de categoría */
+.category-badge {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark-blue));
+    color: white;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+/* Botones de acción para categorías */
+.btn-category-action {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-category-edit {
+    background: rgba(0, 123, 255, 0.1);
+    color: #007bff;
+}
+
+    .btn-category-edit:hover {
+        background: #007bff;
+        color: white;
+        transform: scale(1.05);
+    }
+
+.btn-category-delete {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+    .btn-category-delete:hover {
+        background: #dc3545;
+        color: white;
+        transform: scale(1.05);
+    }
+
+/* Header de página de categorías */
+.category-header {
+    background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.category-title {
+    color: var(--accent-yellow);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.category-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1rem;
+}
+
+/* Filtros de búsqueda mejorados */
+.search-filter-card {
+    background: white;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+}
+
+    .search-filter-card .card-body {
+        padding: 1.5rem;
+    }
+
+/* Estados vacíos mejorados */
+.categories-empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #6c757d;
+}
+
+.categories-empty-icon {
+    font-size: 4rem;
+    color: #adb5bd;
+    margin-bottom: 1.5rem;
+    opacity: 0.6;
+}
+
+/* Paginación mejorada para categorías */
+.categories-pagination .page-link {
+    border: none;
+    color: var(--primary-blue);
+    padding: 0.75rem 1rem;
+    margin: 0 0.25rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+    .categories-pagination .page-link:hover {
+        background-color: var(--accent-yellow);
+        color: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+
+.categories-pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark-blue));
+    color: white;
+    border: none;
+}
+
+.categories-pagination .page-item.disabled .page-link {
+    color: #adb5bd;
+    background-color: #f8f9fa;
+}
+
+/* Alertas específicas para categorías */
+.category-alert {
+    border-radius: 10px;
+    border: none;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive para categorías */
+@media (max-width: 767.98px) {
+    .category-header {
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .categories-table thead th,
+    .categories-table tbody td {
+        padding: 1rem 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    .btn-category-action {
+        width: 32px;
+        height: 32px;
+    }
+
+    .search-filter-card .card-body {
+        padding: 1rem;
+    }
+
+    .category-form {
+        padding: 0 0.5rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .categories-table {
+        font-size: 0.8rem;
+    }
+
+    .category-badge {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.6rem;
+    }
+
+    .categories-empty-state {
+        padding: 2rem 1rem;
+    }
+
+    .categories-empty-icon {
+        font-size: 3rem;
+    }
+}
+
+/* Mejoras para el formulario de confirmación de eliminación */
+.delete-confirmation {
+    text-align: center;
+    padding: 2rem;
+}
+
+.delete-confirmation-icon {
+    font-size: 4rem;
+    color: #dc3545;
+    margin-bottom: 1.5rem;
+}
+
+.delete-confirmation-details {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+/* Animaciones suaves para transiciones */
+.category-fade-in {
+    animation: categoryFadeIn 0.5s ease-in;
+}
+
+@keyframes categoryFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
