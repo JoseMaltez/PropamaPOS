@@ -16,97 +16,111 @@
 <div class="container mt-4">
     @await Html.PartialAsync("_AlertsPartial")
 
-    <div class="card shadow-sm">
+    <div class="report-card shadow">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h4 class="mb-0"><i class="bi bi-journal-text"></i> Reporte de Ventas</h4>
             <div>
-                <a asp-action="Index" asp-controller="Ventas" class="btn btn-light btn-sm">
-                    <i class="bi bi-arrow-left"></i> Volver a Ventas
+                <h4 class="mb-0 text-white">
+                    <i class="bi bi-graph-up me-2"></i>Reporte de Ventas
+                </h4>
+                <small class="text-white-50">Análisis de ventas y utilidades</small>
+            </div>
+            <div>
+                <a asp-action="Index" asp-controller="Ventas" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i>Volver a Ventas
                 </a>
             </div>
         </div>
 
         <div class="card-body">
-
             <!-- FILTROS -->
-            <div class="card shadow-sm p-3 mb-4">
-                <h5 class="mb-3 text-primary"><i class="bi bi-funnel"></i> Filtros de búsqueda</h5>
+            <div class="report-filters mb-4">
+                <h5 class="text-primary">
+                    <i class="bi bi-funnel-fill"></i>Filtros de Búsqueda
+                </h5>
                 <form method="get" class="row g-3">
-                    <div class="col-md-2">
-                        <label class="form-label fw-semibold"># Factura</label>
-                        <input type="text" name="numero" value="@currentNumero" class="form-control" placeholder="Ej: FAC-000001" />
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold text-dark">Número de factura</label>
+                        <input type="text" name="numero" value="@currentNumero"
+                               class="form-control" placeholder="Ej: FAC-000001" />
                     </div>
 
                     <div class="col-md-3">
-                        <label class="form-label fw-semibold">Cliente o NIT</label>
-                        <input type="text" name="cliente" value="@currentCliente" class="form-control" placeholder="Ej: Juan Pérez o 12345678" />
+                        <label class="form-label fw-semibold text-dark">Cliente o NIT</label>
+                        <input type="text" name="cliente" value="@currentCliente"
+                               class="form-control" placeholder="Nombre del cliente o NIT" />
                     </div>
 
                     <div class="col-md-3">
-                        <label class="form-label fw-semibold">Empleado</label>
-                        <input type="text" name="empleado" value="@currentEmpleado" class="form-control" placeholder="Nombre del empleado" />
+                        <label class="form-label fw-semibold text-dark">Empleado</label>
+                        <input type="text" name="empleado" value="@currentEmpleado"
+                               class="form-control" placeholder="Nombre del empleado" />
                     </div>
 
-                    <div class="col-md-2">
-                        <label class="form-label fw-semibold">Método de pago</label>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold text-dark">Método de pago</label>
                         <select name="metodoPago" class="form-select">
-                            <option value="">Todos</option>
+                            <option value="">Todos los métodos</option>
                             <option value="0" selected="@(currentMetodoPago == MetodoPagoVenta.Efectivo)">Efectivo</option>
                             <option value="1" selected="@(currentMetodoPago == MetodoPagoVenta.Tarjeta)">Tarjeta</option>
                         </select>
                     </div>
 
-                    <div class="w-100"></div>
-
-                    <div class="col-md-2">
-                        <label class="form-label fw-semibold">Desde</label>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold text-dark">Fecha desde</label>
                         <input type="date" name="fechaDesde" value="@currentFechaDesde" class="form-control" />
                     </div>
 
-                    <div class="col-md-2">
-                        <label class="form-label fw-semibold">Hasta</label>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold text-dark">Fecha hasta</label>
                         <input type="date" name="fechaHasta" value="@currentFechaHasta" class="form-control" />
                     </div>
 
-                    <div class="col-md-8 d-flex justify-content-end align-items-end gap-2">
-                        <button class="btn btn-primary px-4" type="submit"><i class="bi bi-search"></i> Buscar</button>
+                    <div class="col-12 d-flex justify-content-end align-items-end gap-2 pt-3">
+                        <button class="btn btn-primary px-4" type="submit">
+                            <i class="bi bi-search me-1"></i>Aplicar Filtros
+                        </button>
                         <a class="btn btn-outline-secondary px-4" href="@Url.Action("IndexVentas", "Reportes")">
-                            <i class="bi bi-x-lg"></i> Limpiar
+                            <i class="bi bi-x-lg me-1"></i>Limpiar
                         </a>
                     </div>
                 </form>
             </div>
 
-
-            <div class="mb-3 d-flex justify-content-end gap-2">
-                <a class="btn btn-success"
-                   asp-action="DownloadVentasPdf"
-                   asp-route-numero="@currentNumero"
-                   asp-route-cliente="@currentCliente"
-                   asp-route-empleado="@currentEmpleado"
-                   asp-route-metodoPago="@currentMetodoPago"
-                   asp-route-fechaDesde="@currentFechaDesde"
-                   asp-route-fechaHasta="@currentFechaHasta">
-                    <i class="bi bi-download"></i> Descargar PDF
-                </a>
+            <!-- BOTONES DE ACCIÓN -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    <span>Total de ventas: @totalItems</span>
+                </div>
+                <div>
+                    <a class="btn btn-download"
+                       asp-action="DownloadVentasPdf"
+                       asp-route-numero="@currentNumero"
+                       asp-route-cliente="@currentCliente"
+                       asp-route-empleado="@currentEmpleado"
+                       asp-route-metodoPago="@currentMetodoPago"
+                       asp-route-fechaDesde="@currentFechaDesde"
+                       asp-route-fechaHasta="@currentFechaHasta">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Descargar PDF
+                    </a>
+                </div>
             </div>
-
 
             <!-- TABLA -->
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-dark">
+                <table class="table report-table">
+                    <thead>
                         <tr>
                             <th>Fecha</th>
                             <th>Número</th>
                             <th>Cliente</th>
                             <th>Empleado</th>
-                            <th>Método de pago</th>
+                            <th>Método Pago</th>
                             <th class="text-center">Líneas</th>
                             <th class="text-end">Subtotal</th>
                             <th class="text-end">IVA</th>
                             <th class="text-end">Total</th>
-                            <th class="text-end text-success">Utilidad</th>
+                            <th class="text-end">Utilidad</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -114,12 +128,11 @@
                         {
                             decimal totalSubtotal = 0, totalIva = 0, totalTotal = 0, totalUtilidad = 0;
 
-                            foreach (var v in Model)
+                            @foreach (var v in Model)
                             {
                                 int lineas = v.Detalles?.Count ?? 0;
                                 decimal utilidad = 0;
 
-                                // Calcular utilidad (igual que en el PDF)
                                 foreach (var det in v.Detalles)
                                 {
                                     decimal costo = det.Presentacion?.PrecioCosto ?? 0m;
@@ -132,33 +145,45 @@
                                 totalUtilidad += utilidad;
 
                                 <tr>
-                                    <td>@v.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
-                                    <td>@v.NumeroVenta</td>
+                                    <td class="fw-semibold">@v.Fecha.ToString("dd/MM/yyyy")</td>
+                                    <td><span class="badge bg-primary">@v.NumeroVenta</span></td>
                                     <td>@(v.Cliente != null ? $"{v.Cliente.Nombre} {v.Cliente.Apellido}" : v.NombreConsumidor)</td>
                                     <td>@(v.Empleado != null ? $"{v.Empleado.Nombre} {v.Empleado.Apellido}" : v.CreadoPor)</td>
-                                    <td>@v.MetodoPago</td>
-                                    <td class="text-center">@lineas</td>
+                                    <td>
+                                        <span class="payment-method @(v.MetodoPago == MetodoPagoVenta.Efectivo ? "payment-cash" : "payment-card")">
+                                            @v.MetodoPago
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">@lineas</span>
+                                    </td>
                                     <td class="text-end">Q@(v.Subtotal.ToString("F2"))</td>
                                     <td class="text-end">Q@(v.IVA.ToString("F2"))</td>
-                                    <td class="text-end fw-bold">Q@(v.Total.ToString("F2"))</td>
-                                    <td class="text-end fw-semibold text-success">Q@(utilidad.ToString("F2"))</td>
+                                    <td class="text-end fw-bold text-primary">Q@(v.Total.ToString("F2"))</td>
+                                    <td class="text-end fw-bold @(utilidad >= 0 ? "text-success" : "text-danger")">
+                                        Q@(utilidad.ToString("F2"))
+                                    </td>
                                 </tr>
                             }
 
-                            <!-- Totales -->
-                            <tr class="table-secondary fw-semibold">
-                                <td colspan="6" class="text-end">Totales:</td>
-                                <td class="text-end">Q@(totalSubtotal.ToString("F2"))</td>
-                                <td class="text-end">Q@(totalIva.ToString("F2"))</td>
-                                <td class="text-end fw-bold">Q@(totalTotal.ToString("F2"))</td>
-                                <td class="text-end text-success fw-bold">Q@(totalUtilidad.ToString("F2"))</td>
+                            <!-- FILA DE TOTALES -->
+                            <tr class="report-totals">
+                                <td colspan="6" class="text-end fw-bold">TOTALES:</td>
+                                <td class="text-end fw-bold">Q@(totalSubtotal.ToString("F2"))</td>
+                                <td class="text-end fw-bold">Q@(totalIva.ToString("F2"))</td>
+                                <td class="text-end fw-bold text-success">Q@(totalTotal.ToString("F2"))</td>
+                                <td class="text-end fw-bold @(totalUtilidad >= 0 ? "text-success" : "text-danger")">
+                                    Q@(totalUtilidad.ToString("F2"))
+                                </td>
                             </tr>
                         }
                         else
                         {
                             <tr>
-                                <td colspan="10" class="text-center text-muted py-3">
-                                    <i class="bi bi-exclamation-circle"></i> No se encontraron resultados con los filtros aplicados.
+                                <td colspan="10" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox display-4 d-block mb-2 opacity-50"></i>
+                                    <h5 class="mb-2">No se encontraron ventas</h5>
+                                    <p class="mb-0">No hay registros que coincidan con los filtros aplicados.</p>
                                 </td>
                             </tr>
                         }
@@ -166,36 +191,54 @@
                 </table>
             </div>
 
-
             <!-- PAGINACIÓN -->
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <small>Mostrando página @currentPage de @totalPages — Total: @totalItems</small>
-                <nav>
-                    <ul class="pagination pagination-sm mb-0">
-                        @if (currentPage > 1)
-                        {
-                            <li class="page-item">
-                                <a class="page-link" href="?page=@(currentPage - 1)">Anterior</a>
-                            </li>
-                        }
-                        @for (int i = 1; i <= totalPages; i++)
-                        {
-                            if (i >= currentPage - 2 && i <= currentPage + 2)
+            @if (totalPages > 1)
+            {
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div class="text-muted small">
+                        Mostrando página @currentPage de @totalPages | Total: @totalItems ventas
+                    </div>
+                    <nav>
+                        <ul class="pagination report-pagination mb-0">
+                            @if (currentPage > 1)
                             {
-                                <li class="page-item @(i == currentPage ? "active" : "")">
-                                    <a class="page-link" href="?page=@i">@i</a>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=@(currentPage - 1)&numero=@currentNumero&cliente=@currentCliente&empleado=@currentEmpleado&metodoPago=@currentMetodoPago&fechaDesde=@currentFechaDesde&fechaHasta=@currentFechaHasta">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
                                 </li>
                             }
-                        }
-                        @if (currentPage < totalPages)
-                        {
-                            <li class="page-item">
-                                <a class="page-link" href="?page=@(currentPage + 1)">Siguiente</a>
-                            </li>
-                        }
-                    </ul>
-                </nav>
-            </div>
+                            @for (int i = 1; i <= totalPages; i++)
+                            {
+                                if (i >= currentPage - 2 && i <= currentPage + 2)
+                                {
+                                    <li class="page-item @(i == currentPage ? "active" : "")">
+                                        <a class="page-link" href="?page=@i&numero=@currentNumero&cliente=@currentCliente&empleado=@currentEmpleado&metodoPago=@currentMetodoPago&fechaDesde=@currentFechaDesde&fechaHasta=@currentFechaHasta">@i</a>
+                                    </li>
+                                }
+                            }
+                            @if (currentPage < totalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=@(currentPage + 1)&numero=@currentNumero&cliente=@currentCliente&empleado=@currentEmpleado&metodoPago=@currentMetodoPago&fechaDesde=@currentFechaDesde&fechaHasta=@currentFechaHasta">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                </div>
+            }
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof ReportUtils !== 'undefined') {
+                ReportUtils.initializeReportComponents();
+            }
+        });
+    </script>
+}

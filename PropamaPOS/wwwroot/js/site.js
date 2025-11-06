@@ -918,3 +918,126 @@ window.ItemUtils = {
     initializeItemComponents,
     validateItemField
 };
+
+
+
+
+// ===== FUNCIONALIDADES ESPECÍFICAS PARA REPORTES =====
+
+// Inicialización de componentes de reporte
+function initializeReportComponents() {
+    // Tooltips para acciones
+    const reportTooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    if (reportTooltips.length > 0 && typeof bootstrap !== 'undefined') {
+        [...reportTooltips].map(el => new bootstrap.Tooltip(el));
+    }
+
+    // Mejoras para filtros de fecha
+    initializeDateFilters();
+
+    // Mejoras para tablas responsivas
+    enhanceReportTables();
+
+    // Inicializar estados vacíos
+    initializeEmptyStates();
+}
+
+// Inicializar filtros de fecha
+function initializeDateFilters() {
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    dateInputs.forEach(input => {
+        // Establecer fecha máxima como hoy
+        const today = new Date().toISOString().split('T')[0];
+        input.setAttribute('max', today);
+
+        // Mejorar la experiencia en móvil
+        input.addEventListener('focus', function () {
+            this.style.backgroundColor = '#fff';
+        });
+
+        input.addEventListener('blur', function () {
+            this.style.backgroundColor = '';
+        });
+    });
+}
+
+// Mejorar tablas de reporte
+function enhanceReportTables() {
+    const reportTables = document.querySelectorAll('.report-table');
+
+    reportTables.forEach(table => {
+        // Añadir clases responsivas si no las tiene
+        if (!table.closest('.table-responsive')) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'table-responsive';
+            table.parentNode.insertBefore(wrapper, table);
+            wrapper.appendChild(table);
+        }
+
+        // Mejorar experiencia en móvil
+        if (window.innerWidth < 768) {
+            table.classList.add('table-sm');
+        }
+    });
+}
+
+// Inicializar estados vacíos
+function initializeEmptyStates() {
+    const tables = document.querySelectorAll('.report-table');
+
+    tables.forEach(table => {
+        const tbody = table.querySelector('tbody');
+        if (tbody && tbody.children.length === 0) {
+            const colspan = table.querySelectorAll('thead th').length;
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="${colspan}" class="text-center text-muted py-4">
+                        <i class="bi bi-inbox display-4 d-block mb-2 opacity-50"></i>
+                        <h5 class="mb-2">No se encontraron datos</h5>
+                        <p class="mb-0">No hay registros que coincidan con los filtros aplicados.</p>
+                    </td>
+                </tr>
+            `;
+        }
+    });
+}
+
+// Exportar a PDF con loading state
+function initializeDownloadButtons() {
+    const downloadButtons = document.querySelectorAll('.btn-download');
+
+    downloadButtons.forEach(button => {
+        button.addEventListener('click', function (e) {
+            const originalText = this.innerHTML;
+            this.innerHTML = `
+                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                Generando PDF...
+            `;
+            this.disabled = true;
+
+            // Restaurar después de 5 segundos (en caso de error)
+            setTimeout(() => {
+                this.innerHTML = originalText;
+                this.disabled = false;
+            }, 5000);
+        });
+    });
+}
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function () {
+    initializeReportComponents();
+    initializeDownloadButtons();
+
+    // Añadir clase de animación a los elementos principales
+    const mainContent = document.querySelector('.container');
+    if (mainContent) {
+        mainContent.classList.add('fade-in');
+    }
+});
+
+// Exportar funciones para uso global
+window.ReportUtils = {
+    initializeReportComponents,
+    initializeDownloadButtons
+};

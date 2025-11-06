@@ -11,29 +11,38 @@
 <div class="container mt-4">
     @await Html.PartialAsync("_AlertsPartial")
 
-    <div class="card shadow-sm">
+    <div class="report-card shadow">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h4 class="mb-0"><i class="bi bi-box-seam"></i> Reporte de Inventario</h4>
             <div>
-                <a asp-controller="Item" asp-action="Index" class="btn btn-light btn-sm">
-                    <i class="bi bi-arrow-left"></i> Ir a Productos
+                <h4 class="mb-0 text-white">
+                    <i class="bi bi-box-seam me-2"></i>Reporte de Inventario
+                </h4>
+                <small class="text-white-50">Estado actual del inventario y valores</small>
+            </div>
+            <div>
+                <a asp-controller="Item" asp-action="Index" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i>Ir a Productos
                 </a>
             </div>
         </div>
 
         <div class="card-body">
             <!-- FILTROS -->
-            <form method="get" class="card shadow-sm mb-4 p-3">
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-3">
-                        <label class="form-label">Buscar</label>
-                        <input type="text" name="q" value="@currentQ" class="form-control" placeholder="Nombre o código..." />
+            <div class="report-filters mb-4">
+                <h5 class="text-primary">
+                    <i class="bi bi-funnel-fill"></i>Filtros de Búsqueda
+                </h5>
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-dark">Buscar producto</label>
+                        <input type="text" name="q" value="@currentQ" class="form-control"
+                               placeholder="Nombre o código del producto..." />
                     </div>
 
                     <div class="col-md-3">
-                        <label class="form-label">Categoría</label>
+                        <label class="form-label fw-semibold text-dark">Categoría</label>
                         <select name="categoriaId" class="form-select">
-                            <option value="">Todas</option>
+                            <option value="">Todas las categorías</option>
                             @foreach (var c in categorias)
                             {
                                 <option value="@c.Id_Categoria" selected="@(currentCategoria == c.Id_Categoria)">
@@ -43,113 +52,184 @@
                         </select>
                     </div>
 
-                    <div class="col-md-2">
-                        <div class="form-check mt-4">
-                            <input type="checkbox" class="form-check-input" id="chkBajoStock" name="bajoStock" value="true" @(currentBajoStock == true ? "checked" : null) />
-                            <label class="form-check-label" for="chkBajoStock">Solo bajo stock</label>
+                    <div class="col-md-3">
+                        <div class="form-check form-switch mt-3">
+                            <input type="checkbox" class="form-check-input" id="chkBajoStock"
+                                   name="bajoStock" value="true" @(currentBajoStock == true ? "checked" : "") />
+                            <label class="form-check-label fw-semibold text-dark" for="chkBajoStock">
+                                Solo productos con stock bajo
+                            </label>
                         </div>
                     </div>
 
-                    <div class="col-md-4 d-flex gap-2 mt-4 justify-content-end">
+                    <div class="col-md-2 d-flex gap-2">
                         <button type="submit" class="btn btn-primary flex-fill">
-                            <i class="bi bi-search"></i> Buscar
+                            <i class="bi bi-search me-1"></i>Buscar
                         </button>
                         <a asp-action="IndexInventario" class="btn btn-outline-secondary flex-fill">
-                            <i class="bi bi-x-circle"></i> Limpiar
+                            <i class="bi bi-x-circle me-1"></i>Limpiar
                         </a>
                     </div>
-                </div>
-            </form>
-
-            <div class="mb-3 d-flex justify-content-end gap-2">
-                <a asp-action="DownloadInventarioPdf" class="btn btn-success"
-                   asp-route-categoriaId="@currentCategoria"
-                   asp-route-bajoStock="@(currentBajoStock ?? false)"
-                   asp-route-minStock="@currentMinStock"
-                   asp-route-q="@currentQ">
-                    <i class="bi bi-download"></i> Descargar PDF
-                </a>
+                </form>
             </div>
 
-            <table class="table table-sm table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th>Producto</th>
-                        <th>Categoría</th>
-                        <th class="text-end">Stock</th>
-                        <th class="text-end">Stock Min</th>
-                        <th class="text-end">Costo Q</th>
-                        <th class="text-end">Precio ref. Q</th>
-                        <th class="text-end">Valor Inventario Q</th>
-                        <th class="text-end">Utilidad Pot. Q</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var i in Model)
-                    {
-                        var costo = i.CostoPromedioUnidad;
-                        var pres = i.Presentaciones?.FirstOrDefault();
-                        var precioRef = pres?.PrecioVenta ?? 0m;
-                        var valorInv = Math.Round(i.Stock * costo, 2);
-                        var utilidadPot = Math.Round((precioRef - costo) * i.Stock, 2);
+            <!-- BOTONES DE ACCIÓN -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    <span>Total de productos: @ViewBag.TotalItems</span>
+                </div>
+                <div>
+                    <a asp-action="DownloadInventarioPdf" class="btn btn-download"
+                       asp-route-categoriaId="@currentCategoria"
+                       asp-route-bajoStock="@(currentBajoStock ?? false)"
+                       asp-route-minStock="@currentMinStock"
+                       asp-route-q="@currentQ">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Descargar PDF
+                    </a>
+                </div>
+            </div>
 
-                        bool bajoStock = i.Stock <= (i.StockMinimo ?? 0);
-
-                        string filaClase = bajoStock ? "table-warning" : ""; 
-
-                        <tr class="@filaClase">
-                            <td>
-                                @i.Nombre
-                                @if (bajoStock)
-                                {
-                                    <span class="badge bg-warning text-dark ms-1">Bajo stock</span>
-                                }
-                            </td>
-                            <td>@i.Categoria?.Nombre</td>
-                            <td class="text-end">@i.Stock</td>
-                            <td class="text-end">@((i.StockMinimo ?? 0))</td>
-                            <td class="text-end">Q@(costo.ToString("F2"))</td>
-                            <td class="text-end">Q@(precioRef.ToString("F2"))</td>
-                            <td class="text-end">Q@(valorInv.ToString("F2"))</td>
-                            <td class="text-end">Q@(utilidadPot.ToString("F2"))</td>
-                            <td>
-                                <a asp-controller="Item" asp-action="Editar" asp-route-id="@i.Id_Item" class="btn btn-sm btn-outline-secondary">Editar</a>
-                            </td>
+            <!-- TABLA -->
+            <div class="table-responsive">
+                <table class="table report-table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th class="text-center">Stock</th>
+                            <th class="text-center">Stock Mín.</th>
+                            <th class="text-end">Costo Unit.</th>
+                            <th class="text-end">Precio Ref.</th>
+                            <th class="text-end">Valor Inventario</th>
+                            <th class="text-end">Utilidad Potencial</th>
+                            <th class="text-center">Acciones</th>
                         </tr>
-                    }
+                    </thead>
+                    <tbody>
+                        @if (Model.Any())
+                        {
+                            decimal totalValorInventario = 0, totalUtilidadPotencial = 0;
 
-                </tbody>
-            </table>
-            <!-- PAGINACIÓN -->
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <small>Mostrando página @ViewBag.CurrentPage de @ViewBag.TotalPages — Total: @ViewBag.TotalItems</small>
-                <nav>
-                    <ul class="pagination pagination-sm mb-0">
-                        @if (ViewBag.CurrentPage > 1)
-                        {
-                            <li class="page-item">
-                                <a class="page-link" href="?page=@(ViewBag.CurrentPage - 1)">Anterior</a>
-                            </li>
-                        }
-                        @for (int i = 1; i <= ViewBag.TotalPages; i++)
-                        {
-                            if (i >= ViewBag.CurrentPage - 2 && i <= ViewBag.CurrentPage + 2)
+                            @foreach (var i in Model)
                             {
-                                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                                    <a class="page-link" href="?page=@i">@i</a>
+                                var costo = i.CostoPromedioUnidad;
+                                var pres = i.Presentaciones?.FirstOrDefault();
+                                var precioRef = pres?.PrecioVenta ?? 0m;
+                                var valorInv = Math.Round(i.Stock * costo, 2);
+                                var utilidadPot = Math.Round((precioRef - costo) * i.Stock, 2);
+                                bool bajoStock = i.Stock <= (i.StockMinimo ?? 0);
+
+                                totalValorInventario += valorInv;
+                                totalUtilidadPotencial += utilidadPot;
+
+                                <tr class="@(bajoStock ? "stock-warning-row" : "")">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div>
+                                                <div class="fw-semibold">@i.Nombre</div>
+                                                <small class="text-muted">@i.Codigo</small>
+                                            </div>
+                                            @if (bajoStock)
+                                            {
+                                                <span class="badge badge-low-stock ms-2">Bajo Stock</span>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@i.Categoria?.Nombre</span>
+                                    </td>
+                                    <td class="text-center fw-bold @(bajoStock ? "text-warning" : "text-dark")">
+                                        @i.Stock
+                                    </td>
+                                    <td class="text-center">@((i.StockMinimo ?? 0))</td>
+                                    <td class="text-end">Q@(costo.ToString("F2"))</td>
+                                    <td class="text-end">Q@(precioRef.ToString("F2"))</td>
+                                    <td class="text-end fw-semibold">Q@(valorInv.ToString("F2"))</td>
+                                    <td class="text-end fw-bold @(utilidadPot >= 0 ? "text-success" : "text-danger")">
+                                        Q@(utilidadPot.ToString("F2"))
+                                    </td>
+                                    <td class="text-center">
+                                        <a asp-controller="Item" asp-action="Editar" asp-route-id="@i.Id_Item"
+                                           class="btn btn-sm btn-outline-primary" title="Editar producto">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+
+                            <!-- FILA DE TOTALES -->
+                            <tr class="report-totals">
+                                <td colspan="6" class="text-end fw-bold">TOTALES:</td>
+                                <td class="text-end fw-bold text-primary">Q@(totalValorInventario.ToString("F2"))</td>
+                                <td class="text-end fw-bold @(totalUtilidadPotencial >= 0 ? "text-success" : "text-danger")">
+                                    Q@(totalUtilidadPotencial.ToString("F2"))
+                                </td>
+                                <td></td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox display-4 d-block mb-2 opacity-50"></i>
+                                    <h5 class="mb-2">No se encontraron productos</h5>
+                                    <p class="mb-0">No hay registros que coincidan con los filtros aplicados.</p>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PAGINACIÓN -->
+            @if (ViewBag.TotalPages > 1)
+            {
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div class="text-muted small">
+                        Mostrando página @ViewBag.CurrentPage de @ViewBag.TotalPages | Total: @ViewBag.TotalItems productos
+                    </div>
+                    <nav>
+                        <ul class="pagination report-pagination mb-0">
+                            @if (ViewBag.CurrentPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=@(ViewBag.CurrentPage - 1)&categoriaId=@currentCategoria&bajoStock=@currentBajoStock&q=@currentQ">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
                                 </li>
                             }
-                        }
-                        @if (ViewBag.CurrentPage < ViewBag.TotalPages)
-                        {
-                            <li class="page-item">
-                                <a class="page-link" href="?page=@(ViewBag.CurrentPage + 1)">Siguiente</a>
-                            </li>
-                        }
-                    </ul>
-                </nav>
-            </div>
+                            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                            {
+                                if (i >= ViewBag.CurrentPage - 2 && i <= ViewBag.CurrentPage + 2)
+                                {
+                                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                        <a class="page-link" href="?page=@i&categoriaId=@currentCategoria&bajoStock=@currentBajoStock&q=@currentQ">@i</a>
+                                    </li>
+                                }
+                            }
+                            @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=@(ViewBag.CurrentPage + 1)&categoriaId=@currentCategoria&bajoStock=@currentBajoStock&q=@currentQ">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                </div>
+            }
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof ReportUtils !== 'undefined') {
+                ReportUtils.initializeReportComponents();
+            }
+        });
+    </script>
+}

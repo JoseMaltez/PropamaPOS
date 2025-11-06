@@ -3066,3 +3066,206 @@ img, video, iframe, table, canvas {
         transform: translateY(0);
     }
 }
+
+
+
+
+/* ===== VISTAS DE REPORTES MEJORADAS ===== */
+
+/* Cards de reporte mejoradas */
+.report-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    background: white;
+    margin-bottom: 1.5rem;
+}
+
+    .report-card .card-header {
+        background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+        color: white;
+        border-bottom: none;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .report-card .card-body {
+        padding: 1.5rem;
+    }
+
+/* Filtros de reporte */
+.report-filters {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--accent-yellow);
+}
+
+    .report-filters h5 {
+        color: var(--primary-dark-blue);
+        font-weight: 600;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+/* Botones de descarga */
+.btn-download {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+    .btn-download:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        color: white;
+    }
+
+/* Tablas de reporte */
+.report-table {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+}
+
+    .report-table thead th {
+        background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+        color: white;
+        border: none;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .report-table tbody td {
+        padding: 1rem 1.25rem;
+        vertical-align: middle;
+        border-color: #f1f3f4;
+        font-size: 0.95rem;
+    }
+
+    .report-table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+        .report-table tbody tr:hover {
+            background-color: rgba(255, 195, 0, 0.05);
+        }
+
+/* Totales en reportes */
+.report-totals {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef) !important;
+    font-weight: 600;
+    border-top: 2px solid var(--accent-yellow);
+}
+
+/* Estados de stock */
+.stock-warning-row {
+    background-color: rgba(255, 193, 7, 0.1) !important;
+    border-left: 4px solid var(--accent-yellow);
+}
+
+/* Badges para reportes */
+.report-badge {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.badge-low-stock {
+    background: linear-gradient(135deg, var(--accent-yellow), #e0a800);
+    color: #000;
+}
+
+/* Paginación de reportes */
+.report-pagination .page-link {
+    border: none;
+    color: var(--primary-blue);
+    padding: 0.75rem 1rem;
+    margin: 0 0.25rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+    .report-pagination .page-link:hover {
+        background-color: var(--accent-yellow);
+        color: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+
+.report-pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark-blue));
+    color: white;
+    border: none;
+}
+
+/* Métodos de pago */
+.payment-method {
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.payment-cash {
+    background: rgba(40, 167, 69, 0.1);
+    color: #155724;
+    border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.payment-card {
+    background: rgba(0, 123, 255, 0.1);
+    color: #004085;
+    border: 1px solid rgba(0, 123, 255, 0.2);
+}
+
+/* Responsive para reportes */
+@media (max-width: 767.98px) {
+    .report-card .card-header {
+        padding: 1rem;
+    }
+
+    .report-card .card-body {
+        padding: 1rem;
+    }
+
+    .report-filters {
+        padding: 1rem;
+    }
+
+    .report-table thead th,
+    .report-table tbody td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .btn-download {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .report-table {
+        font-size: 0.8rem;
+    }
+
+    .report-filters .row {
+        margin-bottom: 0.5rem;
+    }
+
+    .report-filters .col-md-3,
+    .report-filters .col-md-2 {
+        margin-bottom: 1rem;
+    }
+}
