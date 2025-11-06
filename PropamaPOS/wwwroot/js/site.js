@@ -780,3 +780,141 @@ window.DashboardUtils = {
     initializeDashboardComponents,
     updateLiveClock
 };
+
+
+
+
+// ===== FUNCIONALIDADES ESPECÍFICAS PARA ITEMS =====
+
+// Inicialización de componentes de item
+function initializeItemComponents() {
+    // Tooltips para acciones
+    const itemTooltips = document.querySelectorAll('.btn-item-action[data-bs-toggle="tooltip"]');
+    if (itemTooltips.length > 0 && typeof bootstrap !== 'undefined') {
+        [...itemTooltips].map(el => new bootstrap.Tooltip(el));
+    }
+
+    // Confirmación mejorada para eliminaciones
+    const deleteButtons = document.querySelectorAll('.btn-item-delete');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function (e) {
+            const itemName = this.closest('tr').querySelector('td:nth-child(2)').textContent;
+            if (!confirm(`¿Estás seguro de que quieres eliminar el item "${itemName.trim()}"? Esta acción eliminará todas sus presentaciones y no se puede deshacer.`)) {
+                e.preventDefault();
+            }
+        });
+    });
+
+    // Mejoras para formularios de item
+    const itemForms = document.querySelectorAll('.item-form');
+    itemForms.forEach(form => {
+        // Validación en tiempo real
+        const inputs = form.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            input.addEventListener('blur', function () {
+                validateItemField(this);
+            });
+
+            input.addEventListener('input', function () {
+                clearFieldValidation(this);
+            });
+        });
+
+        // Submit con loading state
+        form.addEventListener('submit', function (e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn && this.checkValidity()) {
+                setButtonLoading(submitBtn, true);
+            }
+        });
+    });
+
+    // Mejoras para la tabla de presentaciones
+    initializePresentacionesTable();
+}
+
+// Validación de campos de item
+function validateItemField(field) {
+    const value = field.value.trim();
+    const formGroup = field.closest('.mb-3');
+
+    // Limpiar estados previos
+    clearFieldValidation(field);
+
+    // Validar campo requerido
+    if (field.hasAttribute('required') && !value) {
+        showFieldError(field, 'Este campo es requerido');
+        return false;
+    }
+
+    // Validar longitud mínima para nombre
+    if (field.name === 'Nombre' && value.length < 2) {
+        showFieldError(field, 'El nombre debe tener al menos 2 caracteres');
+        return false;
+    }
+
+    // Validar stock mínimo
+    if (field.name === 'StockMinimo' && value < 0) {
+        showFieldError(field, 'El stock mínimo no puede ser negativo');
+        return false;
+    }
+
+    return true;
+}
+
+// Inicializar tabla de presentaciones
+function initializePresentacionesTable() {
+    const presentacionesTable = document.getElementById('presentacionesTable');
+    if (!presentacionesTable) return;
+
+    // Añadir clases responsivas
+    if (!presentacionesTable.closest('.table-responsive')) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'table-responsive';
+        presentacionesTable.parentNode.insertBefore(wrapper, presentacionesTable);
+        wrapper.appendChild(presentacionesTable);
+    }
+}
+
+// Mostrar error en campo
+function showFieldError(field, message) {
+    const formGroup = field.closest('.mb-3');
+    field.classList.add('is-invalid');
+
+    let errorElement = formGroup.querySelector('.field-error');
+    if (!errorElement) {
+        errorElement = document.createElement('div');
+        errorElement.className = 'field-error text-danger small mt-1';
+        formGroup.appendChild(errorElement);
+    }
+    errorElement.textContent = message;
+}
+
+// Limpiar validación de campo
+function clearFieldValidation(field) {
+    field.classList.remove('is-invalid');
+    field.classList.remove('is-valid');
+
+    const formGroup = field.closest('.mb-3');
+    const errorElement = formGroup.querySelector('.field-error');
+    if (errorElement) {
+        errorElement.remove();
+    }
+}
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function () {
+    initializeItemComponents();
+
+    // Añadir clase de animación a los elementos principales
+    const mainContent = document.querySelector('.container');
+    if (mainContent) {
+        mainContent.classList.add('item-fade-in');
+    }
+});
+
+// Exportar funciones para uso global
+window.ItemUtils = {
+    initializeItemComponents,
+    validateItemField
+};

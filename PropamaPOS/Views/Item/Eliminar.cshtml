@@ -1,39 +1,80 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model PropamaPOS.Models.Item
+﻿@model PropamaPOS.Models.Item
 @{
-    ViewData["Title"] = "Eliminar Producto";
+    ViewData["Title"] = "Eliminar Producto o Servicio";
 }
 
-<div class="container mt-4">
+<div class="container mt-4 item-fade-in">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card border-danger shadow">
+        <div class="col-lg-8">
+            <div class="item-card">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="mb-0 text-center"><i class="bi bi-exclamation-triangle me-2"></i>Eliminar Producto o Servicio</h3>
+                </div>
                 <div class="card-body">
-                    <h3 class="text-center text-danger mb-3">¿Eliminar ítem?</h3>
-
-                    <p class="text-center">Estás a punto de eliminar el ítem <strong>@Model.Nombre</strong>.</p>
-                    <p class="text-center text-muted">Esta acción también eliminará todas sus presentaciones y no se puede deshacer.</p>
-
-                    <dl class="row mt-4">
-                        <dt class="col-sm-4">Código</dt>
-                        <dd class="col-sm-8">@Model.Codigo</dd>
-
-                        <dt class="col-sm-4">Descripción</dt>
-                        <dd class="col-sm-8">@Model.Descripcion</dd>
-                    </dl>
-
-                    <form asp-action="Eliminar" method="post">
-                        <input type="hidden" asp-for="Id_Item" />
-                        <div class="d-flex justify-content-between mt-4">
-                            <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Cancelar</a>
-                            <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Confirmar eliminación</button>
+                    <div class="item-delete-confirmation">
+                        <div class="item-delete-confirmation-icon">
+                            <i class="bi bi-trash"></i>
                         </div>
-                    </form>
+                        <h4 class="text-center text-danger mb-4">¿Está seguro que desea eliminar este item?</h4>
+
+                        <div class="item-delete-confirmation-details">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <strong>Código:</strong>
+                                    <p class="mb-0">@Model.Codigo</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <strong>Nombre:</strong>
+                                    <p class="mb-0">@Model.Nombre</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <strong>Categoría:</strong>
+                                    <p class="mb-0">@Model.Categoria?.Nombre</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <strong>Tipo:</strong>
+                                    <p class="mb-0">
+                                        <span class="item-type-badge @(Model.IsServicio ? "badge-type-service" : "badge-type-product")">
+                                            @(Model.IsServicio ? "Servicio" : "Producto")
+                                        </span>
+                                    </p>
+                                </div>
+                                @if (!string.IsNullOrEmpty(Model.Descripcion))
+                                {
+                                    <div class="col-12 mb-3">
+                                        <strong>Descripción:</strong>
+                                        <p class="mb-0">@Model.Descripcion</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning mt-4">
+                            <h6 class="alert-heading"><i class="bi bi-exclamation-circle me-2"></i>Advertencia</h6>
+                            <p class="mb-0">
+                                Esta acción eliminará permanentemente el item y todas sus presentaciones.
+                                @if (!Model.IsServicio)
+                                {
+                                    <strong>También se eliminará el historial de stock relacionado.</strong>
+                                }
+                                Esta acción no se puede deshacer.
+                            </p>
+                        </div>
+
+                        <form asp-action="Eliminar" method="post" class="mt-4">
+                            <input type="hidden" asp-for="Id_Item" />
+                            <div class="d-flex justify-content-center gap-3">
+                                <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                                    <i class="bi bi-arrow-left me-2"></i>Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-danger px-4">
+                                    <i class="bi bi-trash me-2"></i>Eliminar Permanentemente
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-

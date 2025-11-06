@@ -4,17 +4,22 @@
     var unidades = ViewBag.Unidades as List<PropamaPOS.Models.UnidadMedida> ?? new();
 }
 
-<div class="container mt-4">
+<div class="container mt-4 item-fade-in">
     <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card shadow">
+        <div class="col-lg-10">
+            <div class="item-card">
+                <div class="card-header">
+                    <h3 class="mb-0 text-center"><i class="bi bi-plus-circle me-2"></i>Crear Producto o Servicio</h3>
+                </div>
                 <div class="card-body">
-                    <h3 class="card-title text-center mb-4">Crear Producto o Servicio</h3>
+                    <form asp-action="Crear" method="post" id="itemForm" class="item-form">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                    <form asp-action="Crear" method="post" id="itemForm">
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-                        <div class="row">
+                        <!-- Información Básica -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="section-title mb-3"><i class="bi bi-info-circle me-2"></i>Información Básica</h5>
+                            </div>
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Nombre" class="form-label"></label>
                                 <input asp-for="Nombre" class="form-control" placeholder="Nombre del producto o servicio" />
@@ -45,7 +50,6 @@
                             <div class="form-text">Dejar en 0 si no aplica. No se aplica para servicios.</div>
                         </div>
 
-
                         <div class="form-check mb-4">
                             <input asp-for="IsServicio" class="form-check-input" id="IsServicio" />
                             <label class="form-check-label" for="IsServicio">Es un servicio?</label>
@@ -55,27 +59,33 @@
                         <h5>Presentaciones y precios</h5>
                         <p class="text-muted small">Para productos, el precio se calcula automáticamente. Para servicios, puede definirse manualmente.</p>
 
-                        <table class="table" id="presentacionesTable">
-                            <thead>
-                                <tr>
-                                    <th>Unidad</th>
-                                    <th>Cantidad</th>
-                                    <th class="col-precio">Precio Venta (Q)</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table table-bordered presentaciones-table" id="presentacionesTable">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Unidad</th>
+                                        <th>Cantidad</th>
+                                        <th class="col-precio">Precio Venta (Q)</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
 
                         <div class="mb-3">
-                            <button type="button" id="addPresentacion" class="btn btn-outline-secondary">
+                            <button type="button" id="addPresentacion" class="btn btn-outline-primary">
                                 <i class="bi bi-plus"></i> Agregar presentación
                             </button>
                         </div>
 
-                        <div class="d-flex justify-content-between">
-                            <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
-                            <button type="submit" class="btn btn-success">Guardar</button>
+                        <div class="d-flex justify-content-between pt-3 border-top">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i> Volver
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle me-2"></i> Guardar
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -102,7 +112,7 @@
             const unidadNombre = "unidad";
             let nextIndex = 0;
 
-            function createRow(index, presetUnidadId, presetCantidad, showPrecio, removable = true) {
+            function createRow(index, presetUnidadId, presetCantidad, presetPrecio, removable = true) {
                 const precioValue = (typeof presetCantidad === 'object' && presetCantidad !== null) ? '' : (arguments[2] ?? '');
                 const tr = document.createElement('tr');
                 tr.dataset.index = index;
@@ -119,7 +129,7 @@
                     <td class="col-precio">
                         <input name="Presentaciones[${index}].PrecioVenta" value="${presetPrecioToString(arguments[2])}" class="form-control precio-input" type="number" step="0.01" min="0" />
                     </td>
-                    <td>${removable ? '<button type="button" class="btn btn-danger btn-sm remove-row">Eliminar</button>' : ''}</td>
+                    <td>${removable ? '<button type="button" class="btn btn-danger btn-sm remove-row"><i class="bi bi-trash"></i></button>' : ''}</td>
                 `;
                 if (presetUnidadId) tr.querySelector('.unidad-select').value = presetUnidadId;
                 return tr;
@@ -163,6 +173,15 @@
             function findServicioOption() {
                 return Array.from(categoriaSelect.options).find(o => (o.text || '').trim().toLowerCase() === servicioNombre);
             }
+
+            function findFirstNonServiceOption() {
+                return Array.from(categoriaSelect.options).find(o =>
+                    o.value &&
+                    (o.text || '').trim().toLowerCase() !== servicioNombre &&
+                    !o.hidden
+                );
+            }
+
             function hideServicioOption(hide) {
                 Array.from(categoriaSelect.options).forEach(o => {
                     if ((o.text || '').trim().toLowerCase() === servicioNombre) {
@@ -218,6 +237,15 @@
                 hideServicioOption(true);
                 addBtn.disabled = false;
 
+                // Cambiar a una categoría que no sea "Servicio" cuando se desmarca
+                const currentOption = categoriaSelect.options[categoriaSelect.selectedIndex];
+                if (currentOption && (currentOption.text || '').trim().toLowerCase() === servicioNombre) {
+                    const firstNonService = findFirstNonServiceOption();
+                    if (firstNonService) {
+                        categoriaSelect.value = firstNonService.value;
+                    }
+                }
+
                 clearRows();
                 updatePrecioVisibility();
             }
@@ -253,10 +281,6 @@
                     return false;
                 }
             });
-
-
-
-
         })();
     </script>
 }

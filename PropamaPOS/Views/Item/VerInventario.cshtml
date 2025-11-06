@@ -11,143 +11,413 @@
     var iva = ViewBag.IVA as decimal? ?? 0.12m;
 }
 
-<div class="container mt-4">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0"><i class="bi bi-box-seam"></i> Consulta de Productos y Servicios</h4>
+<div class="container mt-4 item-fade-in">
+    <!-- Header Mejorado -->
+    <div class="item-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="item-title"><i class="bi bi-clipboard-data me-3"></i>Consulta de Inventario</h1>
+                <p class="item-subtitle">Consulta y monitorea el estado actual del inventario</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <span class="badge bg-warning text-dark fs-6">
+                    <i class="bi bi-box-seam me-1"></i>Total: @totalItems items
+                </span>
+            </div>
         </div>
+    </div>
 
+    @await Html.PartialAsync("_AlertsPartial")
+
+    <!-- Filtros Mejorados -->
+    <div class="item-search-card">
         <div class="card-body">
-            <!-- FILTROS -->
-            <form method="get" class="row g-2 mb-3">
+            <h5 class="card-title mb-4"><i class="bi bi-funnel me-2"></i>Filtros de Búsqueda</h5>
+            <form method="get" class="row g-3 align-items-end">
                 <div class="col-md-4">
-                    <input type="text" name="q" value="@currentQuery" class="form-control" placeholder="Buscar por nombre o código..." />
+                    <label class="form-label fw-semibold">Buscar</label>
+                    <input type="text" name="q" value="@currentQuery" class="form-control"
+                           placeholder="Nombre o código del producto..." />
                 </div>
                 <div class="col-md-4">
+                    <label class="form-label fw-semibold">Categoría</label>
                     <select name="categoriaId" class="form-select">
-                        <option value="">-- Todas las categorías --</option>
+                        <option value="">Todas las categorías</option>
                         @foreach (var c in categorias)
                         {
-                            if (currentCategoria == c.Id_Categoria)
-                            {
-                                <option value="@c.Id_Categoria" selected>@c.Nombre</option>
-                            }
-                            else
-                            {
-                                <option value="@c.Id_Categoria">@c.Nombre</option>
-                            }
+                            <option value="@c.Id_Categoria" selected="@(currentCategoria == c.Id_Categoria)">
+                                @c.Nombre
+                            </option>
                         }
                     </select>
                 </div>
-                <div class="col-md-3 d-flex align-items-center">
-                    <div class="form-check mt-2">
-                        <input type="checkbox" class="form-check-input" id="bajoStock" name="bajoStock" value="true" @(currentBajoStock == true ? "checked" : null) />
-                        <label class="form-check-label" for="bajoStock">Solo bajo stock</label>
+                <div class="col-md-3">
+                    <div class="form-check mt-3">
+                        <input type="checkbox" class="form-check-input" id="bajoStock" name="bajoStock" value="true"
+                               @(currentBajoStock == true ? "checked" : null) />
+                        <label class="form-check-label fw-semibold" for="bajoStock">
+                            <i class="bi bi-exclamation-triangle me-1"></i>Solo bajo stock
+                        </label>
                     </div>
                 </div>
                 <div class="col-md-1">
-                    <button class="btn btn-primary w-100" type="submit"><i class="bi bi-search"></i></button>
+                    <button class="btn btn-primary w-100" type="submit" title="Buscar">
+                        <i class="bi bi-search"></i>
+                    </button>
                 </div>
             </form>
+        </div>
+    </div>
 
-            <!-- TABLA DE RESULTADOS -->
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Código</th>
-                            <th>Categoría</th>
-                            <th class="text-center">Stock</th>
-                            <th class="text-center">Stock Min.</th>
-                            <th>Presentaciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (!Model.Any())
-                        {
+    <!-- Tabla de Inventario Mejorada -->
+    <div class="item-card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Resultados del Inventario</h5>
+                <div>
+                    <span class="badge bg-primary me-2">Página @currentPage de @totalPages</span>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            @if (!Model.Any())
+            {
+                <div class="items-empty-state">
+                    <i class="bi bi-search items-empty-icon"></i>
+                    <h5 class="text-muted">No se encontraron resultados</h5>
+                    <p class="text-muted">Intenta ajustar los filtros de búsqueda.</p>
+                    <a asp-action="VerInventario" class="btn btn-outline-primary mt-3">
+                        <i class="bi bi-arrow-clockwise me-2"></i>Mostrar Todos los Items
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table items-table">
+                        <thead>
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-3">No se encontraron productos</td>
+                                <th>Item</th>
+                                <th>Código</th>
+                                <th>Categoría</th>
+                                <th class="text-center">Stock Actual</th>
+                                <th class="text-center">Stock Mínimo</th>
+                                <th>Presentaciones y Precios</th>
                             </tr>
-                        }
-                        else
-                        {
+                        </thead>
+                        <tbody>
                             @foreach (var i in Model)
                             {
                                 var esServicio = i.IsServicio;
                                 var bajo = !esServicio && i.Stock <= (i.StockMinimo ?? 0);
                                 var rowClass = bajo ? "table-warning" : "";
+
                                 <tr class="@rowClass">
-                                    <td>@i.Nombre</td>
-                                    <td>@i.Codigo</td>
-                                    <td>@i.Categoria?.Nombre</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi @(i.IsServicio ? "bi-tools" : "bi-box") me-2
+                                                        @(bajo ? "text-warning" : "text-primary")"></i>
+                                            <div>
+                                                <div class="fw-semibold">@i.Nombre</div>
+                                                @if (!string.IsNullOrEmpty(i.Descripcion))
+                                                {
+                                                    <small class="text-muted">@i.Descripcion</small>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-dark">@i.Codigo</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@i.Categoria?.Nombre</span>
+                                    </td>
                                     <td class="text-center">
                                         @if (esServicio)
                                         {
-                                            <span class="text-muted">N/A</span>
+                                            <span class="stock-na">N/A</span>
                                         }
                                         else
                                         {
-                                            <strong>@i.Stock</strong>
+                                            <div class="d-flex flex-column align-items-center">
+                                                <span class="fw-bold fs-5 @(bajo ? "stock-low" : "stock-adequate")">
+                                                    @i.Stock
+                                                </span>
+                                                @if (bajo)
+                                                {
+                                                    <small class="text-warning">
+                                                        <i class="bi bi-exclamation-triangle"></i> Bajo stock
+                                                    </small>
+                                                }
+                                            </div>
                                         }
                                     </td>
-                                    <td class="text-center">@(i.StockMinimo ?? 0)</td>
-                                    <td>
-                                        @foreach (var p in i.Presentaciones.Where(pp => pp.Activo))
+                                    <td class="text-center">
+                                        @if (esServicio)
                                         {
-                                            var precioSinIVA = p.PrecioVenta;
-                                            var precioConIVA = Math.Round(precioSinIVA * (1 + iva), 2);
-                                            <div>
-                                                <span class="fw-semibold">@p.Cantidad @p.UnidadMedida?.Nombre</span>
-                                                <br />
-                                                <small class="text-muted">
-                                                    Precio sin IVA: @($"Q{precioSinIVA:F2}")<br />
-                                                    Precio con IVA: <span class="text-success fw-bold">@($"Q{precioConIVA:F2}")</span>
-                                                </small>
-                                            </div>
-                                            <hr class="my-1" />
+                                            <span class="stock-na">-</span>
                                         }
+                                        else
+                                        {
+                                            <span class="fw-semibold">@(i.StockMinimo ?? 0)</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="presentaciones-container">
+                                            @foreach (var p in i.Presentaciones.Where(pp => pp.Activo))
+                                            {
+                                                var precioSinIVA = p.PrecioVenta;
+                                                var precioConIVA = Math.Round(precioSinIVA * (1 + iva), 2);
+
+                                                <div class="presentacion-item mb-2 p-2 bg-light rounded">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <strong class="d-block">
+                                                                <i class="bi bi-tag me-1"></i>
+                                                                @p.Cantidad @p.UnidadMedida?.Nombre
+                                                            </strong>
+                                                        </div>
+                                                        <span class="item-type-badge @(i.IsServicio ? "badge-type-service" : "badge-type-product")">
+                                                            @(i.IsServicio ? "Servicio" : "Producto")
+                                                        </span>
+                                                    </div>
+                                                    <div class="mt-1">
+                                                        <div class="precio-sin-iva">
+                                                            <small>Sin IVA: Q@(precioSinIVA.ToString("F2"))</small>
+                                                        </div>
+                                                        <div class="precio-con-iva">
+                                                            <strong>Con IVA: Q@(precioConIVA.ToString("F2"))</strong>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
                                     </td>
                                 </tr>
                             }
-                        }
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- PAGINACIÓN -->
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <div>
-                    <small>Mostrando página @currentPage de @totalPages — Total: @totalItems ítems</small>
+                        </tbody>
+                    </table>
                 </div>
-                <nav>
-                    <ul class="pagination pagination-sm mb-0">
-                        @if (currentPage > 1)
-                        {
-                            <li class="page-item">
-                                <a class="page-link" href="?page=@(currentPage - 1)&q=@currentQuery&categoriaId=@currentCategoria&bajoStock=@currentBajoStock">Anterior</a>
-                            </li>
-                        }
 
-                        @for (int i = 1; i <= (int)totalPages; i++)
-                        {
-                            if (i >= (int)currentPage - 2 && i <= (int)currentPage + 2)
-                            {
-                                <li class="page-item @(i == (int)currentPage ? "active" : "")">
-                                    <a class="page-link" href="?page=@i&q=@currentQuery&categoriaId=@currentCategoria&bajoStock=@currentBajoStock">@i</a>
-                                </li>
-                            }
-                        }
+                <!-- Paginación Mejorada -->
+                @if (totalPages > 1)
+                {
+                    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                        <div>
+                            <small class="text-muted">
+                                Mostrando @Model.Count() items de @totalItems totales
+                            </small>
+                        </div>
+                        <nav>
+                            <ul class="pagination items-pagination mb-0">
+                                @if (currentPage > 1)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=@(currentPage - 1)&q=@currentQuery&categoriaId=@currentCategoria&bajoStock=@currentBajoStock"
+                                           title="Página anterior">
+                                            <i class="bi bi-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                }
 
-                        @if (currentPage < totalPages)
-                        {
-                            <li class="page-item">
-                                <a class="page-link" href="?page=@(currentPage + 1)&q=@currentQuery&categoriaId=@currentCategoria&bajoStock=@currentBajoStock">Siguiente</a>
-                            </li>
-                        }
-                    </ul>
-                </nav>
-            </div>
+                                @for (int i = 1; i <= totalPages; i++)
+                                {
+                                    if (i >= currentPage - 2 && i <= currentPage + 2)
+                                    {
+                                        <li class="page-item @(i == currentPage ? "active" : "")">
+                                            <a class="page-link" href="?page=@i&q=@currentQuery&categoriaId=@currentCategoria&bajoStock=@currentBajoStock">
+                                                @i
+                                            </a>
+                                        </li>
+                                    }
+                                }
+
+                                @if (currentPage < totalPages)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=@(currentPage + 1)&q=@currentQuery&categoriaId=@currentCategoria&bajoStock=@currentBajoStock"
+                                           title="Página siguiente">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    </div>
+                }
+            }
         </div>
     </div>
+
+    <!-- Resumen de Inventario -->
+    @if (Model.Any())
+    {
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-0">@Model.Count()</h4>
+                                <small>Items encontrados</small>
+                            </div>
+                            <i class="bi bi-box-seam fs-1 opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-0">@Model.Count(i => !i.IsServicio && i.Stock <= (i.StockMinimo ?? 0))</h4>
+                                <small>Productos con bajo stock</small>
+                            </div>
+                            <i class="bi bi-exclamation-triangle fs-1 opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-0">@Model.Count(i => i.IsServicio)</h4>
+                                <small>Servicios activos</small>
+                            </div>
+                            <i class="bi bi-tools fs-1 opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 </div>
+
+@section Styles {
+    <style>
+        .presentaciones-container {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .presentacion-item {
+            border-left: 4px solid var(--primary-blue);
+        }
+
+            .presentacion-item:last-child {
+                margin-bottom: 0 !important;
+            }
+
+        /* Mejoras específicas para la vista de inventario */
+        .inventario-stats {
+            background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            transition: transform 0.2s ease;
+        }
+
+            .stat-card:hover {
+                transform: translateY(-2px);
+            }
+
+        /* Responsive improvements para inventario */
+        @@media (max-width: 768px) {
+            .presentaciones-container {
+                max-height: 150px;
+            }
+
+            .inventario-stats .row > div {
+                margin-bottom: 1rem;
+            }
+
+            .items-table td:nth-child(3), /* Categoría */
+            .items-table td:nth-child(5) /* Stock Mínimo */ {
+                display: none;
+            }
+
+            .items-table th:nth-child(3),
+            .items-table th:nth-child(5) {
+                display: none;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .presentacion-item {
+                font-size: 0.875rem;
+            }
+
+            .precio-sin-iva,
+            .precio-con-iva {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Inicializar tooltips si existen
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+            const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Resaltar filas con bajo stock
+            const lowStockRows = document.querySelectorAll('.table-warning');
+            lowStockRows.forEach(row => {
+                row.addEventListener('mouseenter', function () {
+                    this.style.backgroundColor = 'rgba(255, 193, 0, 0.1)';
+                });
+                row.addEventListener('mouseleave', function () {
+                    this.style.backgroundColor = '';
+                });
+            });
+
+            // Auto-scroll suave para presentaciones
+            const presentacionesContainers = document.querySelectorAll('.presentaciones-container');
+            presentacionesContainers.forEach(container => {
+                if (container.scrollHeight > container.clientHeight) {
+                    container.style.cursor = 'grab';
+
+                    let isScrolling = false;
+                    let startY;
+                    let scrollTop;
+
+                    container.addEventListener('mousedown', (e) => {
+                        isScrolling = true;
+                        startY = e.pageY - container.offsetTop;
+                        scrollTop = container.scrollTop;
+                        container.style.cursor = 'grabbing';
+                    });
+
+                    container.addEventListener('mouseleave', () => {
+                        isScrolling = false;
+                        container.style.cursor = 'grab';
+                    });
+
+                    container.addEventListener('mouseup', () => {
+                        isScrolling = false;
+                        container.style.cursor = 'grab';
+                    });
+
+                    container.addEventListener('mousemove', (e) => {
+                        if (!isScrolling) return;
+                        e.preventDefault();
+                        const y = e.pageY - container.offsetTop;
+                        const walk = (y - startY) * 2;
+                        container.scrollTop = scrollTop - walk;
+                    });
+                }
+            });
+        });
+    </script>
+}

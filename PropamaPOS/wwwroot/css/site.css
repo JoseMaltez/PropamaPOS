@@ -2362,3 +2362,394 @@ img, video, iframe, table, canvas {
     border-radius: 20px;
     font-weight: 600;
 }
+
+
+
+/* ===== MEJORAS ESPECÍFICAS PARA VISTAS DE ITEM ===== */
+
+/* Cards de item mejoradas */
+.item-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    background: white;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+    .item-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    .item-card .card-header {
+        background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+        color: white;
+        border-bottom: none;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .item-card .card-body {
+        padding: 1.5rem;
+    }
+
+/* Formularios de item */
+.item-form {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+    .item-form .form-label {
+        color: var(--primary-dark-blue);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .item-form .form-control,
+    .item-form .form-select,
+    .item-form .form-check-input {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 0.875rem;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background-color: #fafbfc;
+    }
+
+        .item-form .form-control:focus,
+        .item-form .form-select:focus {
+            border-color: var(--accent-yellow);
+            background-color: white;
+            box-shadow: 0 0 0 0.2rem rgba(255, 195, 0, 0.15);
+        }
+
+        .item-form .form-check-input:checked {
+            background-color: var(--accent-yellow);
+            border-color: var(--accent-yellow);
+        }
+
+/* Tabla de items mejorada */
+.items-table {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+}
+
+    .items-table thead th {
+        background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+        color: white;
+        border: none;
+        padding: 1.25rem 1rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .items-table tbody td {
+        padding: 1.25rem 1rem;
+        vertical-align: middle;
+        border-color: #f1f3f4;
+        font-size: 0.95rem;
+    }
+
+    .items-table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+        .items-table tbody tr:hover {
+            background-color: rgba(255, 195, 0, 0.05);
+        }
+
+/* Badges de tipo de item */
+.item-type-badge {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.badge-type-product {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark-blue));
+    color: white;
+}
+
+.badge-type-service {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    color: white;
+}
+
+.badge-stock-warning {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    color: #000;
+}
+
+/* Botones de acción para items */
+.btn-item-action {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-item-edit {
+    background: rgba(0, 123, 255, 0.1);
+    color: #007bff;
+}
+
+    .btn-item-edit:hover {
+        background: #007bff;
+        color: white;
+        transform: scale(1.05);
+    }
+
+.btn-item-delete {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+    .btn-item-delete:hover {
+        background: #dc3545;
+        color: white;
+        transform: scale(1.05);
+    }
+
+/* Header de página de items */
+.item-header {
+    background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.item-title {
+    color: var(--accent-yellow);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.item-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1rem;
+}
+
+/* Tabla de presentaciones en formularios */
+.presentaciones-table {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+    .presentaciones-table thead th {
+        background-color: var(--primary-dark-blue);
+        color: white;
+        border: none;
+        padding: 1rem;
+        font-weight: 600;
+    }
+
+    .presentaciones-table tbody td {
+        padding: 0.75rem;
+        vertical-align: middle;
+    }
+
+/* Estados de stock */
+.stock-adequate {
+    color: #198754;
+    font-weight: 600;
+}
+
+.stock-low {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.stock-na {
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Precios con IVA */
+.precio-sin-iva {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.precio-con-iva {
+    color: #198754;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* Filtros de búsqueda mejorados */
+.item-search-card {
+    background: white;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+}
+
+    .item-search-card .card-body {
+        padding: 1.5rem;
+    }
+
+/* Estados vacíos mejorados */
+.items-empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #6c757d;
+}
+
+.items-empty-icon {
+    font-size: 4rem;
+    color: #adb5bd;
+    margin-bottom: 1.5rem;
+    opacity: 0.6;
+}
+
+/* Paginación mejorada para items */
+.items-pagination .page-link {
+    border: none;
+    color: var(--primary-blue);
+    padding: 0.75rem 1rem;
+    margin: 0 0.25rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+    .items-pagination .page-link:hover {
+        background-color: var(--accent-yellow);
+        color: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+
+.items-pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark-blue));
+    color: white;
+    border: none;
+}
+
+.items-pagination .page-item.disabled .page-link {
+    color: #adb5bd;
+    background-color: #f8f9fa;
+}
+
+/* Alertas específicas para items */
+.item-alert {
+    border-radius: 10px;
+    border: none;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive para items */
+@media (max-width: 767.98px) {
+    .item-header {
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .items-table thead th,
+    .items-table tbody td {
+        padding: 1rem 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    .btn-item-action {
+        width: 32px;
+        height: 32px;
+    }
+
+    .item-search-card .card-body {
+        padding: 1rem;
+    }
+
+    .item-form {
+        padding: 0 0.5rem;
+    }
+
+    /* Mejoras para tablas en móvil */
+    .items-table {
+        font-size: 0.8rem;
+    }
+
+    .presentaciones-table {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .items-table {
+        font-size: 0.75rem;
+    }
+
+    .item-type-badge {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.6rem;
+    }
+
+    .items-empty-state {
+        padding: 2rem 1rem;
+    }
+
+    .items-empty-icon {
+        font-size: 3rem;
+    }
+}
+
+/* Mejoras para el formulario de confirmación de eliminación */
+.item-delete-confirmation {
+    text-align: center;
+    padding: 2rem;
+}
+
+.item-delete-confirmation-icon {
+    font-size: 4rem;
+    color: #dc3545;
+    margin-bottom: 1.5rem;
+}
+
+.item-delete-confirmation-details {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+/* Animaciones suaves para transiciones */
+.item-fade-in {
+    animation: itemFadeIn 0.5s ease-in;
+}
+
+@keyframes itemFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mejoras para presentaciones en móvil */
+@media (max-width: 767.98px) {
+    .presentaciones-table .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .col-precio {
+        min-width: 120px;
+    }
+}

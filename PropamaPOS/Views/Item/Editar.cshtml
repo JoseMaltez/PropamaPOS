@@ -5,18 +5,24 @@
     bool esServicio = Model.IsServicio;
 }
 
-<div class="container mt-4">
+<div class="container mt-4 item-fade-in">
     <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card shadow">
+        <div class="col-lg-10">
+            <div class="item-card">
+                <div class="card-header">
+                    <h3 class="mb-0 text-center"><i class="bi bi-pencil-square me-2"></i>Editar Producto o Servicio</h3>
+                </div>
                 <div class="card-body">
-                    <h3 class="card-title text-center mb-4">Editar Producto o Servicio</h3>
-
-                    <form asp-action="Editar" method="post" id="itemForm">
+                    <form asp-action="Editar" method="post" id="itemForm" class="item-form">
                         @Html.HiddenFor(m => m.Id_Item)
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <input type="hidden" asp-for="Codigo" />
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                        <div class="row">
+                        <!-- Información Básica -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="section-title mb-3"><i class="bi bi-info-circle me-2"></i>Información Básica</h5>
+                            </div>
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Nombre" class="form-label"></label>
                                 <input asp-for="Nombre" class="form-control" placeholder="Nombre del producto o servicio" />
@@ -25,7 +31,6 @@
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Codigo" class="form-label">Código del producto/servicio</label>
                                 <input asp-for="Codigo" class="form-control" readonly />
-                                <input type="hidden" asp-for="Codigo" />
                                 <span class="form-text text-muted">Este código es generado automáticamente y no puede modificarse.</span>
                             </div>
                         </div>
@@ -48,7 +53,6 @@
                             <div class="form-text">Dejar en 0 si no aplica. No se aplica para servicios.</div>
                         </div>
 
-
                         <div class="form-check mb-4">
                             <input type="checkbox" class="form-check-input" id="IsServicio" name="IsServicio" value="true" @(esServicio ? "checked='checked'" : "") disabled="disabled" />
                             <label class="form-check-label" for="IsServicio">Es un servicio?</label>
@@ -59,67 +63,78 @@
                         <h5>Presentaciones y precios</h5>
                         <p class="text-muted small">Para servicios, solo se permite una unidad con cantidad 1 y precio editable.</p>
 
-                        <table class="table" id="presentacionesTable">
-                            <thead>
-                                <tr>
-                                    <th>Unidad</th>
-                                    <th>Cantidad</th>
-                                    @if (esServicio)
-                                    {
-                                        <th class="col-precio">Precio Venta (Q)</th>
-                                    }
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @for (int i = 0; i < Model.Presentaciones.Count; i++)
-                                {
-                                    var p = Model.Presentaciones[i];
+                        <div class="table-responsive">
+                            <table class="table table-bordered presentaciones-table" id="presentacionesTable">
+                                <thead class="table-dark">
                                     <tr>
-                                        <input type="hidden" name="Presentaciones[@i].Id_ItemPresentacion" value="@p.Id_ItemPresentacion" />
-                                        <td>
-                                            <select name="Presentaciones[@i].Id_UnidadMedida" class="form-select" required @(esServicio ? "disabled" : "")>
-                                                @foreach (var u in unidades)
-                                                {
-                                                    <option value="@u.Id_UnidadMedida" selected="@(u.Id_UnidadMedida == p.Id_UnidadMedida ? "selected" : null)">@u.Nombre</option>
-                                                }
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <input name="Presentaciones[@i].Cantidad" value="@p.Cantidad" class="form-control" type="number" min="1" required @(esServicio ? "readonly" : "") />
-                                        </td>
-
+                                        <th>Unidad</th>
+                                        <th>Cantidad</th>
                                         @if (esServicio)
                                         {
-                                            <td class="col-precio">
-                                                <input name="Presentaciones[@i].PrecioVenta"
-                                                       value="@p.PrecioVenta"
-                                                       class="form-control precio-input"
-                                                       type="number"
-                                                       step="0.01"
-                                                       min="0"
-                                                       required />
-                                            </td>
+                                            <th class="col-precio">Precio Venta (Q)</th>
                                         }
-
-                                        <td></td>
+                                        <th></th>
                                     </tr>
-                                }
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < Model.Presentaciones.Count; i++)
+                                    {
+                                        var p = Model.Presentaciones[i];
+                                        <tr>
+                                            <input type="hidden" name="Presentaciones[@i].Id_ItemPresentacion" value="@p.Id_ItemPresentacion" />
+                                            <td>
+                                                <select name="Presentaciones[@i].Id_UnidadMedida" class="form-select" required @(esServicio ? "disabled" : "")>
+                                                    @foreach (var u in unidades)
+                                                    {
+                                                        <option value="@u.Id_UnidadMedida" selected="@(u.Id_UnidadMedida == p.Id_UnidadMedida ? "selected" : null)">@u.Nombre</option>
+                                                    }
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input name="Presentaciones[@i].Cantidad" value="@p.Cantidad" class="form-control" type="number" min="1" required @(esServicio ? "readonly" : "") />
+                                            </td>
+
+                                            @if (esServicio)
+                                            {
+                                                <td class="col-precio">
+                                                    <input name="Presentaciones[@i].PrecioVenta"
+                                                           value="@p.PrecioVenta"
+                                                           class="form-control precio-input"
+                                                           type="number"
+                                                           step="0.01"
+                                                           min="0"
+                                                           required />
+                                                </td>
+                                            }
+
+                                            <td>
+                                                @if (!esServicio)
+                                                {
+                                                    <button type="button" class="btn btn-danger btn-sm remove-row"><i class="bi bi-trash"></i></button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
 
                         @if (!esServicio)
                         {
                             <div class="mb-3">
-                                <button type="button" id="addPresentacion" class="btn btn-outline-secondary">
+                                <button type="button" id="addPresentacion" class="btn btn-outline-primary">
                                     <i class="bi bi-plus"></i> Agregar presentación
                                 </button>
                             </div>
                         }
 
-                        <div class="d-flex justify-content-between">
-                            <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
-                            <button type="submit" class="btn btn-success">Guardar cambios</button>
+                        <div class="d-flex justify-content-between pt-3 border-top">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i> Volver
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle me-2"></i> Guardar cambios
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -143,6 +158,7 @@
             const servicioNombre = "servicio";
             const isServicio = document.getElementById('IsServicio');
 
+            // Configuración inicial basada en si es servicio o producto
             if (categoriaSelect && categoriaSelect.options.length > 0) {
                 const first = categoriaSelect.options[0];
                 if (first && first.value === "") first.disabled = true;
@@ -155,11 +171,13 @@
                 });
             }
 
+            // Ocultar o mostrar opción de servicio según el tipo
             if (categoriaSelect) hideServicioOption(!esServicio);
 
+            // Configuración para servicios
             if (esServicio) {
                 if (addBtn) addBtn.disabled = true;
-                const unidadSelect = tableBody.querySelector('select.unidad-select') || tableBody.querySelector('select');
+                const unidadSelect = tableBody.querySelector('select');
                 const cantidadInput = tableBody.querySelector('input[name*=".Cantidad"]');
                 const precioInput = tableBody.querySelector('.precio-input');
 
@@ -174,10 +192,21 @@
                 }
                 if (precioInput) precioInput.removeAttribute('readonly');
 
+                // Remover botones de eliminar en servicios
                 tableBody.querySelectorAll('.remove-row').forEach(b => b.remove());
-            } else {
+
+                // Ocultar stock mínimo para servicios
+                stockMinimoContainer.style.display = 'none';
+            }
+            // Configuración para productos
+            else {
+                // Ocultar columna de precio para productos
                 document.querySelectorAll('.col-precio').forEach(td => td.style.display = 'none');
 
+                // Mostrar stock mínimo para productos
+                stockMinimoContainer.style.display = 'block';
+
+                // Configurar botón para agregar presentaciones
                 if (addBtn) {
                     let nextIndex = tableBody.querySelectorAll('tr').length;
                     addBtn.addEventListener('click', function () {
@@ -189,9 +218,11 @@
                                     ${unidades.map(u => `<option value="${u.Id_UnidadMedida}">${u.Nombre}</option>`).join('')}
                                 </select>
                             </td>
-                            <td><input name="Presentaciones[${nextIndex}].Cantidad" value="1" class="form-control" type="number" min="1" required /></td>
                             <td>
-                                <button type="button" class="btn btn-danger btn-sm remove-row">Eliminar</button>
+                                <input name="Presentaciones[${nextIndex}].Cantidad" value="1" class="form-control" type="number" min="1" required />
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-danger btn-sm remove-row"><i class="bi bi-trash"></i></button>
                             </td>
                         `;
                         tableBody.appendChild(tr);
@@ -199,27 +230,50 @@
                     });
                 }
 
+                // Configurar eliminación de filas
                 tableBody.addEventListener('click', function (e) {
                     if (e.target && e.target.classList.contains('remove-row')) {
-                        e.target.closest('tr').remove();
+                        const tr = e.target.closest('tr');
+                        // Solo permitir eliminar si hay más de una fila
+                        if (tr && tableBody.querySelectorAll('tr').length > 1) {
+                            tr.remove();
+                            // Reindexar las filas restantes
+                            reindexRows();
+                        }
                     }
                 });
 
-            }
+                // Función para reindexar filas después de eliminar
+                function reindexRows() {
+                    const rows = tableBody.querySelectorAll('tr');
+                    rows.forEach((row, index) => {
+                        // Actualizar nombres de los inputs
+                        const unidadSelect = row.querySelector('select');
+                        const cantidadInput = row.querySelector('input[name*=".Cantidad"]');
+                        const idHidden = row.querySelector('input[type="hidden"]');
 
-
-            function toggleStockMinimo() {
-                if (esServicio) {
-                    stockMinimoContainer.style.display = 'none';
-                } else {
-                    stockMinimoContainer.style.display = 'block';
+                        if (unidadSelect) unidadSelect.name = `Presentaciones[${index}].Id_UnidadMedida`;
+                        if (cantidadInput) cantidadInput.name = `Presentaciones[${index}].Cantidad`;
+                        if (idHidden) idHidden.name = `Presentaciones[${index}].Id_ItemPresentacion`;
+                    });
                 }
             }
-            toggleStockMinimo();
 
+            // Validación del formulario
+            document.getElementById('itemForm').addEventListener('submit', function(e){
+                if (!categoriaSelect.value) {
+                    e.preventDefault();
+                    alert('Por favor seleccione una categoría válida.');
+                    return false;
+                }
 
-
-
+                // Validar que los productos tengan al menos una presentación
+                if (!esServicio && tableBody.querySelectorAll('tr').length === 0) {
+                    e.preventDefault();
+                    alert('Los productos deben tener al menos una presentación.');
+                    return false;
+                }
+            });
         })();
     </script>
 }
