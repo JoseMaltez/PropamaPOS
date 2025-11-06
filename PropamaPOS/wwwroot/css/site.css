@@ -1731,3 +1731,315 @@ img, video, iframe, table, canvas {
         transform: translateY(0);
     }
 }
+
+
+
+/* ===== VISTAS DE CLIENTE MEJORADAS ===== */
+
+/* Cards de cliente mejoradas */
+.client-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    background: white;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+    .client-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    .client-card .card-header {
+        background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+        color: white;
+        border-bottom: none;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .client-card .card-body {
+        padding: 1.5rem;
+    }
+
+/* Formularios de cliente */
+.client-form {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+    .client-form .form-label {
+        color: var(--primary-dark-blue);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .client-form .form-control,
+    .client-form .form-select {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 0.875rem;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background-color: #fafbfc;
+    }
+
+        .client-form .form-control:focus,
+        .client-form .form-select:focus {
+            border-color: var(--accent-yellow);
+            background-color: white;
+            box-shadow: 0 0 0 0.2rem rgba(255, 195, 0, 0.15);
+        }
+
+/* Tabla de clientes mejorada */
+.clients-table {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+}
+
+    .clients-table thead th {
+        background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+        color: white;
+        border: none;
+        padding: 1.25rem 1rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .clients-table tbody td {
+        padding: 1.25rem 1rem;
+        vertical-align: middle;
+        border-color: #f1f3f4;
+        font-size: 0.95rem;
+    }
+
+    .clients-table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+        .clients-table tbody tr:hover {
+            background-color: rgba(255, 195, 0, 0.05);
+        }
+
+/* Badges de estado de cliente */
+.client-status-badge {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.badge-status-active {
+    background: linear-gradient(135deg, #28a745, #218838);
+    color: white;
+}
+
+.badge-status-inactive {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+    color: white;
+}
+
+/* Botones de acción para clientes */
+.btn-client-action {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-client-edit {
+    background: rgba(0, 123, 255, 0.1);
+    color: #007bff;
+}
+
+    .btn-client-edit:hover {
+        background: #007bff;
+        color: white;
+        transform: scale(1.05);
+    }
+
+.btn-client-delete {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+    .btn-client-delete:hover {
+        background: #dc3545;
+        color: white;
+        transform: scale(1.05);
+    }
+
+/* Header de página de clientes */
+.client-header {
+    background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.client-title {
+    color: var(--accent-yellow);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.client-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1rem;
+}
+
+/* Filtros de búsqueda mejorados */
+.client-search-card {
+    background: white;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+}
+
+    .client-search-card .card-body {
+        padding: 1.5rem;
+    }
+
+/* Estados vacíos mejorados */
+.clients-empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #6c757d;
+}
+
+.clients-empty-icon {
+    font-size: 4rem;
+    color: #adb5bd;
+    margin-bottom: 1.5rem;
+    opacity: 0.6;
+}
+
+/* Paginación mejorada para clientes */
+.clients-pagination .page-link {
+    border: none;
+    color: var(--primary-blue);
+    padding: 0.75rem 1rem;
+    margin: 0 0.25rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+    .clients-pagination .page-link:hover {
+        background-color: var(--accent-yellow);
+        color: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+
+.clients-pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark-blue));
+    color: white;
+    border: none;
+}
+
+.clients-pagination .page-item.disabled .page-link {
+    color: #adb5bd;
+    background-color: #f8f9fa;
+}
+
+/* Alertas específicas para clientes */
+.client-alert {
+    border-radius: 10px;
+    border: none;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive para clientes */
+@media (max-width: 767.98px) {
+    .client-header {
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .clients-table thead th,
+    .clients-table tbody td {
+        padding: 1rem 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    .btn-client-action {
+        width: 32px;
+        height: 32px;
+    }
+
+    .client-search-card .card-body {
+        padding: 1rem;
+    }
+
+    .client-form {
+        padding: 0 0.5rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .clients-table {
+        font-size: 0.8rem;
+    }
+
+    .client-status-badge {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.6rem;
+    }
+
+    .clients-empty-state {
+        padding: 2rem 1rem;
+    }
+
+    .clients-empty-icon {
+        font-size: 3rem;
+    }
+}
+
+/* Mejoras para el formulario de confirmación de eliminación */
+.client-delete-confirmation {
+    text-align: center;
+    padding: 2rem;
+}
+
+.client-delete-confirmation-icon {
+    font-size: 4rem;
+    color: #dc3545;
+    margin-bottom: 1.5rem;
+}
+
+.client-delete-confirmation-details {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+/* Animaciones suaves para transiciones */
+.client-fade-in {
+    animation: clientFadeIn 0.5s ease-in;
+}
+
+@keyframes clientFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

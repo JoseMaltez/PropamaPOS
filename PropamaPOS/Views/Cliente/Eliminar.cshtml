@@ -3,58 +3,80 @@
     ViewData["Title"] = "Eliminar Cliente";
 }
 
-<div class="container mt-4">
+<div class="container-fluid mt-4 client-fade-in">
     <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
+        <div class="col-12 col-lg-6 col-xl-5">
+            <!-- Header -->
+            <div class="client-header text-center mb-4">
+                <h1 class="client-title mb-2">
+                    <i class="bi bi-person-x-fill me-3"></i>Eliminar Cliente
+                </h1>
+                <p class="client-subtitle mb-0">
+                    Confirma la eliminacion del cliente seleccionado
+                </p>
+            </div>
+
+            <!-- Alerta de Confirmación -->
+            <div class="client-card">
                 <div class="card-body">
-                    <h3 class="card-title text-center mb-4 text-danger">
-                        <i class="bi bi-exclamation-triangle-fill"></i> Eliminar Cliente
-                    </h3>
+                    <div class="client-delete-confirmation">
+                        <div class="client-delete-confirmation-icon">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                        </div>
+                        
+                        <div class="alert alert-warning client-alert text-center">
+                            <h5 class="alert-heading mb-3">
+                                <i class="bi bi-exclamation-triangle me-2"></i>¿Eliminar Cliente?
+                            </h5>
+                            <p class="mb-2">El cliente será eliminado, y no aparecerá en el listado principal.</p>
+                            <p class="mb-0 fw-semibold">Esta acción no se puede revertir.</p>
+                        </div>
 
-                    <div class="alert alert-danger" role="alert">
-                        <h5 class="alert-heading">¿Está seguro que desea desactivar este cliente?</h5>
-                        <p class="mb-0">El cliente no será eliminado permanentemente, solo quedará inactivo y no aparecerá en el listado.</p>
-                    </div>
-
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <h6 class="card-subtitle mb-2 text-muted">Información del Cliente</h6>
-                            <dl class="row">
-                                <dt class="col-sm-4">ID:</dt>
-                                <dd class="col-sm-8">@Model.Id_Cliente</dd>
-
-                                <dt class="col-sm-4">Nombre:</dt>
-                                <dd class="col-sm-8">@Model.Nombre @Model.Apellido</dd>
-
-                                <dt class="col-sm-4">NIT:</dt>
-                                <dd class="col-sm-8">@Model.NIT</dd>
-
-                                <dt class="col-sm-4">Dirección:</dt>
-                                <dd class="col-sm-8">@Model.Direccion</dd>
-
-                                <dt class="col-sm-4">Estado:</dt>
-                                <dd class="col-sm-8">
-                                    <span class="badge bg-@(Model.Activo ? "success" : "danger")">
+                        <!-- Información del Cliente -->
+                        <div class="client-delete-confirmation-details">
+                            <h6 class="text-center mb-3 text-primary">
+                                <i class="bi bi-person-badge me-2"></i>Información del Cliente
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <small class="text-muted d-block">ID Cliente</small>
+                                    <strong class="text-dark">@Model.Id_Cliente</strong>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted d-block">NIT</small>
+                                    <strong class="text-dark">@Model.NIT</strong>
+                                </div>
+                                <div class="col-12">
+                                    <small class="text-muted d-block">Nombre Completo</small>
+                                    <strong class="text-dark">@Model.Nombre @Model.Apellido</strong>
+                                </div>
+                                <div class="col-12">
+                                    <small class="text-muted d-block">Dirección</small>
+                                    <strong class="text-dark">@(string.IsNullOrEmpty(Model.Direccion) ? "Sin dirección" : Model.Direccion)</strong>
+                                </div>
+                                <div class="col-12">
+                                    <small class="text-muted d-block">Estado Actual</small>
+                                    <span class="client-status-badge badge-status-@(Model.Activo ? "active" : "inactive")">
                                         @(Model.Activo ? "Activo" : "Inactivo")
                                     </span>
-                                </dd>
-                            </dl>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <form asp-action="Eliminar" method="post">
-                        <input type="hidden" asp-for="Id_Cliente" />
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a asp-action="Index" class="btn btn-secondary me-md-2">
-                                <i class="bi bi-arrow-left"></i> Cancelar
-                            </a>
-                            <button type="submit" class="btn btn-danger"
-                                    onclick="return confirm('¿Está seguro que desea desactivar este cliente?')">
-                                <i class="bi bi-person-x"></i> Desactivar Cliente
-                            </button>
-                        </div>
-                    </form>
+                        <!-- Formulario de Confirmación -->
+                        <form asp-action="Eliminar" method="post" class="mt-4">
+                            <input type="hidden" asp-for="Id_Cliente" />
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                <a asp-action="Index" class="btn btn-outline-secondary me-md-2">
+                                    <i class="bi bi-arrow-left me-2"></i>Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-danger"
+                                        onclick="return confirm('¿Está completamente seguro de que desea eliminar este cliente?')">
+                                    <i class="bi bi-person-x me-2"></i>Eliminar Cliente
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
