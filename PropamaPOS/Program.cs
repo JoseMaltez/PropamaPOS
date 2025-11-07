@@ -43,7 +43,7 @@ builder.Services.AddTransient<EmailServiceClient>();
 
 builder.Services.AddHttpClient("EmailService", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5204");
+    client.BaseAddress = new Uri("http://correopropama.somee.com");
 });
 
 
@@ -72,7 +72,6 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseRequestLocalization(localizationOptions);
-app.MapControllers();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles(); 
@@ -80,6 +79,7 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapControllers();
 
 //app.MapStaticAssets();
 
