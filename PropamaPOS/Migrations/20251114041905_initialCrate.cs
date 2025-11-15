@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PropamaPOS.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCrate : Migration
+    public partial class initialCrate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

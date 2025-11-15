@@ -12,7 +12,7 @@
 }
 
 <div class="container mt-4 item-fade-in">
-    <!-- Header Mejorado -->
+    <!-- Header  -->
     <div class="item-header">
         <div class="row align-items-center">
             <div class="col-md-8">
@@ -29,7 +29,7 @@
 
     @await Html.PartialAsync("_AlertsPartial")
 
-    <!-- Filtros Mejorados -->
+    <!-- Filtros  -->
     <div class="item-search-card">
         <div class="card-body">
             <h5 class="card-title mb-4"><i class="bi bi-funnel me-2"></i>Filtros de Búsqueda</h5>
@@ -69,7 +69,7 @@
         </div>
     </div>
 
-    <!-- Tabla de Inventario Mejorada -->
+    <!-- Tabla de Inventario  -->
     <div class="item-card">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
@@ -199,7 +199,7 @@
                     </table>
                 </div>
 
-                <!-- Paginación Mejorada -->
+                <!-- Paginación  -->
                 @if (totalPages > 1)
                 {
                     <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
@@ -311,7 +311,7 @@
                 margin-bottom: 0 !important;
             }
 
-        /* Mejoras específicas para la vista de inventario */
+
         .inventario-stats {
             background: linear-gradient(135deg, var(--primary-dark-blue) 0%, var(--primary-blue) 100%);
             color: white;
@@ -328,7 +328,7 @@
                 transform: translateY(-2px);
             }
 
-        /* Responsive improvements para inventario */
+
         @@media (max-width: 768px) {
             .presentaciones-container {
                 max-height: 150px;
@@ -338,8 +338,8 @@
                 margin-bottom: 1rem;
             }
 
-            .items-table td:nth-child(3), /* Categoría */
-            .items-table td:nth-child(5) /* Stock Mínimo */ {
+            .items-table td:nth-child(3), 
+            .items-table td:nth-child(5) {
                 display: none;
             }
 
@@ -365,7 +365,7 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Inicializar tooltips si existen
+            //  tooltips 
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
             const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
@@ -382,7 +382,7 @@
                 });
             });
 
-            // Auto-scroll suave para presentaciones
+
             const presentacionesContainers = document.querySelectorAll('.presentaciones-container');
             presentacionesContainers.forEach(container => {
                 if (container.scrollHeight > container.clientHeight) {

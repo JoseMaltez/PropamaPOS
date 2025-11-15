@@ -107,7 +107,6 @@
 
 @section Styles {
     <style>
-        /* CORRECCIÓN PARA SUGERENCIAS PREDICTIVAS - EVITAR QUE SE CORTEN */
         .table-responsive {
             overflow: visible !important;
         }
@@ -171,7 +170,7 @@
             border-radius: 0.375rem;
         }
 
-        /* Asegurar que la tabla mantenga su funcionalidad responsive en móvil */
+
         @@media (max-width: 768px) {
             .table-responsive
 
@@ -311,14 +310,13 @@
                 sugBox.style.display = 'block';
             });
 
-            // Ocultar sugerencias al hacer clic fuera
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('.sugerencias-container')) {
                     sugBox.style.display = 'none';
                 }
             });
 
-            // Calcular unidades cuando cambia presentación o cantidad
+
             presSelect.addEventListener('change', () => {
                 calcularUnidades(row);
                 validateRow(row);
@@ -369,7 +367,7 @@
             return isValid;
         }
 
-        // Event Listeners
+
         document.getElementById("btnAgregar").addEventListener("click", agregarFila);
 
         document.getElementById("formAjuste").addEventListener("submit", function (e) {
@@ -381,7 +379,7 @@
                 return;
             }
 
-            // Validar todas las filas
+
             let allValid = true;
             rows.forEach(row => {
                 if (!validateRow(row)) {
@@ -406,7 +404,7 @@
             document.querySelector('.card-body').prepend(alertDiv);
         }
 
-        // Inicializar primera fila vacía
+
         toggleEmptyState();
     </script>
 }

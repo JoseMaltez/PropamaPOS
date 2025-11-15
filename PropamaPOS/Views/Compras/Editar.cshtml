@@ -230,7 +230,7 @@
 
             tbody.appendChild(tr);
 
-            // Cargar presentaciones si viene del servidor
+
             if (linea) {
                 const presSelect = tr.querySelector(".pres-select");
                 const item = items.find(i => i.presentaciones.some(p => p.id_ItemPresentacion === linea.Id_ItemPresentacion));

@@ -246,7 +246,7 @@
         padding: 0.5rem 0.75rem;
     }
 
-    /* Contenedor de acciones - tamaño fijo */
+    /* Contenedor de acciones */
     .acciones-compras {
         min-width: 140px;
         justify-content: center;
@@ -254,7 +254,7 @@
         gap: 0.25rem;
     }
 
-    /* Botones de acción - tamaño fijo */
+    /* Botones de acción */
     .btn-accion {
         width: 32px;
         height: 32px;
@@ -270,7 +270,7 @@
         background-color: #f8f9fa;
     }
 
-    /* Forms dentro de acciones */
+
     .acciones-compras form {
         display: inline;
         margin: 0;
@@ -293,7 +293,7 @@
         color: #001d3d;
     }
 
-    /* Responsive para botones en móvil */
+
     @@media (max-width: 768px) {
         .acciones-compras {
             min-width: auto;
@@ -317,7 +317,7 @@
         }
     }
 
-    /* Para una sola acción, mantener el mismo tamaño */
+
     .acciones-compras:has(.btn-accion:only-child) {
         min-width: 32px;
     }
@@ -326,13 +326,13 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar tooltips
+            // tooltips
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
 
-            // Confirmación para acciones destructivas
+
             document.querySelectorAll('form[asp-action="Cancelar"]').forEach(form => {
                 form.addEventListener('submit', function(e) {
                     if (!confirm('¿Está seguro de que desea cancelar esta compra? Esta acción no se puede deshacer.')) {

@@ -158,7 +158,7 @@
             const servicioNombre = "servicio";
             const isServicio = document.getElementById('IsServicio');
 
-            // Configuración inicial basada en si es servicio o producto
+            // servicio o producto
             if (categoriaSelect && categoriaSelect.options.length > 0) {
                 const first = categoriaSelect.options[0];
                 if (first && first.value === "") first.disabled = true;
@@ -171,7 +171,7 @@
                 });
             }
 
-            // Ocultar o mostrar opción de servicio según el tipo
+
             if (categoriaSelect) hideServicioOption(!esServicio);
 
             // Configuración para servicios
@@ -192,21 +192,19 @@
                 }
                 if (precioInput) precioInput.removeAttribute('readonly');
 
-                // Remover botones de eliminar en servicios
+
                 tableBody.querySelectorAll('.remove-row').forEach(b => b.remove());
 
-                // Ocultar stock mínimo para servicios
                 stockMinimoContainer.style.display = 'none';
             }
             // Configuración para productos
             else {
-                // Ocultar columna de precio para productos
+
                 document.querySelectorAll('.col-precio').forEach(td => td.style.display = 'none');
 
-                // Mostrar stock mínimo para productos
+
                 stockMinimoContainer.style.display = 'block';
 
-                // Configurar botón para agregar presentaciones
                 if (addBtn) {
                     let nextIndex = tableBody.querySelectorAll('tr').length;
                     addBtn.addEventListener('click', function () {
@@ -230,24 +228,24 @@
                     });
                 }
 
-                // Configurar eliminación de filas
+
                 tableBody.addEventListener('click', function (e) {
                     if (e.target && e.target.classList.contains('remove-row')) {
                         const tr = e.target.closest('tr');
-                        // Solo permitir eliminar si hay más de una fila
+
                         if (tr && tableBody.querySelectorAll('tr').length > 1) {
                             tr.remove();
-                            // Reindexar las filas restantes
+
                             reindexRows();
                         }
                     }
                 });
 
-                // Función para reindexar filas después de eliminar
+
                 function reindexRows() {
                     const rows = tableBody.querySelectorAll('tr');
                     rows.forEach((row, index) => {
-                        // Actualizar nombres de los inputs
+
                         const unidadSelect = row.querySelector('select');
                         const cantidadInput = row.querySelector('input[name*=".Cantidad"]');
                         const idHidden = row.querySelector('input[type="hidden"]');
@@ -267,7 +265,7 @@
                     return false;
                 }
 
-                // Validar que los productos tengan al menos una presentación
+
                 if (!esServicio && tableBody.querySelectorAll('tr').length === 0) {
                     e.preventDefault();
                     alert('Los productos deben tener al menos una presentación.');

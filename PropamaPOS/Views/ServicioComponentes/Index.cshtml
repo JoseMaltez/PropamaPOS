@@ -371,12 +371,12 @@
                 border: none;
             }
 
-        /* Estados vacíos mejorados */
+
         .text-center.py-5 {
             padding: 3rem 2rem !important;
         }
 
-        /* Responsive */
+        /* Responsivo */
         @@media (max-width: 767.98px) {
             .servicio-header {
                 padding: 1.5rem !important;
@@ -458,13 +458,13 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Inicializar tooltips
+            //  tooltips
             const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
             if (tooltipTriggerList.length > 0 && typeof bootstrap !== 'undefined') {
                 [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
             }
 
-            // Efectos de hover para las filas
+
             const tableRows = document.querySelectorAll('.servicio-table-row');
             tableRows.forEach(row => {
                 row.addEventListener('mouseenter', function () {
@@ -472,7 +472,7 @@
                 });
             });
 
-            // Animación de entrada para la tabla
+
             const tableBody = document.querySelector('.servicio-index-table tbody');
             if (tableBody) {
                 const rows = tableBody.querySelectorAll('.servicio-table-row');
@@ -488,7 +488,7 @@
                 });
             }
 
-            // Confirmación para eliminaciones
+
             const deleteButtons = document.querySelectorAll('a[asp-action="EliminarServicio"]');
             deleteButtons.forEach(button => {
                 button.addEventListener('click', function (e) {
@@ -513,7 +513,7 @@
                 });
             });
 
-            // Scroll suave para la tabla
+
             const insumosContainers = document.querySelectorAll('.insumos-container');
             insumosContainers.forEach(container => {
                 if (container.scrollHeight > 300) {
@@ -524,6 +524,6 @@
         });
     </script>
 
-    <!-- SweetAlert2 para confirmaciones -->
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 }

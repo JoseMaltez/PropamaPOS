@@ -16,25 +16,25 @@
                 </h5>
             </div>
             <div class="modal-body text-center py-4">
-                <!-- Spinner de procesamiento -->
+
                 <div id="spinnerPago" class="mb-4">
                     <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status">
                         <span class="visually-hidden">Procesando pago...</span>
                     </div>
                 </div>
 
-                <!-- Icono de éxito -->
+
                 <div id="pagoExitoso" class="mb-4" style="display: none;">
                     <div class="text-success" style="font-size: 4rem;">
                         <i class="bi bi-check-circle-fill"></i>
                     </div>
                 </div>
 
-                <!-- Mensajes -->
+
                 <h4 id="mensajePago" class="mb-3 text-dark">Esperando pago...</h4>
                 <p id="detallePago" class="text-muted mb-4">Por favor, acerque o inserte su tarjeta en el terminal</p>
 
-                <!-- Información de la transacción -->
+
                 <div class="card bg-light">
                     <div class="card-body py-3">
                         <div class="row">
@@ -108,7 +108,7 @@
                     </div>
                 }
 
-                <!-- Sección: Información del Cliente -->
+                <!-- Información del Cliente -->
                 <div class="form-section-venta">
                     <h5 class="form-section-title">
                         <i class="bi bi-person me-2"></i>Información del Cliente
@@ -158,7 +158,7 @@
                     </div>
                 </div>
 
-                <!-- Sección: Detalle de la Venta -->
+                <!-- Detalle de la Venta -->
                 <div class="form-section-venta">
                     <h5 class="form-section-title">
                         <i class="bi bi-cart me-2"></i>Detalle de la Venta
@@ -258,7 +258,7 @@
                     </div>
                 </div>
 
-                <!-- Sección: Pago -->
+                <!-- Pago -->
                 <div class="form-section-venta mt-4">
                     <h5 class="form-section-title">
                         <i class="bi bi-credit-card me-2"></i>Información de Pago
@@ -307,10 +307,8 @@
     }
 
     <script>
-        // NOTA: TODO EL JAVASCRIPT ORIGINAL SE MANTIENE EXACTAMENTE IGUAL
-        // Solo se ha mejorado el HTML y CSS, la funcionalidad JavaScript permanece intacta
 
-        // Datos pasados desde el servidor
+
         const items = @Html.Raw(itemsJson ?? "[]");
         let lineas = [];
         let pagoProcesando = false;
@@ -322,7 +320,7 @@
             if (metodoPago === 'Tarjeta' && !pagoProcesando) {
                 e.preventDefault();
 
-                // Validaciones previas
+
                 if (lineas.length === 0) {
                     alert('Debe agregar al menos un producto o servicio antes de guardar.');
                     return;
@@ -337,7 +335,7 @@
                     return;
                 }
 
-                // Configurar modal
+
                 const total = document.getElementById('totalText').innerText;
                 document.getElementById('montoTransaccion').textContent = `Q ${total}`;
 
@@ -358,14 +356,14 @@
             const detallePago = document.getElementById('detallePago');
             const cancelarBtn = document.getElementById('cancelarPagoBtn');
 
-            // Resetear estado del modal
+
             spinner.style.display = 'block';
             pagoExitoso.style.display = 'none';
             mensajePago.textContent = 'Esperando pago...';
             detallePago.textContent = 'Por favor, acerque o inserte su tarjeta en el terminal';
             cancelarBtn.style.display = 'block';
 
-            // Simular procesamiento en etapas
+
             setTimeout(() => {
                 mensajePago.textContent = 'Procesando tarjeta...';
                 detallePago.textContent = 'Leyendo información de la tarjeta';
@@ -403,7 +401,7 @@
             const modal = bootstrap.Modal.getInstance(document.getElementById('pagoTarjetaModal'));
             modal.hide();
 
-            // Resetear estado
+
             const spinner = document.getElementById('spinnerPago');
             const pagoExitoso = document.getElementById('pagoExitoso');
             const mensajePago = document.getElementById('mensajePago');
@@ -416,11 +414,11 @@
             detallePago.textContent = 'Por favor, acerque o inserte su tarjeta en el terminal';
         }
 
-        // Event Listeners
+
         document.getElementById('btnPagarGuardar').addEventListener('click', simularPagoConTarjeta);
         document.getElementById('cancelarPagoBtn').addEventListener('click', cancelarProcesoPago);
 
-        // El resto del código JavaScript existente se mantiene exactamente igual...
+
         function actualizarPresentacionesFor(itemId) {
             const item = items.find(i => i.id_Item === parseInt(itemId));
             const sel = document.getElementById('presentacionSelect');
@@ -518,9 +516,9 @@
             const itemObj = items.find(i => i.id_Item === parseInt(itemId));
             const esServicio = itemObj ? itemObj.isServicio : false;
 
-            // Si no es servicio, verificar stock considerando líneas ya añadidas
+
             if (!esServicio) {
-                // sumar las unidades ya pedidas para este mismo item (en lineas)
+
                 const itemIdNum = parseInt(itemId);
                 const yaPedidas = lineas
                     .filter(l => l.id_Item === itemIdNum && !l.esServicio)
@@ -540,14 +538,14 @@
                     document.querySelector('#tablaLineas').before(div);
                     return;
                 } else {
-                    // remover mensaje de stock si existe
+
                     const alertaExist = document.getElementById('stockAlert');
                     if (alertaExist) alertaExist.remove();
                 }
             }
 
              else {
-                // remover mensaje de stock si existe
+
                 const alertaExist = document.getElementById('stockAlert');
                 if (alertaExist) alertaExist.remove();
             }
@@ -631,7 +629,7 @@
                     hidden.innerHTML += `<input type="hidden" name="lineas[${i}].Descuento" value="${l.descuento}" />`;
                 });
 
-                // totals (opcional)
+                // total
                 hidden.innerHTML += `<input type="hidden" name="ventaInput.Subtotal" value="${subtotal.toFixed(2)}" />`;
                 hidden.innerHTML += `<input type="hidden" name="ventaInput.Descuentos" value="${descuentos.toFixed(2)}" />`;
                 hidden.innerHTML += `<input type="hidden" name="ventaInput.IVA" value="${(ivaTotal).toFixed(2)}" />`;
@@ -654,7 +652,7 @@
         document.getElementById('limpiarCampos').addEventListener('click', limpiarCamposDetalle);
 
 
-        // Quitar linea (delegation)
+
         document.querySelector('#tablaLineas tbody').addEventListener('click', function(e){
             if (e.target.matches('button[data-idx]') || e.target.closest('button[data-idx]')) {
                 const button = e.target.matches('button[data-idx]') ? e.target : e.target.closest('button[data-idx]');
@@ -671,7 +669,7 @@
             const clienteFields = document.getElementById('clienteFields');
             const nombreCFGroup = document.getElementById('nombreCFGroup');
 
-            // Mostrar/ocultar
+
             nitGroup.style.display = val === 'NIT' ? 'block' : 'none';
             clienteFields.style.display = val === 'NIT' ? 'block' : 'none';
             nombreCFGroup.style.display = val === 'CF' ? 'block' : 'none';
@@ -770,9 +768,9 @@
         }
         const previousLineasFromServer = @Html.Raw(prevJson ?? "[]");
         if (previousLineasFromServer && previousLineasFromServer.length) {
-            // mapear para la estructura JS que usa renderLineas()
+
             previousLineasFromServer.forEach(pl => {
-                // si pl tiene Id_ItemPresentacion y CantidadPresentaciones/Descuento
+
                 const itemObj = items.find(i => i.id_Item === pl.Id_Item);
                 const present = (itemObj && itemObj.presentaciones)
                     ? itemObj.presentaciones.find(p => p.id_ItemPresentacion === pl.Id_ItemPresentacion)
@@ -794,21 +792,21 @@
             renderLineas();
         }
 
-                // Si al cargar la vista ya está seleccionado NIT (por validación previa)
+
         if (document.getElementById('facturarCon').value === 'NIT') {
             document.getElementById('clienteFields').style.display = 'block';
         }
 
 
-        // Inicial
+
         document.getElementById('facturarCon').dispatchEvent(new Event('change'));
 
-                // Validación previa al envío (modificada para tarjeta)
+
         document.getElementById('ventaForm').addEventListener('submit', function (e) {
-            // Si es pago con tarjeta y ya pasó por la simulación, permitir envío
+
             const metodo = document.getElementById('metodoPago').value;
             if (metodo === 'Tarjeta' && pagoProcesando) {
-                return; // Permitir envío
+                return;
             }
 
             const tipoCliente = document.getElementById('facturarCon').value;

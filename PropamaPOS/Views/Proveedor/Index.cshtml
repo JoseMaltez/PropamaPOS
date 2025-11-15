@@ -213,7 +213,7 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar tooltips
+            // tooltips
             const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
             if (tooltips.length > 0 && typeof bootstrap !== 'undefined') {
                 [...tooltips].map(el => new bootstrap.Tooltip(el));

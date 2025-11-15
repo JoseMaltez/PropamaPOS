@@ -12,7 +12,7 @@ using PropamaPOS.Data;
 namespace PropamaPOS.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251103224610_initialCrate")]
+    [Migration("20251114041905_initialCrate")]
     partial class initialCrate
     {
         /// <inheritdoc />
@@ -460,6 +460,9 @@ namespace PropamaPOS.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("EsValido")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("Expiracion")
                         .HasColumnType("datetime2");
 
@@ -490,7 +493,7 @@ namespace PropamaPOS.Migrations
 
                     b.Property<string>("Correo")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Direccion")
                         .IsRequired()
@@ -508,9 +511,6 @@ namespace PropamaPOS.Migrations
                         .HasColumnType("nvarchar(15)");
 
                     b.HasKey("Id_Proveedor");
-
-                    b.HasIndex("Correo")
-                        .IsUnique();
 
                     b.ToTable("Proveedores");
                 });

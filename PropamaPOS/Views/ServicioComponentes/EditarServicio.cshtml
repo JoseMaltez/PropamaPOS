@@ -64,7 +64,7 @@
                             }
                             else
                             {
-                                <!-- Cambiar table-responsive por servicio-table-container -->
+
                                 <div class="servicio-table-container rounded-3 border">
                                     <table class="table table-hover align-middle mb-0" id="componentesTable">
                                         <thead class="servicio-table-header">
@@ -95,7 +95,7 @@
                                                                        class="insumoIdHidden"
                                                                        value="@Model[i].Id_Item" />
                                                             </div>
-                                                            <!-- Eliminar el contenedor de sugerencias interno -->
+                                                       
                                                         </div>
                                                     </td>
                                                     <td>
@@ -154,7 +154,7 @@
     </div>
 </div>
 
-<!-- Contenedor global para sugerencias de insumos -->
+
 <div id="globalSuggestionsContainer" style="position: absolute; z-index: 9999; display: none;"></div>
 
 @section Styles {
@@ -185,7 +185,7 @@
             border-bottom: 2px solid var(--accent-yellow);
         }
 
-        /* Contenedor personalizado para la tabla - SIN overflow que corte contenido */
+
         .servicio-table-container {
             overflow-x: auto;
             background: white;
@@ -236,7 +236,7 @@
                 transform: scale(1.05);
             }
 
-        /* Sugerencias globales */
+
         .global-suggestions {
             position: fixed;
             z-index: 9999;
@@ -267,13 +267,13 @@
                     border-bottom: none;
                 }
 
-        /* Estados de focus para formularios */
+
         .form-control:focus {
             border-color: var(--accent-yellow);
             box-shadow: 0 0 0 0.2rem rgba(255, 195, 0, 0.15);
         }
 
-        /* Responsive */
+        /* Responsivo */
         @@media (max-width: 767.98px) {
             .servicio-header {
                 padding: 1.5rem !important;
@@ -306,16 +306,16 @@
             .servicio-info-card .card-body {
                 padding: 1rem !important;
             }
-            /* Asegurar que la tabla sea scrollable horizontalmente en móvil */
+
             .servicio-table-container {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
             }
-            /* Ancho mínimo para la tabla en móvil */
+
             #componentesTable {
                 min-width: 600px;
             }
-            /* Ajustar sugerencias globales para móvil */
+
             .global-suggestions {
                 left: 10px !important;
                 right: 10px !important;
@@ -339,7 +339,7 @@
             .servicio-info-card .col-md-4 {
                 margin-top: 0.5rem;
             }
-            /* Ajustes adicionales para pantallas muy pequeñas */
+
             #componentesTable {
                 min-width: 500px;
             }
@@ -388,7 +388,7 @@
 
                 const tbody = document.querySelector('#componentesTable tbody');
                 if (!tbody) {
-                    // Si no hay tabla (estado vacío), crear la estructura
+
                     const tableSection = document.querySelector('.form-section');
                     const emptyState = tableSection.querySelector('.text-center');
                     if (emptyState) {
@@ -417,7 +417,7 @@
                 index++;
             });
 
-            // Eliminar fila con animación
+
             document.addEventListener('click', function (e) {
                 if (e.target.closest('.remove-row')) {
                     const row = e.target.closest('tr');
@@ -427,7 +427,7 @@
                     setTimeout(() => {
                         row.remove();
 
-                        // Si no quedan filas, mostrar estado vacío
+
                         const tbody = document.querySelector('#componentesTable tbody');
                         if (tbody && tbody.children.length === 0) {
                             const tableContainer = document.querySelector('.servicio-table-container');
@@ -447,7 +447,7 @@
                 }
             });
 
-            // Autocompletado para Insumos - USANDO SISTEMA GLOBAL
+            // Autocompletado para Insumos
             const items = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(items ?? new object()));
 
             document.addEventListener('input', function (e) {
@@ -476,7 +476,7 @@
                 showGlobalSuggestions(input, matches, container);
             });
 
-            // Mostrar sugerencias globales
+
             function showGlobalSuggestions(input, matches, container) {
                 const globalContainer = document.getElementById('globalSuggestionsContainer');
                 globalContainer.innerHTML = '';
@@ -503,7 +503,7 @@
                     globalContainer.appendChild(el);
                 });
 
-                // Posicionar el contenedor global
+
                 const rect = input.getBoundingClientRect();
                 globalContainer.style.display = 'block';
                 globalContainer.style.top = (rect.bottom + window.scrollY) + 'px';
@@ -511,14 +511,14 @@
                 globalContainer.style.width = (rect.width) + 'px';
             }
 
-            // Ocultar sugerencias globales
+
             function hideGlobalSuggestions() {
                 const globalContainer = document.getElementById('globalSuggestionsContainer');
                 globalContainer.style.display = 'none';
                 globalContainer.innerHTML = '';
             }
 
-            // Ocultar sugerencias al hacer clic fuera
+
             document.addEventListener('click', function (e) {
                 if (!e.target.closest('.list-group') &&
                     !e.target.classList.contains('buscarInsumo') &&
@@ -527,7 +527,7 @@
                 }
             });
 
-            // Validación de cantidad
+
             document.addEventListener('blur', function (e) {
                 if (e.target.type === 'number' && e.target.name.includes('CantidadPorServicio')) {
                     const value = parseFloat(e.target.value);
@@ -562,7 +562,7 @@
                 }
             }
 
-            // Efectos de focus para inputs
+
             document.querySelectorAll('.form-control').forEach(input => {
                 input.addEventListener('focus', function () {
                     this.parentElement.classList.add('focused');
@@ -573,12 +573,12 @@
                 });
             });
 
-            // Ajustar sugerencias al redimensionar
+
             window.addEventListener('resize', function () {
                 hideGlobalSuggestions();
             });
 
-            // Ajustar sugerencias al hacer scroll
+
             window.addEventListener('scroll', function () {
                 if (currentInput && document.getElementById('globalSuggestionsContainer').style.display === 'block') {
                     const rect = currentInput.getBoundingClientRect();

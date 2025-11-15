@@ -1,10 +1,10 @@
-﻿// Sidebar toggle mejorado
+﻿// Sidebar toggle 
 document.addEventListener("DOMContentLoaded", function () {
     const sidebar = document.getElementById("appSidebar");
     const toggleBtn = document.getElementById("sidebarToggleBtn");
     const body = document.body;
 
-    // 🔹 Si no hay sidebar, quitar margen y salir
+
     if (!sidebar) {
         body.classList.remove("sidebar-hidden");
         body.classList.remove("preload");
@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     applySidebarState(hidden, true);
 
-    // Quita la clase preload una vez aplicado el estado
+
     setTimeout(() => {
         body.classList.remove("preload");
     }, 100);
@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
         applySidebarState(hidden);
     });
 
-    // Cerrar sidebar en móvil al hacer clic fuera - SIN OVERLAY
+
     document.addEventListener('click', function (e) {
         if (window.innerWidth <= 767.98 &&
             !sidebar.classList.contains('hidden') &&
@@ -43,10 +43,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Manejar redimensionamiento
+
     window.addEventListener('resize', function () {
         if (window.innerWidth > 767.98) {
-            // En desktop, restaurar estado guardado
+
             const savedState = localStorage.getItem("propama_sidebar_hidden") === "true";
             applySidebarState(savedState, true);
         }
@@ -66,42 +66,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         localStorage.setItem("propama_sidebar_hidden", isHidden);
 
-        // En móvil, NO agregar overlay (comentado)
-        // if (window.innerWidth <= 767.98 && !isHidden) {
-        //     addMobileOverlay();
-        // } else {
-        //     removeMobileOverlay();
-        // }
+
     }
 
-    // Eliminar las funciones de overlay o mantenerlas comentadas
-    /*
-    function addMobileOverlay() {
-        // Comentado - no usar overlay
-    }
-
-    function removeMobileOverlay() {
-        // Comentado - no usar overlay
-    }
-    */
 });
 
-
-//document.addEventListener('DOMContentLoaded', function () {
-//    const loginForm = document.getElementById('loginForm');
-
-//    if (loginForm) {
-//        loginForm.addEventListener('submit', function () {
-//            const btnLogin = document.getElementById('btnLogin');
-//            const loginText = document.getElementById('loginText');
-//            const loginSpinner = document.getElementById('loginSpinner');
-
-//            loginText.classList.add('d-none');
-//            loginSpinner.classList.remove('d-none');
-//            btnLogin.disabled = true;
-//        });
-//    }
-//});
 
 document.addEventListener('DOMContentLoaded', function () {
     // Confirmación para eliminaciones
@@ -133,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-// === Guardar estado de secciones colapsables del sidebar ===
+
 document.addEventListener("DOMContentLoaded", function () {
     const collapsibleLinks = document.querySelectorAll('.menu-section > a[data-bs-toggle="collapse"]');
 
@@ -143,7 +112,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!target) return;
 
-        // 🔹 Restaurar estado previo desde localStorage
+
         const savedState = localStorage.getItem("collapse_" + targetId);
         if (savedState === "true") {
             const collapse = new bootstrap.Collapse(target, { toggle: false });
@@ -151,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function () {
             link.setAttribute("aria-expanded", "true");
         }
 
-        // 🔹 Escuchar cambios (expandir / colapsar)
+
         target.addEventListener("shown.bs.collapse", () => {
             localStorage.setItem("collapse_" + targetId, "true");
         });
@@ -161,9 +130,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-// Mejora para tablas responsivas
+// tablas responsivas
 document.addEventListener("DOMContentLoaded", function () {
-    // Agregar clases responsivas a tablas
+
     document.querySelectorAll('table').forEach(table => {
         if (!table.closest('.table-responsive')) {
             table.classList.add('table', 'table-hover');
@@ -175,15 +144,15 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-// ===== MEJORAS ESPECÍFICAS PARA VISTAS DE ACCOUNT =====
+// ===== VISTAS DE ACCOUNT =====
 
-// Inicialización de componentes de Account
+
 document.addEventListener("DOMContentLoaded", function () {
     initializeAccountComponents();
 });
 
 function initializeAccountComponents() {
-    // Toggle password visibility para Account
+
     document.querySelectorAll(".toggle-password").forEach(btn => {
         btn.addEventListener("click", function () {
             const inputGroup = this.closest('.input-group');
@@ -204,20 +173,20 @@ function initializeAccountComponents() {
         });
     });
 
-    // Validación de formularios de Account - VERSIÓN SIMPLIFICADA
+    // Validación de formularios
     const accountForms = document.querySelectorAll('.account-form');
     accountForms.forEach(form => {
         form.addEventListener('submit', function (e) {
             const submitBtn = this.querySelector('button[type="submit"]');
             if (submitBtn && !submitBtn.disabled) {
-                // Solo deshabilitar el botón, el spinner ya se maneja en la vista
+
                 submitBtn.disabled = true;
                 submitBtn.classList.add('btn-loading');
             }
         });
     });
 
-    // Efectos de focus para inputs de Account
+
     const accountInputs = document.querySelectorAll('.account-form .form-control');
     accountInputs.forEach(input => {
         input.addEventListener('focus', function () {
@@ -231,7 +200,7 @@ function initializeAccountComponents() {
         });
     });
 
-    // Animación de entrada para el login container
+    // Animación de entrada 
     const loginContainer = document.querySelector('.login-container');
     if (loginContainer) {
         setTimeout(() => {
@@ -247,7 +216,7 @@ function initializeAccountComponents() {
     }
 }
 
-// Función para mostrar/ocultar loading states
+
 function setButtonLoading(button, isLoading) {
     if (isLoading) {
         button.disabled = true;
@@ -260,9 +229,9 @@ function setButtonLoading(button, isLoading) {
 
 
 
-// ===== FUNCIONALIDADES ESPECÍFICAS PARA ADMIN =====
+// ===== ADMIN =====
 
-// Inicialización de tooltips
+// tooltips
 function initializeAdminTooltips() {
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -270,9 +239,9 @@ function initializeAdminTooltips() {
     });
 }
 
-// Validación de formularios mejorada
+// Validación de formularios 
 function initializeFormValidation() {
-    // Bootstrap validation
+
     'use strict';
     window.addEventListener('load', function () {
         const forms = document.getElementsByClassName('needs-validation');
@@ -294,12 +263,11 @@ function initializeFormValidation() {
     }, false);
 }
 
-// Mejoras para tablas responsivas
+// tablas responsivas
 function enhanceAdminTables() {
     const tables = document.querySelectorAll('.table-admin');
 
     tables.forEach(table => {
-        // Añadir clases para mejorar la experiencia en móvil
         if (window.innerWidth < 768) {
             table.classList.add('table-sm');
         }
@@ -347,18 +315,18 @@ function initializeCharacterCounters() {
                 }
             });
 
-            // Trigger inicial
+
             input.dispatchEvent(new Event('input'));
         }
     });
 }
 
-// Mejoras para selects con búsqueda
+// selects con búsqueda
 function initializeEnhancedSelects() {
     const enhancedSelects = document.querySelectorAll('.enhanced-select');
 
     enhancedSelects.forEach(select => {
-        // Añadir funcionalidad de búsqueda si es necesario
+
         if (select.hasAttribute('data-search')) {
             const searchInput = document.createElement('input');
             searchInput.type = 'text';
@@ -383,7 +351,7 @@ function initializeEnhancedSelects() {
     });
 }
 
-// Animaciones de carga mejoradas
+
 function showLoadingState(button) {
     const originalText = button.innerHTML;
     button.innerHTML = `
@@ -398,7 +366,7 @@ function showLoadingState(button) {
     };
 }
 
-// Confirmaciones mejoradas para acciones destructivas
+
 function initializeEnhancedConfirmations() {
     const destructiveButtons = document.querySelectorAll('[data-destructive]');
 
@@ -416,7 +384,7 @@ function initializeEnhancedConfirmations() {
     });
 }
 
-// Auto-hide para alertas
+
 function initializeAutoHideAlerts() {
     const autoHideAlerts = document.querySelectorAll('.alert[data-auto-hide]');
 
@@ -430,7 +398,7 @@ function initializeAutoHideAlerts() {
     });
 }
 
-// Mejoras para la paginación
+// paginación
 function initializePaginationEnhancements() {
     const paginationLinks = document.querySelectorAll('.pagination-admin .page-link');
 
@@ -441,7 +409,7 @@ function initializePaginationEnhancements() {
                 return;
             }
 
-            // Añadir efecto de loading si es necesario
+
             const targetRow = this.closest('tr');
             if (targetRow) {
                 targetRow.classList.add('table-active');
@@ -450,7 +418,7 @@ function initializePaginationEnhancements() {
     });
 }
 
-// Inicialización cuando el DOM está listo
+
 document.addEventListener('DOMContentLoaded', function () {
     initializeAdminTooltips();
     initializeFormValidation();
@@ -462,7 +430,7 @@ document.addEventListener('DOMContentLoaded', function () {
     initializeAutoHideAlerts();
     initializePaginationEnhancements();
 
-    // Añadir clase fade-in a los elementos principales
+
     const mainContent = document.querySelector('.fade-in');
     if (mainContent) {
         mainContent.style.opacity = '0';
@@ -476,12 +444,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-// Mejoras para responsive
+// responsivo
 window.addEventListener('resize', function () {
     enhanceAdminTables();
 });
 
-// Exportar funciones para uso global
+
 window.AdminUtils = {
     showLoadingState,
     initializeAdminTooltips,
@@ -490,9 +458,9 @@ window.AdminUtils = {
 
 
 
-// ===== FUNCIONALIDADES ESPECÍFICAS PARA AJUSTES =====
+// ===== FUNCIONALIDADES PARA AJUSTES =====
 
-// Inicialización de tooltips
+// tooltips
 function initializeTooltips() {
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     if (tooltipTriggerList.length > 0 && typeof bootstrap !== 'undefined') {
@@ -500,7 +468,7 @@ function initializeTooltips() {
     }
 }
 
-// Validación de formularios mejorada
+// Validación de formularios
 function initializeFormValidation() {
     const forms = document.querySelectorAll('.needs-validation');
 
@@ -531,7 +499,7 @@ function initializeFormValidation() {
     });
 }
 
-// Manejo de alertas dinámicas
+// Manejo de alertas
 function showAlert(type, message, container = null) {
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
@@ -544,7 +512,7 @@ function showAlert(type, message, container = null) {
     const targetContainer = container || document.querySelector('.container-fluid') || document.body;
     targetContainer.prepend(alertDiv);
 
-    // Auto-remover después de 5 segundos
+
     setTimeout(() => {
         if (alertDiv.parentNode) {
             const bsAlert = new bootstrap.Alert(alertDiv);
@@ -563,7 +531,7 @@ function getAlertIcon(type) {
     return icons[type] || 'bi-info-circle';
 }
 
-// Manejo de estados vacíos en tablas
+
 function toggleEmptyState(tableId, emptyStateId) {
     const table = document.getElementById(tableId);
     const emptyState = document.getElementById(emptyStateId);
@@ -578,12 +546,12 @@ function toggleEmptyState(tableId, emptyStateId) {
     }
 }
 
-// Inicialización cuando el DOM está listo
+
 document.addEventListener('DOMContentLoaded', function () {
     initializeTooltips();
     initializeFormValidation();
 
-    // Inicializar estados vacíos
+
     const tables = document.querySelectorAll('table[data-empty-state]');
     tables.forEach(table => {
         const emptyStateId = table.getAttribute('data-empty-state');
@@ -591,7 +559,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// Exportar funciones para uso global
+
 window.PropamaPOS = {
     ...window.PropamaPOS,
     showAlert,
@@ -607,9 +575,9 @@ window.PropamaPOS = {
 
 
 
-// ===== FUNCIONALIDADES ESPECÍFICAS PARA CATEGORÍAS =====
+// ===== FUNCIONALIDADES PARA CATEGORÍAS =====
 
-// Inicialización de componentes de categoría
+
 function initializeCategoryComponents() {
     // Tooltips para acciones
     const categoryTooltips = document.querySelectorAll('.btn-category-action[data-bs-toggle="tooltip"]');
@@ -617,7 +585,7 @@ function initializeCategoryComponents() {
         [...categoryTooltips].map(el => new bootstrap.Tooltip(el));
     }
 
-    // Confirmación mejorada para eliminaciones
+
     const deleteButtons = document.querySelectorAll('.btn-category-delete');
     deleteButtons.forEach(button => {
         button.addEventListener('click', function (e) {
@@ -628,10 +596,10 @@ function initializeCategoryComponents() {
         });
     });
 
-    // Mejoras para formularios de categoría
+    // formularios de categoría
     const categoryForms = document.querySelectorAll('.category-form');
     categoryForms.forEach(form => {
-        // Validación en tiempo real
+
         const inputs = form.querySelectorAll('input, textarea');
         inputs.forEach(input => {
             input.addEventListener('blur', function () {
@@ -643,7 +611,7 @@ function initializeCategoryComponents() {
             });
         });
 
-        // Submit con loading state
+
         form.addEventListener('submit', function (e) {
             const submitBtn = this.querySelector('button[type="submit"]');
             if (submitBtn && this.checkValidity()) {
@@ -653,21 +621,21 @@ function initializeCategoryComponents() {
     });
 }
 
-// Validación de campos de categoría
+// Validación de campos
 function validateCategoryField(field) {
     const value = field.value.trim();
     const formGroup = field.closest('.mb-3');
 
-    // Limpiar estados previos
+s
     clearFieldValidation(field);
 
-    // Validar campo requerido
+
     if (field.hasAttribute('required') && !value) {
         showFieldError(field, 'Este campo es requerido');
         return false;
     }
 
-    // Validar longitud mínima para nombre
+
     if (field.name === 'Nombre' && value.length < 2) {
         showFieldError(field, 'El nombre debe tener al menos 2 caracteres');
         return false;
@@ -690,7 +658,7 @@ function showFieldError(field, message) {
     errorElement.textContent = message;
 }
 
-// Limpiar validación de campo
+
 function clearFieldValidation(field) {
     field.classList.remove('is-invalid');
     field.classList.remove('is-valid');
@@ -702,12 +670,12 @@ function clearFieldValidation(field) {
     }
 }
 
-// Inicializar cuando el DOM esté listo
+
 document.addEventListener('DOMContentLoaded', function () {
     initializeCategoryComponents();
 });
 
-// Exportar funciones para uso global
+
 window.CategoryUtils = {
     initializeCategoryComponents,
     validateCategoryField
@@ -716,12 +684,11 @@ window.CategoryUtils = {
 
 
 
-// Agregar al final del FILE: PropamaPOS/wwwroot/js/site.js
 
-// ===== FUNCIONALIDADES ESPECÍFICAS PARA DASHBOARD EMPLEADO =====
+// ===== FUNCIONALIDADES PARA DASHBOARD EMPLEADO =====
 
 function initializeDashboardComponents() {
-    // Animación de entrada para las cards
+    // Animación de entrada
     const dashboardCards = document.querySelectorAll('.dashboard-card');
     dashboardCards.forEach((card, index) => {
         card.style.opacity = '0';
@@ -734,16 +701,16 @@ function initializeDashboardComponents() {
         }, index * 100);
     });
 
-    // Tooltips para elementos del dashboard
+    // Tooltips 
     const dashboardTooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     if (dashboardTooltips.length > 0 && typeof bootstrap !== 'undefined') {
         [...dashboardTooltips].map(el => new bootstrap.Tooltip(el));
     }
 
-    // Actualización automática del reloj
+    // Actualización del reloj
     updateLiveClock();
 
-    // Efectos hover mejorados para botones de acción rápida
+
     const quickActionButtons = document.querySelectorAll('.btn[asp-controller]');
     quickActionButtons.forEach(btn => {
         btn.addEventListener('mouseenter', function () {
@@ -770,12 +737,12 @@ function updateLiveClock() {
     }
 }
 
-// Inicializar componentes del dashboard cuando el DOM esté listo
+
 document.addEventListener('DOMContentLoaded', function () {
     initializeDashboardComponents();
 });
 
-// Exportar funciones para uso global
+
 window.DashboardUtils = {
     initializeDashboardComponents,
     updateLiveClock
@@ -784,17 +751,17 @@ window.DashboardUtils = {
 
 
 
-// ===== FUNCIONALIDADES ESPECÍFICAS PARA ITEMS =====
+// ===== FUNCIONALIDADES PARA ITEMS =====
 
-// Inicialización de componentes de item
+
 function initializeItemComponents() {
-    // Tooltips para acciones
+    // Tooltips
     const itemTooltips = document.querySelectorAll('.btn-item-action[data-bs-toggle="tooltip"]');
     if (itemTooltips.length > 0 && typeof bootstrap !== 'undefined') {
         [...itemTooltips].map(el => new bootstrap.Tooltip(el));
     }
 
-    // Confirmación mejorada para eliminaciones
+
     const deleteButtons = document.querySelectorAll('.btn-item-delete');
     deleteButtons.forEach(button => {
         button.addEventListener('click', function (e) {
@@ -805,10 +772,10 @@ function initializeItemComponents() {
         });
     });
 
-    // Mejoras para formularios de item
+    // formularios de item
     const itemForms = document.querySelectorAll('.item-form');
     itemForms.forEach(form => {
-        // Validación en tiempo real
+
         const inputs = form.querySelectorAll('input, textarea, select');
         inputs.forEach(input => {
             input.addEventListener('blur', function () {
@@ -829,7 +796,6 @@ function initializeItemComponents() {
         });
     });
 
-    // Mejoras para la tabla de presentaciones
     initializePresentacionesTable();
 }
 
@@ -838,16 +804,16 @@ function validateItemField(field) {
     const value = field.value.trim();
     const formGroup = field.closest('.mb-3');
 
-    // Limpiar estados previos
+
     clearFieldValidation(field);
 
-    // Validar campo requerido
+
     if (field.hasAttribute('required') && !value) {
         showFieldError(field, 'Este campo es requerido');
         return false;
     }
 
-    // Validar longitud mínima para nombre
+
     if (field.name === 'Nombre' && value.length < 2) {
         showFieldError(field, 'El nombre debe tener al menos 2 caracteres');
         return false;
@@ -862,12 +828,12 @@ function validateItemField(field) {
     return true;
 }
 
-// Inicializar tabla de presentaciones
+
 function initializePresentacionesTable() {
     const presentacionesTable = document.getElementById('presentacionesTable');
     if (!presentacionesTable) return;
 
-    // Añadir clases responsivas
+
     if (!presentacionesTable.closest('.table-responsive')) {
         const wrapper = document.createElement('div');
         wrapper.className = 'table-responsive';
@@ -876,7 +842,7 @@ function initializePresentacionesTable() {
     }
 }
 
-// Mostrar error en campo
+// error en campo
 function showFieldError(field, message) {
     const formGroup = field.closest('.mb-3');
     field.classList.add('is-invalid');
@@ -890,7 +856,7 @@ function showFieldError(field, message) {
     errorElement.textContent = message;
 }
 
-// Limpiar validación de campo
+
 function clearFieldValidation(field) {
     field.classList.remove('is-invalid');
     field.classList.remove('is-valid');
@@ -902,18 +868,18 @@ function clearFieldValidation(field) {
     }
 }
 
-// Inicializar cuando el DOM esté listo
+
 document.addEventListener('DOMContentLoaded', function () {
     initializeItemComponents();
 
-    // Añadir clase de animación a los elementos principales
+
     const mainContent = document.querySelector('.container');
     if (mainContent) {
         mainContent.classList.add('item-fade-in');
     }
 });
 
-// Exportar funciones para uso global
+
 window.ItemUtils = {
     initializeItemComponents,
     validateItemField
@@ -922,35 +888,35 @@ window.ItemUtils = {
 
 
 
-// ===== FUNCIONALIDADES ESPECÍFICAS PARA REPORTES =====
+// ===== ESPECÍFICAS PARA REPORTES =====
 
-// Inicialización de componentes de reporte
+
 function initializeReportComponents() {
-    // Tooltips para acciones
+    // Tooltips
     const reportTooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     if (reportTooltips.length > 0 && typeof bootstrap !== 'undefined') {
         [...reportTooltips].map(el => new bootstrap.Tooltip(el));
     }
 
-    // Mejoras para filtros de fecha
+
     initializeDateFilters();
 
-    // Mejoras para tablas responsivas
+
     enhanceReportTables();
 
-    // Inicializar estados vacíos
+
     initializeEmptyStates();
 }
 
-// Inicializar filtros de fecha
+
 function initializeDateFilters() {
     const dateInputs = document.querySelectorAll('input[type="date"]');
     dateInputs.forEach(input => {
-        // Establecer fecha máxima como hoy
+
         const today = new Date().toISOString().split('T')[0];
         input.setAttribute('max', today);
 
-        // Mejorar la experiencia en móvil
+
         input.addEventListener('focus', function () {
             this.style.backgroundColor = '#fff';
         });
@@ -961,12 +927,12 @@ function initializeDateFilters() {
     });
 }
 
-// Mejorar tablas de reporte
+// tablas de reporte
 function enhanceReportTables() {
     const reportTables = document.querySelectorAll('.report-table');
 
     reportTables.forEach(table => {
-        // Añadir clases responsivas si no las tiene
+
         if (!table.closest('.table-responsive')) {
             const wrapper = document.createElement('div');
             wrapper.className = 'table-responsive';
@@ -974,14 +940,14 @@ function enhanceReportTables() {
             wrapper.appendChild(table);
         }
 
-        // Mejorar experiencia en móvil
+
         if (window.innerWidth < 768) {
             table.classList.add('table-sm');
         }
     });
 }
 
-// Inicializar estados vacíos
+
 function initializeEmptyStates() {
     const tables = document.querySelectorAll('.report-table');
 
@@ -1002,7 +968,7 @@ function initializeEmptyStates() {
     });
 }
 
-// Exportar a PDF con loading state
+
 function initializeDownloadButtons() {
     const downloadButtons = document.querySelectorAll('.btn-download');
 
@@ -1015,7 +981,7 @@ function initializeDownloadButtons() {
             `;
             this.disabled = true;
 
-            // Restaurar después de 5 segundos (en caso de error)
+
             setTimeout(() => {
                 this.innerHTML = originalText;
                 this.disabled = false;
@@ -1024,19 +990,19 @@ function initializeDownloadButtons() {
     });
 }
 
-// Inicializar cuando el DOM esté listo
+
 document.addEventListener('DOMContentLoaded', function () {
     initializeReportComponents();
     initializeDownloadButtons();
 
-    // Añadir clase de animación a los elementos principales
+
     const mainContent = document.querySelector('.container');
     if (mainContent) {
         mainContent.classList.add('fade-in');
     }
 });
 
-// Exportar funciones para uso global
+
 window.ReportUtils = {
     initializeReportComponents,
     initializeDownloadButtons

@@ -214,13 +214,13 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar tooltips
+            //  tooltips
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
 
-            // Mejorar experiencia en móvil para la tabla
+
             if (window.innerWidth < 768) {
                 document.querySelectorAll('.ventas-table').forEach(table => {
                     table.classList.add('table-sm');

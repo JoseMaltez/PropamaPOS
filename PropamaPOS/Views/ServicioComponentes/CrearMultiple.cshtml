@@ -61,7 +61,7 @@
                                 </button>
                             </div>
 
-                            <!-- Tabla sin table-responsive para evitar problemas con autocompletado -->
+
                             <div class="servicio-table-container rounded-3 border">
                                 <table class="table table-hover align-middle mb-0" id="componentesTable">
                                     <thead class="servicio-table-header">
@@ -89,7 +89,7 @@
                                                                    class="insumoIdHidden"
                                                                    value="@Model.Lineas[i].Id_Item" />
                                                         </div>
-                                                        <!-- El contenedor de sugerencias se manejará dinámicamente -->
+
                                                     </div>
                                                 </td>
                                                 <td>
@@ -127,7 +127,7 @@
     </div>
 </div>
 
-<!-- Contenedor global para sugerencias de insumos -->
+
 <div id="globalSuggestionsContainer" style="position: absolute; z-index: 9999; display: none;"></div>
 
 @section Styles {
@@ -153,11 +153,11 @@
             border-bottom: 2px solid var(--accent-yellow);
         }
 
-        /* Contenedor personalizado para la tabla - SIN overflow que corte contenido */
+
         .servicio-table-container {
             overflow-x: auto;
             background: white;
-            position: relative; /* Para contexto de posicionamiento */
+            position: relative;
         }
 
         .servicio-table-header {
@@ -204,7 +204,7 @@
                 transform: scale(1.05);
             }
 
-        /* Sugerencias de autocompletado - COMPLETAMENTE FUERA del flujo normal */
+
         .servicio-suggestions {
             z-index: 9999;
             display: none;
@@ -249,13 +249,13 @@
                     border-bottom: none;
                 }
 
-        /* Estados de focus para formularios */
+
         .form-control:focus {
             border-color: var(--accent-yellow);
             box-shadow: 0 0 0 0.2rem rgba(255, 195, 0, 0.15);
         }
 
-        /* Responsive mejorado para móvil */
+
         @@media (max-width: 767.98px) {
             .servicio-header {
                 padding: 1.5rem !important;
@@ -284,16 +284,16 @@
                 .d-flex.justify-content-between .btn {
                     width: 100%;
                 }
-            /* Asegurar que la tabla sea scrollable horizontalmente en móvil */
+
             .servicio-table-container {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
             }
-            /* Ancho mínimo para la tabla en móvil */
+
             #componentesTable {
                 min-width: 600px;
             }
-            /* Ajustar sugerencias globales para móvil */
+
             .global-suggestions {
                 left: 10px !important;
                 right: 10px !important;
@@ -305,13 +305,13 @@
             .form-section-title {
                 font-size: 1rem;
             }
-            /* Ajustes adicionales para pantallas muy pequeñas */
+
             #componentesTable {
                 min-width: 500px;
             }
         }
 
-        /* Para tablets */
+
         @@media (max-width: 991.98px) and (min-width: 768px) {
             #componentesTable {
                 min-width: 700px;
@@ -363,7 +363,7 @@
                 index++;
             });
 
-            // Eliminar fila con animación
+
             document.addEventListener('click', function (e) {
                 if (e.target.closest('.remove-row')) {
                     const row = e.target.closest('tr');
@@ -375,7 +375,7 @@
             });
         })();
 
-        // --- Texto predictivo para Servicio e Insumos ---
+        // texto predictivo para Servicio e Insumos
         const servicios = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(servicios ?? new object()));
         const items = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(items ?? new object()));
 
@@ -422,7 +422,7 @@
             sugServEl.style.display = 'block';
         });
 
-        // Insumo: autocompletado por fila - COMPLETAMENTE MEJORADO
+
         document.addEventListener('input', function (e) {
             if (!e.target.classList.contains('buscarInsumo')) return;
 
@@ -449,7 +449,7 @@
             showGlobalSuggestions(input, matches, container);
         });
 
-        // Mostrar sugerencias globales
+
         function showGlobalSuggestions(input, matches, container) {
             const globalContainer = document.getElementById('globalSuggestionsContainer');
             globalContainer.innerHTML = '';
@@ -476,7 +476,7 @@
                 globalContainer.appendChild(el);
             });
 
-            // Posicionar el contenedor global
+
             const rect = input.getBoundingClientRect();
             globalContainer.style.display = 'block';
             globalContainer.style.top = (rect.bottom + window.scrollY) + 'px';
@@ -484,14 +484,14 @@
             globalContainer.style.width = (rect.width) + 'px';
         }
 
-        // Ocultar sugerencias globales
+
         function hideGlobalSuggestions() {
             const globalContainer = document.getElementById('globalSuggestionsContainer');
             globalContainer.style.display = 'none';
             globalContainer.innerHTML = '';
         }
 
-        // Ocultar sugerencias al hacer clic fuera
+
         document.addEventListener('click', function (e) {
             if (!e.target.closest('.list-group') &&
                 !e.target.classList.contains('buscarInsumo') &&
@@ -502,7 +502,7 @@
             }
         });
 
-        // Efectos de focus para inputs
+
         document.querySelectorAll('.form-control').forEach(input => {
             input.addEventListener('focus', function () {
                 this.parentElement.classList.add('focused');
@@ -513,13 +513,13 @@
             });
         });
 
-        // Ajustar sugerencias al redimensionar
+
         window.addEventListener('resize', function () {
             hideGlobalSuggestions();
             if (sugServEl) sugServEl.style.display = 'none';
         });
 
-        // Ajustar sugerencias al hacer scroll
+
         window.addEventListener('scroll', function () {
             if (currentInput && document.getElementById('globalSuggestionsContainer').style.display === 'block') {
                 const rect = currentInput.getBoundingClientRect();

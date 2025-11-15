@@ -101,7 +101,7 @@
 
     <script>
         (function(){
-            // Datos pasados desde Razor
+
             const unidades = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(unidades));
             const tableBody = document.querySelector('#presentacionesTable tbody');
             const isServicio = document.getElementById('IsServicio');

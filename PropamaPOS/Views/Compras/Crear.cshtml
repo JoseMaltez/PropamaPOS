@@ -101,7 +101,7 @@
                             </div>
                         </div>
 
-                        <!-- Hidden Fields -->
+                        <!-- Hidden  -->
                         <input type="hidden" name="Subtotal" id="subtotalHidden" />
                         <input type="hidden" name="IVA" id="ivaHidden" />
                         <input type="hidden" name="Total" id="totalHidden" />
@@ -240,7 +240,7 @@
             index++;
         }
 
-        // Event Listeners
+
         document.getElementById("btnAgregar").addEventListener("click", agregarFila);
 
         // Búsqueda predictiva de productos
@@ -299,14 +299,14 @@
             sugBox.style.display = 'block';
         });
 
-        // Ocultar sugerencias al hacer clic fuera
+
         document.addEventListener('click', e => {
             if (!e.target.closest('.sugerenciasProducto') && !e.target.classList.contains('buscarProducto')) {
                 document.querySelectorAll('.sugerenciasProducto').forEach(l => l.style.display = 'none');
             }
         });
 
-        // Cálculos en tiempo real
+
         document.querySelector("#tablaLineas tbody").addEventListener("input", function (e) {
             if (e.target.classList.contains("cantidad") || e.target.classList.contains("precio")) {
                 const row = e.target.closest("tr");
@@ -334,7 +334,7 @@
             }
         });
 
-        // Agregar primera fila automáticamente
+
         document.addEventListener('DOMContentLoaded', function() {
             agregarFila();
         });

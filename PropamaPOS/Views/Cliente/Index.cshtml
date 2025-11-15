@@ -13,7 +13,7 @@
 }
 
 <div class="container-fluid mt-4 client-fade-in">
-    <!-- Header Mejorado -->
+    <!-- Header -->
     <div class="client-header">
         <div class="row align-items-center">
             <div class="col">
@@ -32,7 +32,7 @@
         </div>
     </div>
 
-    <!-- Filtros Mejorados -->
+    <!-- Filtros -->
     <div class="client-search-card">
         <div class="card-body">
             <form method="get" class="row g-3 align-items-end">
@@ -152,7 +152,7 @@
                     </table>
                 </div>
 
-                <!-- Paginación Mejorada -->
+                <!-- Paginación -->
                 @if (totalPages > 1)
                 {
                     <div class="card-footer bg-transparent border-top-0">
@@ -196,7 +196,7 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar tooltips
+            // tooltips
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
